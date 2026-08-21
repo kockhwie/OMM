@@ -1,0 +1,140 @@
+# =============================================================================
+# OhMyMine — .gitignore (ASP.NET Core Blazor Server + .NET 10)
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# SECRETS & SENSITIVE FILES — never push these
+# ---------------------------------------------------------------------------
+# ASP.NET Core user secrets (local dev only)
+**/appsettings.*.json
+# Keep the base appsettings.json template, but exclude environment-specific ones:
+!appsettings.json
+!appsettings.Development.json
+
+# Real connection string overrides / production configs
+appsettings.Production.json
+appsettings.Staging.json
+
+# .NET user secrets store (managed by dotnet user-secrets)
+# Located at: %APPDATA%\Microsoft\UserSecrets\
+# Never ends up in the project dir, but just in case:
+secrets.json
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# ---------------------------------------------------------------------------
+# .NET / C# BUILD ARTIFACTS
+# ---------------------------------------------------------------------------
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# NuGet
+*.nupkg
+*.snupkg
+**/[Pp]ackages/
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+nuget.config.local
+
+# .NET publish output
+publish/
+out/
+[Rr]elease/
+
+# Test results
+[Tt]est[Rr]esult*/
+*.trx
+*.coverage
+*.coveragexml
+coverage*/
+TestResults/
+
+# ---------------------------------------------------------------------------
+# VISUAL STUDIO & RIDER IDE FILES
+# ---------------------------------------------------------------------------
+.vs/
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.pidb
+*.booproj
+.ncrunch*
+_NCrunch_*
+
+# VS Code workspace files (personal)
+*.code-workspace
+
+# Rider
+.idea/
+*.sln.iml
+
+# ReSharper
+_ReSharper*/
+*.DotSettings.user
+
+# ---------------------------------------------------------------------------
+# DEMO / FRONTEND — reference mockup only, not part of the Blazor codebase
+# ---------------------------------------------------------------------------
+demo/
+
+
+# ---------------------------------------------------------------------------
+# BLAZOR / ASPNET SPECIFIC
+# ---------------------------------------------------------------------------
+# Static web assets intermediate output
+**/staticwebassets/
+
+# Publish profiles
+**/Properties/PublishProfiles/
+*.pubxml
+*.pubxml.user
+
+# Local service dependencies (machine-specific)
+Properties/serviceDependencies.local.json
+
+# ---------------------------------------------------------------------------
+# WINDOWS & OS FILES
+# ---------------------------------------------------------------------------
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.stackdump
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# ---------------------------------------------------------------------------
+# MIGRATIONS (keep in repo — intentional, needed for DB setup)
+# ---------------------------------------------------------------------------
+# Uncomment below ONLY if you want to exclude auto-generated migrations:
+# **/Migrations/
+
+# ---------------------------------------------------------------------------
+# MISCELLANEOUS
+# ---------------------------------------------------------------------------
+# Crash dumps
+*.dmp
+
+# Benchmark results
+BenchmarkDotNet.Artifacts/
+
+# Docker local overrides
+docker-compose.override.yml

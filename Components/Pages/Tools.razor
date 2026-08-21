@@ -1,0 +1,388 @@
+@page "/tools"
+@layout DashboardLayout
+@inject IMineService MineService
+@inject NavigationManager Navigation
+
+<PageTitle>Financial Tools & Calculators — OhMyMine</PageTitle>
+
+@if (activeTool == null)
+{
+    <div class="mb-4 animate-fade-up">
+        <h1 class="h3 fw-bold text-dark font-display mb-1">Financial Tools & Simulators</h1>
+        <p class="text-muted small mb-0">Practical calculators calibrated for Malaysian financial instruments and mining strategy</p>
+    </div>
+
+    <!-- Tools Catalog Grid -->
+    <div class="row g-4">
+        <!-- 1. Fixed Deposit & Cash Yield Calculator -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4 p-4 card-hover cursor-pointer bg-white"
+                 @onclick='() => activeTool = "fd"'>
+                <div class="d-flex align-items-start justify-content-between mb-3">
+                    <div class="rounded-3 bg-dark text-warning p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                        <i class="ti ti-calculator fs-4"></i>
+                    </div>
+                    <span class="badge bg-light text-dark border">Planning</span>
+                </div>
+                <h3 class="h6 fw-bold text-dark font-display mb-2">Fixed Deposit & Cash Yield</h3>
+                <p class="text-muted small mb-3 flex-grow-1" style="line-height: 1.5;">
+                    Calculate maturity value, compounded returns, and monthly passive equivalent for MYR fixed deposits and digital cash placements.
+                </p>
+                <div class="d-flex align-items-center gap-1 fw-semibold text-primary small pt-2 border-top border-light-subtle">
+                    <span>Open Calculator</span>
+                    <i class="ti ti-arrow-right fs-6"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Freedom Ratio Simulator -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4 p-4 card-hover cursor-pointer bg-white"
+                 @onclick='() => activeTool = "freedom"'>
+                <div class="d-flex align-items-start justify-content-between mb-3">
+                    <div class="rounded-3 bg-success-subtle text-success p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                        <i class="ti ti-bolt fs-4"></i>
+                    </div>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle">Income</span>
+                </div>
+                <h3 class="h6 fw-bold text-dark font-display mb-2">Freedom Ratio Simulator</h3>
+                <p class="text-muted small mb-3 flex-grow-1" style="line-height: 1.5;">
+                    Simulate how increasing monthly mine contributions accelerates your journey to 100% passive expense coverage.
+                </p>
+                <div class="d-flex align-items-center gap-1 fw-semibold text-success small pt-2 border-top border-light-subtle">
+                    <span>Simulate Freedom</span>
+                    <i class="ti ti-arrow-right fs-6"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Emergency Fund Safety Planner -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4 p-4 card-hover cursor-pointer bg-white"
+                 @onclick='() => activeTool = "emergency"'>
+                <div class="d-flex align-items-start justify-content-between mb-3">
+                    <div class="rounded-3 bg-warning-subtle text-warning p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                        <i class="ti ti-shield-check fs-4"></i>
+                    </div>
+                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle">Safety</span>
+                </div>
+                <h3 class="h6 fw-bold text-dark font-display mb-2">Emergency Fund Safety Gauge</h3>
+                <p class="text-muted small mb-3 flex-grow-1" style="line-height: 1.5;">
+                    Benchmark your liquid buffer (3 to 12 months) against actual recurring liabilities and net debt service obligations.
+                </p>
+                <div class="d-flex align-items-center gap-1 fw-semibold text-warning small pt-2 border-top border-light-subtle">
+                    <span>Check Safety Buffer</span>
+                    <i class="ti ti-arrow-right fs-6"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Debt Payoff & Mortgage Accelerator -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4 p-4 card-hover cursor-pointer bg-white"
+                 @onclick='() => activeTool = "debt"'>
+                <div class="d-flex align-items-start justify-content-between mb-3">
+                    <div class="rounded-3 bg-danger-subtle text-danger p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                        <i class="ti ti-trending-down fs-4"></i>
+                    </div>
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Burden</span>
+                </div>
+                <h3 class="h6 fw-bold text-dark font-display mb-2">Debt Payoff Accelerator</h3>
+                <p class="text-muted small mb-3 flex-grow-1" style="line-height: 1.5;">
+                    See how lump-sum or extra monthly principal repayments reduce overall interest charges and years off your mortgage.
+                </p>
+                <div class="d-flex align-items-center gap-1 fw-semibold text-danger small pt-2 border-top border-light-subtle">
+                    <span>Model Payoff</span>
+                    <i class="ti ti-arrow-right fs-6"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Compound Growth Mine Simulator -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4 p-4 card-hover cursor-pointer bg-white"
+                 @onclick='() => activeTool = "compound"'>
+                <div class="d-flex align-items-start justify-content-between mb-3">
+                    <div class="rounded-3 bg-primary-subtle text-primary p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                        <i class="ti ti-chart-line fs-4"></i>
+                    </div>
+                    <span class="badge bg-light text-dark border">Growth</span>
+                </div>
+                <h3 class="h6 fw-bold text-dark font-display mb-2">Compound Growth Simulator</h3>
+                <p class="text-muted small mb-3 flex-grow-1" style="line-height: 1.5;">
+                    Project long-term wealth accumulation for EPF, unit trusts, and equity portfolios with dividend reinvestment.
+                </p>
+                <div class="d-flex align-items-center gap-1 fw-semibold text-primary small pt-2 border-top border-light-subtle">
+                    <span>Simulate Growth</span>
+                    <i class="ti ti-arrow-right fs-6"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <!-- Back to Tools Header -->
+    <div class="mb-3 animate-fade-up">
+        <button class="btn btn-link text-muted p-0 small text-decoration-none d-inline-flex align-items-center gap-1"
+                @onclick="() => activeTool = null">
+            <i class="ti ti-arrow-left"></i>
+            <span>Back to all tools</span>
+        </button>
+    </div>
+
+    @if (activeTool == "fd")
+    {
+        <!-- Fixed Deposit Calculator -->
+        <div class="mb-4 animate-fade-up">
+            <h1 class="h3 fw-bold text-dark font-display mb-1">Fixed Deposit & Cash Yield Calculator</h1>
+            <p class="text-muted small mb-0">Estimate total maturity proceeds and annualized cashflow</p>
+        </div>
+
+        <div class="row g-4 animate-fade-up">
+            <!-- Inputs -->
+            <div class="col-12 col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                    <h3 class="h6 fw-bold text-dark font-display mb-4">Placement Parameters</h3>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark">Principal Amount (RM)</label>
+                        <input type="number" class="form-control rounded-3" step="1000" @bind="fdPrincipal" @bind:event="oninput" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark">Interest Rate (% p.a.)</label>
+                        <input type="number" class="form-control rounded-3" step="0.05" @bind="fdRate" @bind:event="oninput" />
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label small fw-semibold text-dark mb-0">Tenure: <span class="text-primary fw-bold">@fdTenureMonths months</span></label>
+                            <span class="text-muted small">(@(fdTenureMonths >= 12 ? $"{fdTenureMonths / 12} yr {(fdTenureMonths % 12 > 0 ? $"{fdTenureMonths % 12} mo" : "")}" : $"{fdTenureMonths} mo"))</span>
+                        </div>
+                        <input type="range" class="form-range" min="1" max="60" @bind="fdTenureMonths" @bind:event="oninput" />
+                        <div class="d-flex justify-content-between small text-muted">
+                            <span>1 mo</span>
+                            <span>12 mo (1 yr)</span>
+                            <span>36 mo (3 yr)</span>
+                            <span>60 mo (5 yr)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div class="col-12 col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                    <h3 class="h6 fw-bold text-dark font-display mb-4">Maturity Yield Breakdown</h3>
+
+                    <div class="p-4 rounded-4 bg-dark text-white text-center mb-3">
+                        <span class="text-uppercase text-white-50 fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.05em;">Total Maturity Proceeds</span>
+                        <div class="fs-2 fw-bold text-warning font-display my-1">
+                            @FormatHelper.FormatCurrency(FdMaturityValue)
+                        </div>
+                        <small class="text-white-50">Principal + Total Interest Earned</small>
+                    </div>
+
+                    <div class="d-flex flex-column gap-2 small">
+                        <div class="d-flex justify-content-between py-2 border-bottom border-light-subtle">
+                            <span class="text-muted">Initial Principal</span>
+                            <span class="fw-semibold text-dark">@FormatHelper.FormatCurrency(fdPrincipal)</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-2 border-bottom border-light-subtle">
+                            <span class="text-muted">Total Interest Profit</span>
+                            <span class="fw-bold text-success">@FormatHelper.FormatCurrency(FdTotalInterest)</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-2 border-bottom border-light-subtle">
+                            <span class="text-muted">Effective Monthly Passive Equivalent</span>
+                            <span class="fw-bold text-dark">@FormatHelper.FormatCurrency(FdMonthlyEquivalent) / month</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-2">
+                            <span class="text-muted">Effective Annualized Return</span>
+                            <span class="fw-semibold text-dark">@fdRate.ToString("F2")% p.a.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (activeTool == "freedom")
+    {
+        <!-- Freedom Ratio Simulator -->
+        <div class="mb-4 animate-fade-up">
+            <h1 class="h3 fw-bold text-dark font-display mb-1">Freedom Ratio Simulator</h1>
+            <p class="text-muted small mb-0">Model your passive income coverage and time to financial freedom</p>
+        </div>
+
+        <div class="row g-4 animate-fade-up">
+            <div class="col-12 col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                    <h3 class="h6 fw-bold text-dark font-display mb-4">Cashflow Assumptions</h3>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark">Monthly Recurring Living Expenses (RM)</label>
+                        <input type="number" class="form-control rounded-3" step="250" @bind="simExpenses" @bind:event="oninput" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark">Current Monthly Passive Income (RM)</label>
+                        <input type="number" class="form-control rounded-3" step="100" @bind="simPassive" @bind:event="oninput" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark">Monthly Savings Invested into Mines (RM)</label>
+                        <input type="number" class="form-control rounded-3" step="250" @bind="simMonthlySaving" @bind:event="oninput" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark">Assumed Average Mine Yield (% p.a.)</label>
+                        <input type="number" class="form-control rounded-3" step="0.5" @bind="simYield" @bind:event="oninput" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                    <h3 class="h6 fw-bold text-dark font-display mb-4">Projected Milestones</h3>
+
+                    @{
+                        var currentRatio = simExpenses > 0 ? (simPassive / simExpenses) * 100m : 0;
+                        var targetPassiveNeeded = simExpenses - simPassive;
+                        var additionalCapitalNeeded = simYield > 0 && targetPassiveNeeded > 0 ? (targetPassiveNeeded * 12m) / (simYield / 100m) : 0;
+                        var monthsToFreedom = simMonthlySaving > 0 && additionalCapitalNeeded > 0 ? (int)Math.Ceiling(additionalCapitalNeeded / simMonthlySaving) : 0;
+                    }
+
+                    <div class="p-4 rounded-4 bg-success-subtle border border-success-subtle text-center mb-3">
+                        <span class="text-uppercase text-muted fw-semibold" style="font-size: 0.7rem;">Current Freedom Score</span>
+                        <div class="fs-1 fw-bold text-success font-display my-1">
+                            @Math.Round(currentRatio, 1)%
+                        </div>
+                        <ProgressBar Value="@currentRatio" Height="10px" ColorClass="bg-success" />
+                    </div>
+
+                    <div class="d-flex flex-column gap-2 small">
+                        <div class="d-flex justify-content-between py-2 border-bottom border-light-subtle">
+                            <span class="text-muted">Passive Gap to 100% Freedom</span>
+                            <span class="fw-bold text-danger">@(targetPassiveNeeded > 0 ? FormatHelper.FormatCurrency(targetPassiveNeeded) : "RM 0") / mo</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-2 border-bottom border-light-subtle">
+                            <span class="text-muted">Capital Required at @simYield% yield</span>
+                            <span class="fw-bold text-dark">@FormatHelper.FormatCurrency(additionalCapitalNeeded)</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-2">
+                            <span class="text-muted">Estimated Time to 100% Freedom</span>
+                            <span class="fw-bold text-dark">
+                                @(monthsToFreedom > 0 ? $"{monthsToFreedom / 12} years {monthsToFreedom % 12} months" : "Achieved / Instant")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (activeTool == "emergency")
+    {
+        <!-- Emergency Fund Planner -->
+        <div class="mb-4 animate-fade-up">
+            <h1 class="h3 fw-bold text-dark font-display mb-1">Emergency Fund Safety Gauge</h1>
+            <p class="text-muted small mb-0">Assess your financial runway and liquidity reserves</p>
+        </div>
+
+        <div class="row g-4 animate-fade-up">
+            <div class="col-12 col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                    <h3 class="h6 fw-bold text-dark font-display mb-4">Living Outflows</h3>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark">Monthly Essential Living Expenses (RM)</label>
+                        <input type="number" class="form-control rounded-3" step="200" @bind="efMonthlyExpense" @bind:event="oninput" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark">Current Liquid Cash & Deposits (RM)</label>
+                        <input type="number" class="form-control rounded-3" step="1000" @bind="efCurrentCash" @bind:event="oninput" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark">Target Runway Coverage</label>
+                        <select class="form-select rounded-3" @bind="efTargetMonths">
+                            <option value="3">3 Months (Standard Employee)</option>
+                            <option value="6">6 Months (Recommended Balanced Buffer)</option>
+                            <option value="9">9 Months (Single Income / Family)</option>
+                            <option value="12">12 Months (Business Owner / Freelancer)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                    <h3 class="h6 fw-bold text-dark font-display mb-4">Runway Status</h3>
+
+                    @{
+                        var efTargetFund = efMonthlyExpense * efTargetMonths;
+                        var efMonthsCurrent = efMonthlyExpense > 0 ? Math.Round(efCurrentCash / efMonthlyExpense, 1) : 0;
+                        var efProgress = efTargetFund > 0 ? (int)Math.Clamp((efCurrentCash / efTargetFund) * 100m, 0, 100) : 0;
+                        var efShortfall = efTargetFund - efCurrentCash;
+                    }
+
+                    <div class="p-4 rounded-4 bg-light border border-light-subtle text-center mb-3">
+                        <span class="text-uppercase text-muted fw-semibold" style="font-size: 0.7rem;">Current Runway</span>
+                        <div class="fs-1 fw-bold text-dark font-display my-1">
+                            @efMonthsCurrent Months
+                        </div>
+                        <ProgressBar Value="@efProgress" Height="8px" ColorClass="bg-warning" />
+                        <small class="text-muted mt-2 d-block">Target: @efTargetMonths Months (@FormatHelper.FormatCurrency(efTargetFund))</small>
+                    </div>
+
+                    <div class="d-flex flex-column gap-2 small">
+                        <div class="d-flex justify-content-between py-2 border-bottom border-light-subtle">
+                            <span class="text-muted">Target Buffer Amount</span>
+                            <span class="fw-semibold text-dark">@FormatHelper.FormatCurrency(efTargetFund)</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-2">
+                            <span class="text-muted">Buffer Shortfall</span>
+                            <span class="fw-bold @(efShortfall > 0 ? "text-danger" : "text-success")">
+                                @(efShortfall > 0 ? FormatHelper.FormatCurrency(efShortfall) : "Buffer fully funded! 🎉")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Default fallback for other tools -->
+        <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white animate-fade-up">
+            <i class="ti ti-tool fs-1 text-muted mb-3"></i>
+            <h3 class="h5 fw-bold text-dark mb-1">Simulator Ready</h3>
+            <p class="text-muted small mb-4">Adjust the sliders and parameters to explore scenarios.</p>
+            <button class="btn btn-dark btn-sm rounded-3 px-3" @onclick="() => activeTool = null">Return to Tools Catalog</button>
+        </div>
+    }
+}
+
+@code {
+    private string? activeTool;
+
+    // FD Calculator state
+    private decimal fdPrincipal = 50000m;
+    private decimal fdRate = 3.85m;
+    private int fdTenureMonths = 12;
+
+    private decimal FdMaturityValue => fdPrincipal * (decimal)Math.Pow((double)(1m + (fdRate / 100m)), (double)fdTenureMonths / 12.0);
+    private decimal FdTotalInterest => FdMaturityValue - fdPrincipal;
+    private decimal FdMonthlyEquivalent => fdTenureMonths > 0 ? FdTotalInterest / fdTenureMonths : 0;
+
+    // Freedom Calculator state
+    private decimal simExpenses = 4500m;
+    private decimal simPassive = 1200m;
+    private decimal simMonthlySaving = 2000m;
+    private decimal simYield = 6.0m;
+
+    // Emergency Fund state
+    private decimal efMonthlyExpense = 4500m;
+    private decimal efCurrentCash = 25000m;
+    private int efTargetMonths = 6;
+}

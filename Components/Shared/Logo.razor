@@ -1,0 +1,46 @@
+@namespace omm.Components.Shared
+
+<a href="@Href" class="d-inline-flex align-items-center gap-2 text-decoration-none group">
+    <div class="d-flex align-items-center justify-content-center @IconSizeClass @IconBgClass" style="border-radius: 12px; transition: transform 0.2s;">
+        <i class="ti ti-pickaxe @IconFontSizeClass" style="stroke-width: 2.2;"></i>
+    </div>
+    <div class="d-flex flex-column" style="line-height: 1.1;">
+        <span class="@TextSizeClass @TextClass font-display fw-bold" style="letter-spacing: -0.03em;">
+            OhMyMine
+        </span>
+        <span class="@SubTextClass fw-semibold text-uppercase" style="font-size: 10px; letter-spacing: 0.08em;">
+            Personal Wealth Planning
+        </span>
+    </div>
+</a>
+
+@code {
+    [Parameter] public string Variant { get; set; } = "dark"; // "dark" | "light"
+    [Parameter] public string Size { get; set; } = "md"; // "sm" | "md" | "lg"
+    [Parameter] public string Href { get; set; } = "/";
+
+    private string TextClass => Variant == "dark" ? "text-dark" : "text-white";
+    private string SubTextClass => Variant == "dark" ? "text-muted" : "text-light-50 text-white-50";
+    private string IconBgClass => Variant == "dark" ? "bg-dark text-warning" : "bg-warning text-dark";
+
+    private string IconSizeClass => Size switch
+    {
+        "sm" => "p-1",
+        "lg" => "p-2",
+        _ => "p-2"
+    };
+
+    private string IconFontSizeClass => Size switch
+    {
+        "sm" => "fs-6",
+        "lg" => "fs-4",
+        _ => "fs-5"
+    };
+
+    private string TextSizeClass => Size switch
+    {
+        "sm" => "fs-6",
+        "lg" => "fs-4",
+        _ => "fs-5"
+    };
+}

@@ -1,0 +1,280 @@
+@page "/dashboard"
+@layout DashboardLayout
+@inject IMineService MineService
+@namespace omm.Components.Pages
+
+<PageTitle>Mine Board Overview — OhMyMine</PageTitle>
+
+@if (summary == null || profile == null)
+{
+    <div class="d-flex justify-content-center align-items-center py-5">
+        <div class="spinner-border text-warning" role="status">
+            <span class="visually-hidden">Loading Mine Board...</span>
+        </div>
+    </div>
+}
+else
+{
+    <!-- Page Header -->
+    <div class="mb-4">
+        <p class="text-muted mb-1" style="font-size: 0.875rem;">Welcome back, @(profile.Name.Split(' ')[0])</p>
+        <h1 class="h3 font-display fw-bold text-dark mb-0">Mine Board Overview</h1>
+    </div>
+
+    <!-- Key Metrics Grid -->
+    <div class="row g-3 mb-4">
+        <!-- Net Wealth -->
+        <div class="col-sm-6 col-lg-3">
+            <MetricCard Title="Net Wealth" 
+                        Value="@FormatHelper.FormatCurrency(summary.NetWealth)" 
+                        Icon="ti-sparkles" 
+                        Variant="gold" 
+                        Subtitle="@($"{FormatHelper.FormatCurrency(summary.TotalMines)} mines − {FormatHelper.FormatCurrency(summary.TotalBurdens)} burdens")" />
+        </div>
+
+        <!-- Freedom Ratio -->
+        <div class="col-sm-6 col-lg-3">
+            <MetricCard Title="Freedom Ratio" 
+                        Value="@($"{summary.FreedomRatio:F0}%")" 
+                        Icon="ti-sun" 
+                        Variant="freedom" 
+                        Subtitle="@GetFreedomLabel(summary.FreedomRatio)">
+                <ProgressBar Percentage="@summary.FreedomRatio" Variant="mine" Height="6px" />
+            </MetricCard>
+        </div>
+
+        <!-- Passive Income -->
+        <div class="col-sm-6 col-lg-3">
+            <MetricCard Title="Passive / month" 
+                        Value="@FormatHelper.FormatCurrency(summary.PassiveIncomeMonthly)" 
+                        Icon="ti-trending-up" 
+                        Variant="mine" 
+                        Subtitle="@($"vs {FormatHelper.FormatCurrency(summary.RecurringExpensesMonthly)} recurring exp.")" />
+        </div>
+
+        <!-- Total Growth -->
+        <div class="col-sm-6 col-lg-3">
+            <MetricCard Title="Total Growth" 
+                        Value="@FormatHelper.FormatCurrency(summary.TotalGrowth)" 
+                        Icon="@(summary.TotalGrowth >= 0 ? "ti-trending-up" : "ti-trending-down")" 
+                        Variant="@(summary.TotalGrowth >= 0 ? "mine" : "burden")" 
+                        Trend="@FormatHelper.FormatPercent(summary.TotalGrowthPct)" 
+                        TrendPositive="@(summary.TotalGrowth >= 0)" 
+                        Subtitle="across all active mines" />
+        </div>
+    </div>
+
+    <!-- Main Content 2-Column Grid -->
+    <div class="row g-4">
+        <!-- Left: Top Mines by Value -->
+        <div class="col-lg-8">
+            <div class="omm-card p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="font-display fw-bold text-dark mb-0">Top Mines by Value</h5>
+                    <a href="mines" class="text-decoration-none text-muted fw-semibold d-flex align-items-center gap-1" style="font-size: 0.8rem;">
+                        View all <i class="ti ti-chevron-right"></i>
+                    </a>
+                </div>
+
+                @if (topMines != null)
+                {
+                    <div class="d-flex flex-column gap-2">
+                        @foreach (var mine in topMines)
+                        {
+                            <a href="@($"mines/{mine.Id}")" class="text-decoration-none text-dark">
+                                <div class="d-flex align-items-center gap-3 p-3 rounded-3 omm-card-hover" style="background-color: var(--omm-ink-50);">
+                                    <div class="d-flex align-items-center justify-content-center rounded-3 bg-white p-2 text-dark shadow-sm" style="width: 40px; height: 40px; flex-shrink: 0;">
+                                        <i class="ti @FormatHelper.CategoryToIcon(mine.Category) fs-5"></i>
+                                    </div>
+                                    <div class="flex-grow-1 overflow-hidden">
+                                        <div class="fw-semibold text-truncate" style="font-size: 0.9rem;">@mine.Name</div>
+                                        <div class="text-muted text-truncate" style="font-size: 0.75rem;">@mine.Category · @mine.Type</div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="fw-bold" style="font-size: 0.9rem;">@FormatHelper.FormatCurrency(mine.CurrentValue)</div>
+                                        <div class="@(mine.Growth >= 0 ? "text-success" : "text-danger") fw-semibold" style="font-size: 0.75rem;">
+                                            @FormatHelper.FormatPercent(mine.GrowthPct)
+                                        </div>
+                                    </div>
+                                    <i class="ti ti-chevron-right text-muted"></i>
+                                </div>
+                            </a>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Notifications & Upcoming Maturities -->
+            <div class="omm-card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="font-display fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                        <i class="ti ti-bell text-muted"></i> Notifications & Maturities
+                    </h5>
+                </div>
+
+                <div class="d-flex flex-column gap-2">
+                    @if (notifications != null)
+                    {
+                        @foreach (var n in notifications.Take(2))
+                        {
+                            <div class="p-3 rounded-3 border @(!n.Read ? "border-warning-subtle" : "border-light")" 
+                                 style="background-color: @(!n.Read ? "var(--omm-clay-100)" : "var(--omm-ink-50)");">
+                                <div class="d-flex align-items-start gap-2">
+                                    @if (!n.Read)
+                                    {
+                                        <span class="rounded-circle mt-1" style="width: 8px; height: 8px; background-color: var(--omm-clay-500); flex-shrink: 0;"></span>
+                                    }
+                                    <div>
+                                        <div class="fw-semibold text-dark" style="font-size: 0.85rem;">@n.Title</div>
+                                        <div class="text-muted mt-1" style="font-size: 0.775rem; line-height: 1.4;">@n.Body</div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+
+                    @if (upcomingMaturities != null)
+                    {
+                        @foreach (var item in upcomingMaturities)
+                        {
+                            <div class="p-3 rounded-3 d-flex align-items-center justify-content-between" style="background-color: var(--omm-ink-50);">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="ti ti-calendar-time text-warning fs-5"></i>
+                                    <div>
+                                        <div class="fw-semibold text-dark" style="font-size: 0.85rem;">@item.Mine.Name — @item.SubMine.Label</div>
+                                        <div class="text-muted" style="font-size: 0.75rem;">Matures @item.SubMine.MaturityDate</div>
+                                    </div>
+                                </div>
+                                <span class="badge-pill-warning">
+                                    @(GetDaysUntil(item.SubMine.MaturityDate)) days
+                                </span>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Goals & Burdens Snapshot -->
+        <div class="col-lg-4">
+            <!-- Goals Card -->
+            <div class="omm-card p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="font-display fw-bold text-dark mb-0">Goals</h5>
+                    <a href="goals" class="text-decoration-none text-muted fw-semibold d-flex align-items-center gap-1" style="font-size: 0.8rem;">
+                        All <i class="ti ti-chevron-right"></i>
+                    </a>
+                </div>
+
+                @if (goals != null)
+                {
+                    <div class="d-flex flex-column gap-3">
+                        @foreach (var goal in goals.Take(3))
+                        {
+                            var progress = goal.Target > 0 ? Math.Min(100, (goal.Current / goal.Target) * 100) : 0;
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="fw-semibold text-dark" style="font-size: 0.8rem;">
+                                        <i class="ti @FormatHelper.GoalTypeToIcon(goal.Type) text-muted me-1"></i>
+                                        @goal.Title
+                                    </span>
+                                    <span class="fw-bold text-dark" style="font-size: 0.8rem;">@((int)progress)%</span>
+                                </div>
+                                <ProgressBar Percentage="@progress" 
+                                             Variant="@(goal.Status == "on-track" ? "mine" : goal.Status == "needs-attention" ? "warning" : "default")" 
+                                             Height="6px" />
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Burdens Card -->
+            <div class="omm-card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="font-display fw-bold text-dark mb-0">Burdens</h5>
+                    <a href="burdens" class="text-decoration-none text-muted fw-semibold d-flex align-items-center gap-1" style="font-size: 0.8rem;">
+                        All <i class="ti ti-chevron-right"></i>
+                    </a>
+                </div>
+
+                @if (burdens != null)
+                {
+                    <div class="d-flex flex-column gap-3">
+                        @foreach (var b in burdens.Take(3))
+                        {
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="p-2 rounded-3 bg-danger-subtle text-danger">
+                                        <i class="ti @FormatHelper.BurdenTypeToIcon(b.Type) fs-6"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold text-dark" style="font-size: 0.85rem;">@b.Name</div>
+                                        <div class="text-muted" style="font-size: 0.725rem;">@b.Type · @b.InterestRate% p.a.</div>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-bold" style="font-size: 0.85rem;">@FormatHelper.FormatCurrency(b.Balance)</div>
+                                    <div class="text-muted" style="font-size: 0.725rem;">@FormatHelper.FormatCurrency(b.MonthlyPayment)/mo</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+                        <span class="text-muted" style="font-size: 0.775rem;">Total monthly debt service</span>
+                        <span class="fw-bold text-dark" style="font-size: 0.9rem;">
+                            @FormatHelper.FormatCurrency(burdens.Sum(b => b.MonthlyPayment))
+                        </span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private DashboardSummary? summary;
+    private MinerProfile? profile;
+    private List<Mine>? topMines;
+    private List<Burden>? burdens;
+    private List<Goal>? goals;
+    private List<Notification>? notifications;
+    private List<(Mine Mine, SubMine SubMine)>? upcomingMaturities;
+
+    protected override async Task OnInitializedAsync()
+    {
+        summary = await MineService.GetDashboardSummaryAsync();
+        profile = await MineService.GetMinerProfileAsync();
+        var allMines = await MineService.GetMinesAsync();
+        topMines = allMines.OrderByDescending(m => m.CurrentValue).Take(4).ToList();
+        burdens = await MineService.GetBurdensAsync();
+        goals = await MineService.GetGoalsAsync();
+        notifications = await MineService.GetNotificationsAsync();
+
+        upcomingMaturities = allMines
+            .Where(m => m.SubMines != null)
+            .SelectMany(m => m.SubMines!.Where(s => !string.IsNullOrEmpty(s.MaturityDate)).Select(s => (Mine: m, SubMine: s)))
+            .OrderBy(x => x.SubMine.MaturityDate)
+            .Take(3)
+            .ToList();
+    }
+
+    private string GetFreedomLabel(decimal ratio)
+    {
+        if (ratio >= 100) return "100% — Fully financially free!";
+        if (ratio >= 50) return $"{ratio:F0}% — Halfway to freedom";
+        if (ratio >= 25) return $"{ratio:F0}% — Building passive runway";
+        return $"{ratio:F0}% — Early stage miner";
+    }
+
+    private int GetDaysUntil(string? dateStr)
+    {
+        if (DateTime.TryParse(dateStr, out var date))
+        {
+            var diff = (date - DateTime.Now).Days;
+            return Math.Max(0, diff);
+        }
+        return 14;
+    }
+}

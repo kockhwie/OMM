@@ -1,0 +1,47 @@
+@namespace omm.Components.Shared
+
+@if (Status.Equals("active", StringComparison.OrdinalIgnoreCase) || Status.Equals("on-track", StringComparison.OrdinalIgnoreCase) || Status.Equals("achieved", StringComparison.OrdinalIgnoreCase))
+{
+    <span class="badge-pill-mine">
+        <i class="ti ti-check" style="font-size: 0.9em;"></i>
+        @LabelText
+    </span>
+}
+else if (Status.Equals("maturing", StringComparison.OrdinalIgnoreCase) || Status.Equals("needs-attention", StringComparison.OrdinalIgnoreCase))
+{
+    <span class="badge-pill-warning">
+        <i class="ti ti-clock-hour-4" style="font-size: 0.9em;"></i>
+        @LabelText
+    </span>
+}
+else if (Status.Equals("burden", StringComparison.OrdinalIgnoreCase) || Status.Equals("danger", StringComparison.OrdinalIgnoreCase))
+{
+    <span class="badge-pill-burden">
+        <i class="ti ti-alert-triangle" style="font-size: 0.9em;"></i>
+        @LabelText
+    </span>
+}
+else
+{
+    <span class="badge-pill-neutral">
+        <i class="ti ti-circle" style="font-size: 0.7em;"></i>
+        @LabelText
+    </span>
+}
+
+@code {
+    [Parameter] public string Status { get; set; } = "active";
+    [Parameter] public string? CustomLabel { get; set; }
+
+    private string LabelText => CustomLabel ?? (Status switch
+    {
+        "active" => "Active",
+        "maturing" => "Maturing Soon",
+        "inactive" => "Inactive",
+        "on-track" => "On Track",
+        "needs-attention" => "Needs Attention",
+        "not-started" => "Not Started",
+        "achieved" => "Achieved",
+        _ => Status
+    });
+}

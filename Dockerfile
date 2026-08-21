@@ -15,8 +15,4 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
 
-# Expose ports for ASP.NET Core
-EXPOSE 8080
-EXPOSE 8443
-
 ENTRYPOINT ["dotnet", "omm.dll"]

@@ -7,7 +7,7 @@
 
 <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-4 animate-fade-up">
     <div>
-        <h1 class="h3 fw-bold text-dark mb-1 font-display">Income Classification</h1>
+        <h1 class="h3 fw-bold text-dark mb-1 font-display">Income</h1>
         <p class="text-muted small mb-0">
             Classify every dollar by source to track your journey to recurring passive freedom
         </p>
@@ -75,7 +75,7 @@
                 <div class="rounded-circle bg-primary-subtle text-primary p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
                     <i class="ti ti-calendar fs-5"></i>
                 </div>
-                <span class="text-uppercase fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.05em;">Total Annual Inflow</span>
+                <span class="text-uppercase fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.05em;">Total Annual</span>
             </div>
             <div class="fs-3 fw-bold text-dark font-display">
                 @FormatHelper.FormatCurrency(TotalAnnualInflow)
@@ -89,7 +89,7 @@
 <div class="d-flex flex-wrap gap-1 align-items-center mb-4 animate-fade-up">
     <button class="btn btn-sm rounded-3 fw-medium px-3 py-2 @(selectedClass == null ? "btn-dark text-white" : "btn-outline-secondary bg-white text-dark border-light-subtle")"
             @onclick="() => selectedClass = null">
-        All Inflows
+        All 
     </button>
     @foreach (var cls in Enum.GetValues<IncomeClass>())
     {

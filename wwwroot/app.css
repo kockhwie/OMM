@@ -180,6 +180,28 @@ h1, h2, h3, h4, h5, h6, .font-display {
     box-shadow: 0 4px 12px rgba(197,132,58,0.25);
 }
 
+.btn-omm-warning {
+    background-color: var(--omm-gold-500);
+    color: #000;
+    border-radius: var(--omm-radius-md);
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.65rem 1.25rem;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.15s ease;
+}
+
+    .btn-omm-warning:hover {
+        background-color: var(--omm-ink-800);
+        color: #ffffff;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(13,14,19,0.15);
+    }
+
+
 /* Badges */
 .badge-pill-mine {
     background-color: var(--omm-mine-green-bg);

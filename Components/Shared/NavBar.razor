@@ -5,14 +5,13 @@
         <Logo Href="/" />
 
         <nav class="d-none d-md-flex align-items-center gap-1">
-            <a href="#tools" class="nav-link px-3 py-2 text-secondary fw-semibold" style="font-size: 0.9rem;">Tools</a>
-            <a href="#concepts" class="nav-link px-3 py-2 text-secondary fw-semibold" style="font-size: 0.9rem;">Concepts</a>
-            <a href="#malaysia" class="nav-link px-3 py-2 text-secondary fw-semibold" style="font-size: 0.9rem;">Malaysia</a>
+            <a href="/tools" class="nav-link px-3 py-2 text-secondary fw-semibold" style="font-size: 0.9rem;">Financial Tools</a>
+            <a href="/learn" class="nav-link px-3 py-2 text-secondary fw-semibold" style="font-size: 0.9rem;">Learn</a>
             <a href="#about" class="nav-link px-3 py-2 text-secondary fw-semibold" style="font-size: 0.9rem;">About</a>
         </nav>
 
         <div class="d-none d-md-flex align-items-center gap-2">
-            <a href="/dashboard" class="btn btn-link text-decoration-none text-dark fw-semibold" style="font-size: 0.9rem;">
+            <a href="/dashboard" class="btn btn-omm-warning">
                 Sign in
             </a>
             <a href="/dashboard" class="btn btn-omm-primary">
@@ -30,10 +29,13 @@
     {
         <div class="d-md-none bg-white border-top px-4 py-3 shadow-sm">
             <div class="d-flex flex-column gap-2">
-                <a href="#tools" @onclick="ToggleMobileMenu" class="text-dark text-decoration-none py-2 fw-medium">Tools</a>
-                <a href="#concepts" @onclick="ToggleMobileMenu" class="text-dark text-decoration-none py-2 fw-medium">Concepts</a>
-                <a href="#malaysia" @onclick="ToggleMobileMenu" class="text-dark text-decoration-none py-2 fw-medium">Malaysia</a>
+                <a href="#tools" @onclick="ToggleMobileMenu" class="text-dark text-decoration-none py-2 fw-medium">Financial Tools</a>
+                <a href="/learn" @onclick="ToggleMobileMenu" class="text-dark text-decoration-none py-2 fw-medium">Learn</a>
                 <a href="#about" @onclick="ToggleMobileMenu" class="text-dark text-decoration-none py-2 fw-medium">About</a>
+                <hr />
+                <a href="/dashboard" class="btn btn-omm-warning w-100 mt-2">
+                    Sign in
+                </a>
                 <a href="/dashboard" class="btn btn-omm-primary w-100 mt-2">
                     Enter Mine Board
                     <i class="ti ti-chevron-right fs-6"></i>

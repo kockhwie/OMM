@@ -135,7 +135,7 @@ public static class FormatHelper
     public static string IncomeClassLabel(IncomeClass cls) => cls switch
     {
         IncomeClass.Active => "Active",
-        IncomeClass.PassiveMineGenerated => "Passive / Mine-generated",
+        IncomeClass.PassiveMineGenerated => "Passive",
         IncomeClass.NonRecurring => "Non-recurring",
         _ => cls.ToString()
     };

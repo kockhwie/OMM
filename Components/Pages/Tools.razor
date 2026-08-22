@@ -1,4 +1,5 @@
 @page "/tools"
+@page "/tools/{ToolSlug}"
 @layout DashboardLayout
 @inject IMineService MineService
 @inject NavigationManager Navigation
@@ -18,7 +19,7 @@
         <!-- 1. Fixed Deposit & Cash Yield Calculator -->
         <div class="col-12 col-md-6 col-xl-4">
             <div class="card h-100 border-0 shadow-sm rounded-4 p-4 card-hover cursor-pointer bg-white"
-                 @onclick='() => activeTool = "fd"'>
+                 @onclick='() => OpenTool("fd")'>
                 <div class="d-flex align-items-start justify-content-between mb-3">
                     <div class="rounded-3 bg-dark text-warning p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
                         <i class="ti ti-calculator fs-4"></i>
@@ -39,7 +40,7 @@
         <!-- 2. Freedom Ratio Simulator -->
         <div class="col-12 col-md-6 col-xl-4">
             <div class="card h-100 border-0 shadow-sm rounded-4 p-4 card-hover cursor-pointer bg-white"
-                 @onclick='() => activeTool = "freedom"'>
+                 @onclick='() => OpenTool("freedom")'>
                 <div class="d-flex align-items-start justify-content-between mb-3">
                     <div class="rounded-3 bg-success-subtle text-success p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
                         <i class="ti ti-bolt fs-4"></i>
@@ -60,7 +61,7 @@
         <!-- 3. Emergency Fund Safety Planner -->
         <div class="col-12 col-md-6 col-xl-4">
             <div class="card h-100 border-0 shadow-sm rounded-4 p-4 card-hover cursor-pointer bg-white"
-                 @onclick='() => activeTool = "emergency"'>
+                 @onclick='() => OpenTool("emergency")'>
                 <div class="d-flex align-items-start justify-content-between mb-3">
                     <div class="rounded-3 bg-warning-subtle text-warning p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
                         <i class="ti ti-shield-check fs-4"></i>
@@ -81,7 +82,7 @@
         <!-- 4. Debt Payoff & Mortgage Accelerator -->
         <div class="col-12 col-md-6 col-xl-4">
             <div class="card h-100 border-0 shadow-sm rounded-4 p-4 card-hover cursor-pointer bg-white"
-                 @onclick='() => activeTool = "debt"'>
+                 @onclick='() => OpenTool("debt")'>
                 <div class="d-flex align-items-start justify-content-between mb-3">
                     <div class="rounded-3 bg-danger-subtle text-danger p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
                         <i class="ti ti-trending-down fs-4"></i>
@@ -102,7 +103,7 @@
         <!-- 5. Compound Growth Mine Simulator -->
         <div class="col-12 col-md-6 col-xl-4">
             <div class="card h-100 border-0 shadow-sm rounded-4 p-4 card-hover cursor-pointer bg-white"
-                 @onclick='() => activeTool = "compound"'>
+                 @onclick='() => OpenTool("compound")'>
                 <div class="d-flex align-items-start justify-content-between mb-3">
                     <div class="rounded-3 bg-primary-subtle text-primary p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
                         <i class="ti ti-chart-line fs-4"></i>
@@ -123,7 +124,7 @@
         <!-- 6. Stock & Share Dividend Calculator -->
         <div class="col-12 col-md-6 col-xl-4">
             <div class="card h-100 border-0 shadow-sm rounded-4 p-4 card-hover cursor-pointer bg-white"
-                 @onclick='() => activeTool = "dividend"'>
+                 @onclick='() => OpenTool("dividend")'>
                 <div class="d-flex align-items-start justify-content-between mb-3">
                     <div class="rounded-3 p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: #ede9fe; color: #7c3aed;">
                         <i class="ti ti-chart-bar fs-4"></i>
@@ -1137,14 +1138,63 @@ else
             <i class="ti ti-tool fs-1 text-muted mb-3"></i>
             <h3 class="h5 fw-bold text-dark mb-1">Simulator Ready</h3>
             <p class="text-muted small mb-4">Adjust the sliders and parameters to explore scenarios.</p>
-            <button class="btn btn-dark btn-sm rounded-3 px-3" @onclick="() => activeTool = null">Return to Tools Catalog</button>
+            <button class="btn btn-dark btn-sm rounded-3 px-3" @onclick="() => ReturnToToolsCatalog()">Return to Tools Catalog</button>
         </div>
     }
 }
 
 @code {
 
+    [Parameter] public string? ToolSlug { get; set; }
     private string? activeTool;
+
+    // URL slug <-> internal tool key. Add a line here for every new tool.
+    private static readonly Dictionary<string, string> SlugToTool = new()
+    {
+        ["fd-calculator"]       = "fd",
+        ["freedom-ratio"]       = "freedom",
+        ["emergency-fund"]      = "emergency",
+        ["debt-payoff"]         = "debt",
+        ["compound-growth"]     = "compound",
+        ["dividend-calculator"] = "dividend",
+    };
+
+    private static readonly Dictionary<string, string> ToolToSlug =
+    SlugToTool.ToDictionary(kv => kv.Value, kv => kv.Key);
+
+    protected override void OnParametersSet()
+{
+    if (string.IsNullOrEmpty(ToolSlug))
+    {
+        activeTool = null;
+        return;
+    }
+
+    if (SlugToTool.TryGetValue(ToolSlug, out var key))
+    {
+        activeTool = key;
+    }
+    else
+    {
+        // Unknown slug in the URL — bounce back to the hub rather than
+        // showing a blank/broken tool panel.
+        Navigation.NavigateTo("/tools", replace: true);
+    }
+}
+
+private void OpenTool(string key)
+{
+    if (ToolToSlug.TryGetValue(key, out var slug))
+    {
+        Navigation.NavigateTo($"/tools/{slug}");
+    }
+}
+
+private void ReturnToToolsCatalog()
+{
+    Navigation.NavigateTo("/tools");
+}
+
     private string userCurrency = "MYR";
     private string dcCurrencySymbol = "RM";
     private bool savedNotification = false;
@@ -1172,8 +1222,8 @@ else
     private async Task HandleBackToTools()
     {
         await JS.InvokeVoidAsync("dividendCharts.destroyAll");
-        activeTool = null;
         savedNotification = false;
+        Navigation.NavigateTo("/tools");
     }
 
     // ── FD Calculator state ──────────────────────────────────────────────────

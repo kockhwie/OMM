@@ -303,3 +303,512 @@ i.ti {
 .hover-bg-light:hover {
     background-color: var(--omm-ink-50) !important;
 }
+
+/* ── Dividend Calculator ──────────────────────────────────────────────────── */
+
+/* Mode Switcher */
+.dc-mode-switcher {
+    display: inline-flex;
+    background: var(--omm-ink-100);
+    border-radius: 14px;
+    padding: 4px;
+    gap: 2px;
+}
+
+.dc-mode-btn {
+    border: none;
+    background: transparent;
+    border-radius: 10px;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    font-family: var(--omm-font-sans);
+    color: var(--omm-ink-500);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.dc-mode-btn.active {
+    background: #ffffff;
+    color: var(--omm-ink-900);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.04);
+}
+
+.dc-mode-btn:hover:not(.active) {
+    color: var(--omm-ink-700);
+    background: rgba(255,255,255,0.5);
+}
+
+/* Quick Calculate Hero Result */
+.dc-hero-block {
+    background: linear-gradient(135deg, var(--omm-ink-900) 0%, var(--omm-ink-800) 100%);
+    border-radius: var(--omm-radius-lg);
+    padding: 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.dc-hero-block::before {
+    content: '';
+    position: absolute;
+    top: -40%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(212,168,56,0.2), transparent 60%);
+    pointer-events: none;
+}
+
+.dc-hero-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: rgba(255,255,255,0.45);
+    margin-bottom: 0.25rem;
+}
+
+.dc-hero-value {
+    font-family: var(--omm-font-display);
+    font-size: clamp(2.25rem, 6vw, 3.5rem);
+    font-weight: 800;
+    color: var(--omm-gold-500);
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+}
+
+.dc-hero-sub {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.55);
+    margin-top: 0.5rem;
+}
+
+.dc-hero-sub span {
+    color: rgba(255,255,255,0.85);
+    font-weight: 600;
+}
+
+/* Supporting metric rows */
+.dc-metric-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid var(--omm-ink-100);
+    font-size: 0.875rem;
+}
+
+.dc-metric-row:last-child {
+    border-bottom: none;
+}
+
+.dc-metric-label {
+    color: var(--omm-ink-500);
+}
+
+.dc-metric-value {
+    font-weight: 600;
+    color: var(--omm-ink-900);
+}
+
+/* Optional reveal toggle */
+.dc-optional-toggle {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--omm-ink-500);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    transition: color 0.15s ease;
+    font-family: var(--omm-font-sans);
+}
+
+.dc-optional-toggle:hover {
+    color: var(--omm-ink-900);
+}
+
+.dc-optional-field {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.3s ease, opacity 0.25s ease, margin-top 0.2s ease;
+    margin-top: 0;
+}
+
+.dc-optional-field.visible {
+    max-height: 120px;
+    opacity: 1;
+    margin-top: 0.75rem;
+}
+
+/* Quick action links */
+.dc-action-link {
+    background: none;
+    border: none;
+    padding: 0.55rem 0;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--omm-blue);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: all 0.15s ease;
+    font-family: var(--omm-font-sans);
+    text-decoration: none;
+}
+
+.dc-action-link:hover {
+    color: var(--omm-ink-900);
+    gap: 0.5rem;
+}
+
+/* Simulator section headers */
+.dc-section {
+    border-bottom: 1px solid var(--omm-ink-100);
+    padding-bottom: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+.dc-section:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+
+.dc-section-title {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--omm-ink-400);
+    margin-bottom: 0.875rem;
+    font-family: var(--omm-font-sans);
+}
+
+/* Simulator summary metric cards */
+.dc-sim-metric {
+    background: var(--omm-ink-50);
+    border: 1px solid var(--omm-ink-100);
+    border-radius: var(--omm-radius-md);
+    padding: 1rem 1.125rem;
+    transition: border-color 0.15s ease;
+}
+
+.dc-sim-metric:hover {
+    border-color: var(--omm-ink-300);
+}
+
+.dc-sim-metric-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    color: var(--omm-ink-400);
+    margin-bottom: 0.25rem;
+}
+
+.dc-sim-metric-value {
+    font-family: var(--omm-font-display);
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--omm-ink-900);
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+}
+
+.dc-sim-metric-sub {
+    font-size: 0.75rem;
+    color: var(--omm-ink-400);
+    margin-top: 0.15rem;
+}
+
+.dc-sim-metric.highlight {
+    background: var(--omm-ink-900);
+    border-color: var(--omm-ink-900);
+}
+
+.dc-sim-metric.highlight .dc-sim-metric-label {
+    color: rgba(255,255,255,0.4);
+}
+
+.dc-sim-metric.highlight .dc-sim-metric-value {
+    color: var(--omm-gold-500);
+}
+
+.dc-sim-metric.highlight .dc-sim-metric-sub {
+    color: rgba(255,255,255,0.4);
+}
+
+/* Chart containers */
+.dc-chart-container {
+    position: relative;
+    height: 220px;
+    width: 100%;
+}
+
+.dc-chart-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--omm-ink-400);
+    margin-bottom: 0.5rem;
+}
+
+/* Year-by-year projection table */
+.dc-projection-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.8rem;
+}
+
+.dc-projection-table th {
+    padding: 0.5rem 0.875rem;
+    background: var(--omm-ink-50);
+    font-weight: 700;
+    color: var(--omm-ink-500);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--omm-ink-200);
+    white-space: nowrap;
+}
+
+.dc-projection-table th:first-child { border-radius: 8px 0 0 0; }
+.dc-projection-table th:last-child  { border-radius: 0 8px 0 0; }
+
+.dc-projection-table td {
+    padding: 0.6rem 0.875rem;
+    border-bottom: 1px solid var(--omm-ink-100);
+    color: var(--omm-ink-700);
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.dc-projection-table tr:last-child td { border-bottom: none; }
+.dc-projection-table tr:hover td { background: var(--omm-ink-50); }
+
+.dc-projection-table td.highlight-col {
+    font-weight: 700;
+    color: var(--omm-ink-900);
+}
+
+/* DRIP toggle */
+.dc-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+}
+
+.dc-toggle-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--omm-ink-700);
+}
+
+.dc-toggle-sub {
+    font-size: 0.75rem;
+    color: var(--omm-ink-400);
+}
+
+/* Expand table section */
+.dc-expand-btn {
+    background: none;
+    border: 1px solid var(--omm-ink-200);
+    border-radius: var(--omm-radius-md);
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--omm-ink-600);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.15s ease;
+    font-family: var(--omm-font-sans);
+}
+
+.dc-expand-btn:hover {
+    background: var(--omm-ink-50);
+    border-color: var(--omm-ink-400);
+    color: var(--omm-ink-900);
+}
+
+/* Assumption note */
+.dc-assumption-note {
+    font-size: 0.7rem;
+    color: var(--omm-ink-400);
+    font-style: italic;
+    margin-top: 0.25rem;
+}
+
+/* Placeholder state (no valid input) */
+.dc-empty-state {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--omm-ink-400);
+}
+
+.dc-empty-state i {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 0.75rem;
+    opacity: 0.4;
+}
+
+/* Animations */
+@keyframes dc-fade-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.dc-animate {
+    animation: dc-fade-in 0.25s ease both;
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+    .dc-mode-switcher { width: 100%; justify-content: center; }
+    .dc-mode-btn { flex: 1; text-align: center; }
+    .dc-hero-value { font-size: 2.25rem; }
+    .dc-projection-table-wrapper { overflow-x: auto; }
+}
+
+/* Modern Financial Input Groups (Flexbox-based, zero overlap for any currency length) */
+.dc-currency-group {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid var(--omm-ink-300);
+    border-radius: var(--omm-radius-md);
+    background: #ffffff;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    overflow: hidden;
+    width: 100%;
+}
+
+.dc-currency-group:focus-within {
+    border-color: var(--omm-ink-900);
+    box-shadow: 0 0 0 3px rgba(13, 14, 19, 0.08);
+}
+
+.dc-currency-addon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.45rem 0.75rem;
+    background: var(--omm-ink-100);
+    color: var(--omm-ink-700);
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-right: 1px solid var(--omm-ink-200);
+    user-select: none;
+    white-space: nowrap;
+    min-width: 42px;
+}
+
+.dc-currency-group .form-control,
+.dc-currency-group input {
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: var(--omm-ink-900);
+    width: 100%;
+    background: transparent;
+}
+
+.dc-currency-group .form-control:focus,
+.dc-currency-group input:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.dc-currency-suffix {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.45rem 0.75rem;
+    background: var(--omm-ink-50);
+    color: var(--omm-ink-500);
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-left: 1px solid var(--omm-ink-200);
+    user-select: none;
+    white-space: nowrap;
+}
+
+/* Optional field container & clean helper styling */
+.dc-card-optional {
+    background: var(--omm-ink-50);
+    border: 1px solid var(--omm-ink-200);
+    border-radius: var(--omm-radius-md);
+    padding: 1rem 1.15rem;
+    transition: all 0.2s ease;
+}
+
+.dc-card-optional:hover {
+    border-color: var(--omm-ink-300);
+    background: #ffffff;
+}
+
+.dc-subtle-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--omm-ink-700);
+}
+
+.dc-subtle-optional {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--omm-ink-400);
+    margin-left: 0.25rem;
+}
+
+/* Variable terms grid */
+.dc-term-box {
+    background: #ffffff;
+    border: 1px solid var(--omm-ink-200);
+    border-radius: var(--omm-radius-md);
+    padding: 0.6rem;
+}
+
+.dc-term-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--omm-ink-500);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+}
+
+/* Save Mine button */
+.btn-save-mine {
+    background: #ede9fe;
+    color: #6d28d9;
+    border: 1px solid #ddd6fe;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: var(--omm-radius-md);
+    padding: 0.5rem 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.15s ease;
+}
+
+.btn-save-mine:hover {
+    background: #ddd6fe;
+    color: #4c1d95;
+}

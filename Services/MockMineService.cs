@@ -6,8 +6,8 @@ public class MockMineService : IMineService
 {
     private readonly MinerProfile _profile = new()
     {
-        Name = "Aaron Lim",
-        Email = "aaron.lim@example.com",
+        Name = "Jason Goh",
+        Email = "jason.goh@codingdinos.com",
         Country = "Malaysia",
         Currency = "MYR",
         Language = "English",

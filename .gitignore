@@ -23,7 +23,7 @@ secrets.json
 # Environment files
 .env
 .env.*
-!.env.example
+.example
 
 # ---------------------------------------------------------------------------
 # .NET / C# BUILD ARTIFACTS

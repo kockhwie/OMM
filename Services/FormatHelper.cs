@@ -44,6 +44,25 @@ public static class FormatHelper
         return $"{sign}{prefix}{abs:N0}";
     }
 
+    public static string GetCurrencySymbol(string currency = "MYR") => currency?.ToUpperInvariant() switch
+    {
+        "MYR" => "RM",
+        "USD" => "$",
+        "SGD" => "S$",
+        "EUR" => "€",
+        "GBP" => "£",
+        "JPY" => "¥",
+        "CNY" => "¥",
+        "AUD" => "A$",
+        "CAD" => "C$",
+        "HKD" => "HK$",
+        "NZD" => "NZ$",
+        "THB" => "฿",
+        "IDR" => "Rp",
+        "VND" => "₫",
+        _ => string.IsNullOrWhiteSpace(currency) ? "RM" : currency.Trim() + " "
+    };
+
     public static string FreedomLabel(decimal ratio)
     {
         if (ratio <= 0) return "No recurring passive coverage yet";

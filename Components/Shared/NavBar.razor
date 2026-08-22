@@ -11,11 +11,11 @@
         </nav>
 
         <div class="d-none d-md-flex align-items-center gap-2">
-            <a href="/dashboard" class="btn btn-omm-warning">
+            <a href="/dashboard" class="btn-omm-ghost">
                 Sign in
             </a>
             <a href="/dashboard" class="btn btn-omm-primary">
-                Enter Mine Board
+                <span>Enter Mine Board</span>
                 <i class="ti ti-chevron-right fs-6"></i>
             </a>
         </div>
@@ -29,15 +29,15 @@
     {
         <div class="d-md-none bg-white border-top px-4 py-3 shadow-sm">
             <div class="d-flex flex-column gap-2">
-                <a href="#tools" @onclick="ToggleMobileMenu" class="text-dark text-decoration-none py-2 fw-medium">Financial Tools</a>
+                <a href="/tools" @onclick="ToggleMobileMenu" class="text-dark text-decoration-none py-2 fw-medium">Financial Tools</a>
                 <a href="/learn" @onclick="ToggleMobileMenu" class="text-dark text-decoration-none py-2 fw-medium">Learn</a>
                 <a href="#about" @onclick="ToggleMobileMenu" class="text-dark text-decoration-none py-2 fw-medium">About</a>
-                <hr />
-                <a href="/dashboard" class="btn btn-omm-warning w-100 mt-2">
+                <hr class="my-2" />
+                <a href="/dashboard" class="btn btn-omm-secondary w-100">
                     Sign in
                 </a>
-                <a href="/dashboard" class="btn btn-omm-primary w-100 mt-2">
-                    Enter Mine Board
+                <a href="/dashboard" class="btn btn-omm-primary w-100 mt-1">
+                    <span>Enter Mine Board</span>
                     <i class="ti ti-chevron-right fs-6"></i>
                 </a>
             </div>

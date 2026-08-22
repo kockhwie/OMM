@@ -43,6 +43,11 @@
     --omm-radius-sm: 8px;
 }
 
+/* Remove browser default, replace with consistent visible ring */
+h1:focus {
+    outline: none;
+}
+
 body {
     font-family: var(--omm-font-sans);
     background-color: var(--omm-ink-50);

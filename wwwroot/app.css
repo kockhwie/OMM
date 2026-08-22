@@ -783,6 +783,38 @@ i.ti {
     opacity: 0.4;
 }
 
+.dc-segmented {
+    display: flex;
+    background: var(--omm-ink-100);
+    border-radius: var(--omm-radius-md);
+    padding: 3px;
+    gap: 2px;
+}
+
+.dc-segmented-btn {
+    flex: 1;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    font-family: var(--omm-font-sans);
+    color: var(--omm-ink-500);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+    .dc-segmented-btn.active {
+        background: #ffffff;
+        color: var(--omm-ink-900);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.04);
+    }
+
+    .dc-segmented-btn:hover:not(.active) {
+        color: var(--omm-ink-700);
+    }
+
 /* Animations */
 @keyframes dc-fade-in {
     from { opacity: 0; transform: translateY(8px); }

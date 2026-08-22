@@ -448,57 +448,117 @@ else
             <div class="row g-4 dc-animate">
                 <!-- LEFT: Inputs Form -->
                 <div class="col-12 col-lg-5">
-                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100 d-flex flex-column gap-3">
-                        
-                        <!-- 1. Stock / Asset Identifier -->
-                        <div class="row g-2">
-                            <div class="col-5">
-                                <label class="form-label small fw-semibold text-muted mb-1" for="qc-symbol">
-                                    Stock Code <span class="dc-subtle-optional">(Optional)</span>
-                                </label>
-                                <input id="qc-symbol" type="text" class="form-control rounded-3"
-                                       placeholder="e.g. 1155.KL"
-                                       @bind="qcStockSymbol" @bind:event="oninput" />
-                            </div>
-                            <div class="col-7">
-                                <label class="form-label small fw-semibold text-muted mb-1" for="qc-name">
-                                    Company Name <span class="dc-subtle-optional">(Optional)</span>
-                                </label>
-                                <input id="qc-name" type="text" class="form-control rounded-3"
-                                       placeholder="e.g. Maybank"
-                                       @bind="qcStockName" @bind:event="oninput" />
-                            </div>
-                        </div>
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
 
-                        <!-- 2. Core Shareholding Inputs -->
-                        <div class="pt-2 border-top border-light-subtle">
-                            <h3 class="h6 fw-bold font-display mb-3" style="color: var(--omm-ink-900);">Shareholding &amp; Payouts</h3>
+                        <!-- 1. Your Position -->
+                        <div class="dc-section">
+                            <div class="dc-section-title">Your Position</div>
 
-                            <!-- Shares Owned -->
+                            <!-- Search: the only way Code/Name get set — both fields below are read-only -->
                             <div class="mb-3">
-                                <label class="form-label small fw-semibold" style="color: var(--omm-ink-700);" for="qc-shares">Shares Owned</label>
+                                <label class="form-label small fw-semibold mb-1" style="color: var(--omm-ink-700);">Search Stock</label>
+                                <StockSearchPicker @bind-Code="qcStockSymbol" @bind-Name="qcStockName"
+                                                   OnStockSelected="OnStockPicked" />
+                            </div>
+
+                            <!-- Code / Name — populated only via the search box above -->
+                            <div class="row g-2 mb-3">
+                                <div class="col-5">
+                                    <label class="form-label small fw-semibold text-muted mb-1" for="qc-symbol">
+                                        Stock Code <span class="dc-subtle-optional">(Optional)</span>
+                                    </label>
+                                    <input id="qc-symbol" type="text" class="form-control rounded-3 bg-light" readonly
+                                           placeholder="—" value="@qcStockSymbol" />
+                                </div>
+                                <div class="col-7">
+                                    <label class="form-label small fw-semibold text-muted mb-1" for="qc-name">
+                                        Company Name <span class="dc-subtle-optional">(Optional)</span>
+                                    </label>
+                                    <input id="qc-name" type="text" class="form-control rounded-3 bg-light" readonly
+                                           placeholder="—" value="@qcStockName" />
+                                </div>
+                            </div>
+
+                            <!-- Price + Cost Basis, grouped, both optional and always amendable -->
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold" style="color: var(--omm-ink-700);" for="qc-price">
+                                        Current Share Price <span class="dc-subtle-optional">(Optional)</span>
+                                    </label>
+                                    <div class="dc-currency-group">
+                                        <span class="dc-currency-addon">@dcCurrencySymbol</span>
+                                        <input id="qc-price" type="number" class="form-control" min="0" step="0.01"
+                                               placeholder="10.50"
+                                               @bind="qcSharePrice" @bind:event="oninput" />
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold" style="color: var(--omm-ink-700);" for="qc-purchase">
+                                        Purchase Cost Basis <span class="dc-subtle-optional">(Optional)</span>
+                                    </label>
+                                    <div class="dc-currency-group">
+                                        <span class="dc-currency-addon">@dcCurrencySymbol</span>
+                                        <input id="qc-purchase" type="number" class="form-control" min="0" step="0.01"
+                                               placeholder="8.00"
+                                               @bind="qcPurchasePrice" @bind:event="oninput" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            @if (YieldInputsPartiallyFilled)
+                            {
+                                <div class="dc-inline-alert dc-inline-alert-warning mt-2">
+                                    <i class="ti ti-alert-triangle"></i>
+                                    <span>
+                                        Add @(qcSharePrice > 0 ? "a Purchase Cost Basis" : "a Current Share Price")
+                                        too — both are needed together to show Dividend Yield % / Yield on Cost %.
+                                    </span>
+                                </div>
+                            }
+                            else if (qcSharePrice <= 0 && qcPurchasePrice <= 0)
+                            {
+                                <div class="dc-assumption-note mt-2">Optional — add both to also see Dividend Yield % and Yield on Cost %.</div>
+                            }
+
+                            <hr class="my-3 border-light-subtle" />
+
+                            <!-- Shares Owned: compulsory, sits at the bottom so it reads as the bridge into
+         Dividend Payouts below (the annual dividend calc needs both). -->
+                            <div>
+                                <label class="form-label small fw-semibold" style="color: var(--omm-ink-700);" for="qc-shares">
+                                    Shares Owned <span class="text-danger">*</span>
+                                </label>
                                 <input id="qc-shares" type="number" class="form-control rounded-3" min="0" step="100"
                                        placeholder="e.g. 1000"
                                        @bind="qcShares" @bind:event="oninput" />
+                                <div class="dc-assumption-note">
+                                    <i class="ti ti-arrow-down" style="font-size: 0.9em;"></i>
+                                    Combined with Dividend Payouts below to calculate your annual income
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. Dividend Payouts -->
+                        <div class="dc-section">
+                            <div class="dc-section-title">Dividend Payouts</div>
+
+                            <!-- Shares Owned moved up to "Your Position" — Payout Type is now first here -->
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold mb-2 d-block" style="color: var(--omm-ink-700);">Payout Type</label>
+                                <div class="dc-segmented" role="group" aria-label="Payout type">
+                                    <button type="button" class="dc-segmented-btn @(qcPayoutType == "uniform" ? "active" : "")"
+                                            @onclick='() => ChangePayoutType("uniform")'>
+                                        Fixed Rate
+                                    </button>
+                                    <button type="button" class="dc-segmented-btn @(qcPayoutType == "variable" ? "active" : "")"
+                                            @onclick='() => ChangePayoutType("variable")'>
+                                        Variable Terms
+                                    </button>
+                                </div>
                             </div>
 
-                            <!-- Payment Frequency & Payout Mode -->
                             <div class="mb-3">
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <label class="form-label small fw-semibold mb-0" style="color: var(--omm-ink-700);" for="qc-freq">Dividend Frequency</label>
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <button type="button" class="btn btn-sm py-0 px-2 @(qcPayoutType == "uniform" ? "btn-dark" : "btn-outline-secondary")"
-                                                style="font-size: 0.72rem;"
-                                                @onclick='() => ChangePayoutType("uniform")'>
-                                            Fixed Rate
-                                        </button>
-                                        <button type="button" class="btn btn-sm py-0 px-2 @(qcPayoutType == "variable" ? "btn-dark" : "btn-outline-secondary")"
-                                                style="font-size: 0.72rem;"
-                                                @onclick='() => ChangePayoutType("variable")'>
-                                            Variable Terms
-                                        </button>
-                                    </div>
-                                </div>
+                                <label class="form-label small fw-semibold mb-1" style="color: var(--omm-ink-700);" for="qc-freq">Dividend Frequency</label>
                                 <select id="qc-freq" class="form-select rounded-3" @bind="qcFrequency" @bind:after="OnFrequencyChanged">
                                     <option value="@DividendFrequency.Monthly">Monthly (12 payouts/yr)</option>
                                     <option value="@DividendFrequency.Quarterly">Quarterly (4 payouts/yr)</option>
@@ -507,7 +567,6 @@ else
                                 </select>
                             </div>
 
-                            <!-- Dividend Rate: Uniform vs Variable Term Inputs -->
                             @if (qcPayoutType == "uniform")
                             {
                                 <div class="mb-3">
@@ -525,7 +584,6 @@ else
                             }
                             else
                             {
-                                <!-- Variable per-term inputs (e.g. Q1, Q2, Q3, Q4) -->
                                 <div class="mb-3">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <label class="form-label small fw-semibold mb-0" style="color: var(--omm-ink-700);">
@@ -555,8 +613,7 @@ else
                                 </div>
                             }
 
-                            <!-- Special / One-off Dividend Input -->
-                            <div class="mb-3">
+                            <div>
                                 <label class="form-label small fw-semibold" style="color: var(--omm-ink-700);" for="qc-special-dps">
                                     Special / Bonus Dividend Per Share <span class="dc-subtle-optional">(Optional)</span>
                                 </label>
@@ -570,44 +627,9 @@ else
                             </div>
                         </div>
 
-                        <!-- 3. Price & Yield Calculations (Optional Section) -->
-                        <div class="dc-card-optional">
-                            <div class="d-flex align-items-center justify-content-between mb-1">
-                                <span class="small fw-bold text-dark font-display" style="font-size: 0.82rem;">
-                                    <i class="ti ti-percentage me-1 text-primary"></i> Market &amp; Cost Basis <span class="dc-subtle-optional">(Optional)</span>
-                                </span>
-                            </div>
-                            <p class="text-muted small mb-3" style="font-size: 0.75rem; line-height: 1.4;">
-                                Enter market price and purchase cost to calculate Dividend Yield and Yield on Cost.
-                            </p>
-
-                            <div class="row g-2">
-                                <div class="col-12 col-sm-6">
-                                    <label class="form-label small fw-semibold text-muted mb-1" for="qc-price">Current Share Price</label>
-                                    <div class="dc-currency-group">
-                                        <span class="dc-currency-addon">@dcCurrencySymbol</span>
-                                        <input id="qc-price" type="number" class="form-control" min="0" step="0.01"
-                                               placeholder="10.50"
-                                               @bind="qcSharePrice" @bind:event="oninput" />
-                                    </div>
-                                    <div class="dc-assumption-note">For Dividend Yield %</div>
-                                </div>
-
-                                <div class="col-12 col-sm-6">
-                                    <label class="form-label small fw-semibold text-muted mb-1" for="qc-purchase">Purchase Cost Basis</label>
-                                    <div class="dc-currency-group">
-                                        <span class="dc-currency-addon">@dcCurrencySymbol</span>
-                                        <input id="qc-purchase" type="number" class="form-control" min="0" step="0.01"
-                                               placeholder="8.00"
-                                               @bind="qcPurchasePrice" @bind:event="oninput" />
-                                    </div>
-                                    <div class="dc-assumption-note">For Yield on Cost %</div>
-                                </div>
-                            </div>
-                        </div>
-
                     </div>
                 </div>
+
 
                 <!-- RIGHT: Live Results -->
                 <div class="col-12 col-lg-7">
@@ -1122,6 +1144,7 @@ else
 }
 
 @code {
+
     private string? activeTool;
     private string userCurrency = "MYR";
     private string dcCurrencySymbol = "RM";
@@ -1416,4 +1439,15 @@ else
             CapitalGainsTaxRate = simCapGainsTaxRate >= 0 && simCapGainsTaxRate <= 100 ? simCapGainsTaxRate : 0m
         };
     }
+
+    
+    private bool YieldInputsPartiallyFilled => (qcSharePrice > 0) != (qcPurchasePrice > 0);
+
+    private void OnStockPicked(KlseStock stock)
+    {
+        // Placeholder for later: e.g. qcSharePrice = await PriceLookup.GetLatestAsync(stock.Code);
+        // Left as a manual, always-editable field for now per your note — this hook is just
+        // here so wiring in a live price feed later doesn't require touching the markup again.
+    }
+
 }

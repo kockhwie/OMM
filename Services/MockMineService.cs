@@ -95,7 +95,7 @@ public class MockMineService : IMineService
         new()
         {
             Id = "mine-condo1",
-            Name = "Condo 1 — Mont Kiara",
+            Name = "Condo 1 - Mont Kiara",
             Category = MineCategory.Property,
             Type = MineType.Property,
             Currency = "MYR",
@@ -132,7 +132,7 @@ public class MockMineService : IMineService
         new()
         {
             Id = "burden-mortgage",
-            Name = "Mortgage — Condo 1",
+            Name = "Mortgage - Condo 1",
             Type = BurdenType.Mortgage,
             Balance = 380000,
             OriginalAmount = 480000,
@@ -157,7 +157,7 @@ public class MockMineService : IMineService
         new()
         {
             Id = "burden-cc",
-            Name = "Credit Card — Maybank 2",
+            Name = "Credit Card - Maybank 2",
             Type = BurdenType.CreditCard,
             Balance = 8500,
             OriginalAmount = 8500,
@@ -181,7 +181,7 @@ public class MockMineService : IMineService
     private readonly List<IncomeRecord> _incomeRecords =
     [
         new() { Id = "inc-1", Source = "Salary", Classification = IncomeClass.Active, Amount = 8500, Currency = "MYR", Frequency = "monthly", Date = "2026-08-25" },
-        new() { Id = "inc-2", Source = "Rental — Condo 1", Classification = IncomeClass.PassiveMineGenerated, Amount = 2500, Currency = "MYR", Frequency = "monthly", MineId = "mine-condo1", MineName = "Condo 1 — Mont Kiara", Date = "2026-08-05" },
+        new() { Id = "inc-2", Source = "Rental - Condo 1", Classification = IncomeClass.PassiveMineGenerated, Amount = 2500, Currency = "MYR", Frequency = "monthly", MineId = "mine-condo1", MineName = "Condo 1 - Mont Kiara", Date = "2026-08-05" },
         new() { Id = "inc-3", Source = "EPF Distribution", Classification = IncomeClass.PassiveMineGenerated, Amount = 5760, Currency = "MYR", Frequency = "annual", MineId = "mine-epf", MineName = "EPF / KWSP", Date = "2026-03-01" },
         new() { Id = "inc-4", Source = "CIMB FD Interest", Classification = IncomeClass.PassiveMineGenerated, Amount = 2800, Currency = "MYR", Frequency = "annual", MineId = "mine-fd-cimb", MineName = "CIMB Fixed Deposit", Date = "2026-06-15" },
         new() { Id = "inc-5", Source = "Maybank Dividend", Classification = IncomeClass.PassiveMineGenerated, Amount = 480, Currency = "MYR", Frequency = "annual", MineId = "mine-maybank", MineName = "Maybank Shares", Date = "2026-05-20" },

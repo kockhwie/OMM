@@ -3,7 +3,7 @@
 @inject IMineService MineService
 @namespace omm.Components.Pages
 
-<PageTitle>Mine Board Overview — OhMyMine</PageTitle>
+<PageTitle>Mine Board Overview - OhMyMine</PageTitle>
 
 @if (summary == null || profile == null)
 {
@@ -141,7 +141,7 @@ else
                                 <div class="d-flex align-items-center gap-2">
                                     <i class="ti ti-calendar-time text-warning fs-5"></i>
                                     <div>
-                                        <div class="fw-semibold text-dark" style="font-size: 0.85rem;">@item.Mine.Name — @item.SubMine.Label</div>
+                                        <div class="fw-semibold text-dark" style="font-size: 0.85rem;">@item.Mine.Name - @item.SubMine.Label</div>
                                         <div class="text-muted" style="font-size: 0.75rem;">Matures @item.SubMine.MaturityDate</div>
                                     </div>
                                 </div>
@@ -262,10 +262,10 @@ else
 
     private string GetFreedomLabel(decimal ratio)
     {
-        if (ratio >= 100) return "100% — Fully financially free!";
-        if (ratio >= 50) return $"{ratio:F0}% — Halfway to freedom";
-        if (ratio >= 25) return $"{ratio:F0}% — Building passive runway";
-        return $"{ratio:F0}% — Early stage miner";
+        if (ratio >= 100) return "100% - Fully financially free!";
+        if (ratio >= 50) return $"{ratio:F0}% - Halfway to freedom";
+        if (ratio >= 25) return $"{ratio:F0}% - Building passive runway";
+        return $"{ratio:F0}% - Early stage miner";
     }
 
     private int GetDaysUntil(string? dateStr)

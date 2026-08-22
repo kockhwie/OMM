@@ -3,7 +3,7 @@
 @inject IMineService MineService
 @inject NavigationManager Navigation
 
-<PageTitle>@(currentMine?.Name ?? "Mine Detail") — OhMyMine</PageTitle>
+<PageTitle>@(currentMine?.Name ?? "Mine Detail") - OhMyMine</PageTitle>
 
 @if (currentMine == null)
 {
@@ -224,7 +224,7 @@ else
                             <div class="rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center p-2 mb-2" style="width: 40px; height: 40px;">
                                 <i class="ti ti-shield-check fs-4"></i>
                             </div>
-                            <div class="text-muted small mb-1">Unencumbered Asset — 100% Equity</div>
+                            <div class="text-muted small mb-1">Unencumbered Asset - 100% Equity</div>
                             <div class="fs-3 fw-bold text-success font-display">
                                 @FormatHelper.FormatCurrency(currentMine.CurrentValue)
                             </div>

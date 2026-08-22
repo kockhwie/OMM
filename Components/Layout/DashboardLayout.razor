@@ -49,7 +49,7 @@
             @if (profile != null)
             {
                 <div class="d-flex align-items-center gap-2 p-2 rounded-3" style="background-color: var(--omm-ink-50);">
-                    <div class="rounded-circle text-white d-flex align-items-center justify-content-center fw-bold" 
+                    <div class="rounded-circle text-white d-flex align-items-center justify-content-center fw-bold flex-shrink-0" 
                          style="width: 36px; height: 36px; background-color: var(--omm-clay-500); font-size: 0.8rem;">
                         @GetInitials(profile.Name)
                     </div>
@@ -80,7 +80,7 @@
                         <span>Overview</span>
                     </NavLink>
                     <NavLink class="sidebar-link" href="mines" @onclick="ToggleMobileNav">
-                        <i class="ti ti-pickaxe fs-5"></i>
+                        <i class="ti ti-shovel fs-5"></i>
                         <span>My Mines</span>
                     </NavLink>
                     <NavLink class="sidebar-link" href="burdens" @onclick="ToggleMobileNav">
@@ -121,11 +121,9 @@
                 <button class="btn btn-sm d-lg-none p-1 text-dark border-0" @onclick="ToggleMobileNav">
                     <i class="ti ti-menu-2 fs-4"></i>
                 </button>
-                <div class="d-none d-sm-flex align-items-center position-relative" style="width: 320px;">
-                    <i class="ti ti-search position-absolute text-muted" style="top: 50%; left: 14px; transform: translateY(-50%); pointer-events: none;"></i>
-                    <input type="text" class="form-control form-control-sm omm-input"
-                           style="padding-left: 2.5rem; background-color: var(--omm-ink-50);"
-                           placeholder="Search mines, burdens..." />
+                <div class="d-none d-sm-flex search-input-group" style="width: 100%; max-width: 320px; min-width: 160px;">
+                    <i class="ti ti-search"></i>
+                    <input type="text" placeholder="Search mines, burdens..." />
                 </div>
             </div>
 
@@ -181,9 +179,9 @@
                 <!-- User Profile Pill -->
                 @if (profile != null)
                 {
-                    <a href="settings" class="d-flex align-items-center text-decoration-none">
-                        <div class="rounded-circle text-white d-flex align-items-center justify-content-center fw-bold shadow-sm" 
-                             style="width: 36px; height: 36px; background-color: var(--omm-clay-500); font-size: 0.85rem;">
+                    <a href="settings" class="d-flex align-items-center text-decoration-none flex-shrink-0">
+                        <div class="rounded-circle text-white d-flex align-items-center justify-content-center fw-bold shadow-sm flex-shrink-0"
+                             style="width: 36px; height: 36px; min-width: 36px; background-color: var(--omm-clay-500); font-size: 0.85rem;">
                             @GetInitials(profile.Name)
                         </div>
                     </a>

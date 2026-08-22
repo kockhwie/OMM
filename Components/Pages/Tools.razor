@@ -4,7 +4,7 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 
-<PageTitle>Financial Tools &amp; Calculators — OhMyMine</PageTitle>
+<PageTitle>Financial Tools &amp; Calculators - OhMyMine</PageTitle>
 
 @if (activeTool == null)
 {
@@ -627,7 +627,7 @@ else
                             <!-- Hero: Annual Dividend -->
                             <div class="dc-hero-block dc-animate shadow-sm">
                                 <div class="dc-hero-label">
-                                    @(!string.IsNullOrWhiteSpace(qcStockName) ? $"{qcStockName} ({qcStockSymbol}) — " : "")Annual Dividend
+                                    @(!string.IsNullOrWhiteSpace(qcStockName) ? $"{qcStockName} ({qcStockSymbol}) - " : "")Annual Dividend
                                 </div>
                                 <div class="dc-hero-value">@dcCurrencySymbol@CurrentQuickCalc.AnnualDividend.ToString("N2")</div>
                                 <div class="dc-hero-sub">

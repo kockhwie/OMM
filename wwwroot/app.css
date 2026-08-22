@@ -256,6 +256,32 @@ h1, h2, h3, h4, h5, h6, .font-display {
     flex-shrink: 0;
 }
 
+    /* Compact badge — specificity-boosted so it always wins over base badge classes */
+    .badge-pill-mine.badge-pill-compact,
+    .badge-pill-burden.badge-pill-compact,
+    .badge-pill-warning.badge-pill-compact,
+    .badge-pill-blue.badge-pill-compact,
+    .badge-pill-neutral.badge-pill-compact {
+        font-size: 0.62rem;
+        padding: 0.15rem 0.5rem;
+        gap: 0.2rem;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+        .badge-pill-mine.badge-pill-compact i,
+        .badge-pill-burden.badge-pill-compact i,
+        .badge-pill-warning.badge-pill-compact i,
+        .badge-pill-blue.badge-pill-compact i,
+        .badge-pill-neutral.badge-pill-compact i {
+            font-size: 0.75em;
+        }
+
+/* Compact category filter pills */
+.filter-pill {
+    font-size: 0.78rem !important;
+    padding: 0.35rem 0.7rem !important;
+}
 /* Tabler Icon Helper */
 i.ti {
     font-size: 1.2em;
@@ -842,3 +868,48 @@ i.ti {
     background: #ddd6fe;
     color: #4c1d95;
 }
+
+/* Robust search box (flex-based, no absolute positioning) */
+.search-input-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid var(--omm-ink-300);
+    border-radius: var(--omm-radius-md);
+    background-color: var(--omm-ink-50);
+    padding: 0 0.85rem;
+    min-width: 0;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+    .search-input-group:focus-within {
+        border-color: var(--omm-ink-900);
+        box-shadow: 0 0 0 3px rgba(13,14,19,0.08);
+        background-color: #ffffff;
+    }
+
+    .search-input-group i {
+        color: var(--omm-ink-400);
+        flex-shrink: 0;
+        font-size: 1rem;
+    }
+
+    .search-input-group input {
+        border: 0;
+        background: transparent;
+        outline: none;
+        box-shadow: none;
+        width: 100%;
+        min-width: 0;
+        padding: 0.5rem 0;
+        font-size: 0.875rem;
+        color: var(--omm-ink-900);
+    }
+
+        .search-input-group input::placeholder {
+            color: var(--omm-ink-400);
+        }
+
+    .search-input-group .btn-clear {
+        flex-shrink: 0;
+    }

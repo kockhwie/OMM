@@ -450,9 +450,9 @@ else
                 <div class="col-12 col-lg-5">
                     <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
 
-                        <!-- 1. Your Position -->
+                        <!-- 1. Stock Information -->
                         <div class="dc-section">
-                            <div class="dc-section-title">Your Position</div>
+                            <div class="dc-section-title">Stock Information</div>
 
                             <!-- Search: the only way Code/Name get set — both fields below are read-only -->
                             <div class="mb-3">
@@ -465,14 +465,14 @@ else
                             <div class="row g-2 mb-3">
                                 <div class="col-5">
                                     <label class="form-label small fw-semibold text-muted mb-1" for="qc-symbol">
-                                        Stock Code <span class="dc-subtle-optional">(Optional)</span>
+                                        Stock Code  <br /> <span class="dc-subtle-optional">(Optional)</span>
                                     </label>
                                     <input id="qc-symbol" type="text" class="form-control rounded-3 bg-light" readonly
                                            placeholder="—" value="@qcStockSymbol" />
                                 </div>
                                 <div class="col-7">
                                     <label class="form-label small fw-semibold text-muted mb-1" for="qc-name">
-                                        Company Name <span class="dc-subtle-optional">(Optional)</span>
+                                        Company Name <br /> <span class="dc-subtle-optional">(Optional)</span>
                                     </label>
                                     <input id="qc-name" type="text" class="form-control rounded-3 bg-light" readonly
                                            placeholder="—" value="@qcStockName" />
@@ -483,7 +483,7 @@ else
                             <div class="row g-2">
                                 <div class="col-6">
                                     <label class="form-label small fw-semibold" style="color: var(--omm-ink-700);" for="qc-price">
-                                        Current Share Price <span class="dc-subtle-optional">(Optional)</span>
+                                        Current Share Price <br /><span class="dc-subtle-optional">(Optional)</span>
                                     </label>
                                     <div class="dc-currency-group">
                                         <span class="dc-currency-addon">@dcCurrencySymbol</span>
@@ -494,7 +494,7 @@ else
                                 </div>
                                 <div class="col-6">
                                     <label class="form-label small fw-semibold" style="color: var(--omm-ink-700);" for="qc-purchase">
-                                        Purchase Cost Basis <span class="dc-subtle-optional">(Optional)</span>
+                                        Purchase Cost Basis <br /><span class="dc-subtle-optional">(Optional)</span>
                                     </label>
                                     <div class="dc-currency-group">
                                         <span class="dc-currency-addon">@dcCurrencySymbol</span>
@@ -511,7 +511,7 @@ else
                                     <i class="ti ti-alert-triangle"></i>
                                     <span>
                                         Add @(qcSharePrice > 0 ? "a Purchase Cost Basis" : "a Current Share Price")
-                                        too — both are needed together to show Dividend Yield % / Yield on Cost %.
+                                        too, both are needed together to show Dividend Yield % / Yield on Cost %.
                                     </span>
                                 </div>
                             }
@@ -522,8 +522,7 @@ else
 
                             <hr class="my-3 border-light-subtle" />
 
-                            <!-- Shares Owned: compulsory, sits at the bottom so it reads as the bridge into
-         Dividend Payouts below (the annual dividend calc needs both). -->
+                            <!-- Shares Owned: compulsory, sits at the bottom so it reads as the bridge into Dividend Payouts below (the annual dividend calc needs both). -->
                             <div>
                                 <label class="form-label small fw-semibold" style="color: var(--omm-ink-700);" for="qc-shares">
                                     Shares Owned <span class="text-danger">*</span>
@@ -544,7 +543,7 @@ else
 
                             <!-- Shares Owned moved up to "Your Position" — Payout Type is now first here -->
                             <div class="mb-3">
-                                <label class="form-label small fw-semibold mb-2 d-block" style="color: var(--omm-ink-700);">Payout Type</label>
+                                <label class="form-label small fw-semibold mb-2 d-block" style="color: var(--omm-ink-700);">Payout Type  <span class="text-danger">*</span></label>
                                 <div class="dc-segmented" role="group" aria-label="Payout type">
                                     <button type="button" class="dc-segmented-btn @(qcPayoutType == "uniform" ? "active" : "")"
                                             @onclick='() => ChangePayoutType("uniform")'>
@@ -558,12 +557,12 @@ else
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label small fw-semibold mb-1" style="color: var(--omm-ink-700);" for="qc-freq">Dividend Frequency</label>
+                                <label class="form-label small fw-semibold mb-1" style="color: var(--omm-ink-700);" for="qc-freq">Dividend Frequency  <span class="text-danger">*</span></label>
                                 <select id="qc-freq" class="form-select rounded-3" @bind="qcFrequency" @bind:after="OnFrequencyChanged">
-                                    <option value="@DividendFrequency.Monthly">Monthly (12 payouts/yr)</option>
-                                    <option value="@DividendFrequency.Quarterly">Quarterly (4 payouts/yr)</option>
-                                    <option value="@DividendFrequency.SemiAnnually">Semi-annually (2 payouts/yr)</option>
-                                    <option value="@DividendFrequency.Annually">Annually (1 payout/yr)</option>
+                                    <option value="@DividendFrequency.Monthly">Monthly (12 payouts per year)</option>
+                                    <option value="@DividendFrequency.Quarterly">Quarterly (4 payouts per year)</option>
+                                    <option value="@DividendFrequency.SemiAnnually">Semi-annually (2 payouts per year)</option>
+                                    <option value="@DividendFrequency.Annually">Annually (1 payout per year)</option>
                                 </select>
                             </div>
 
@@ -571,7 +570,7 @@ else
                             {
                                 <div class="mb-3">
                                     <label class="form-label small fw-semibold" style="color: var(--omm-ink-700);" for="qc-dps">
-                                        Dividend Per Share (@DividendEngine.FrequencyLabel(qcFrequency))
+                                        Dividend Per Share (@DividendEngine.FrequencyLabel(qcFrequency)) <span class="text-danger">*</span>
                                     </label>
                                     <div class="dc-currency-group">
                                         <span class="dc-currency-addon">@dcCurrencySymbol</span>
@@ -587,7 +586,7 @@ else
                                 <div class="mb-3">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <label class="form-label small fw-semibold mb-0" style="color: var(--omm-ink-700);">
-                                            Per-Term Dividend Rates (@DividendEngine.FrequencyShortLabel(qcFrequency))
+                                            Per-Term Dividend Rates (@DividendEngine.FrequencyShortLabel(qcFrequency)) <span class="text-danger">*</span>
                                         </label>
                                         <span class="text-muted" style="font-size: 0.7rem;">Enter term rates</span>
                                     </div>
@@ -615,7 +614,7 @@ else
 
                             <div>
                                 <label class="form-label small fw-semibold" style="color: var(--omm-ink-700);" for="qc-special-dps">
-                                    Special / Bonus Dividend Per Share <span class="dc-subtle-optional">(Optional)</span>
+                                    Special / Bonus Dividend Per Share <span class="text-danger">*</span>
                                 </label>
                                 <div class="dc-currency-group">
                                     <span class="dc-currency-addon">@dcCurrencySymbol</span>

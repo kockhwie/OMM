@@ -24,42 +24,42 @@ else
     <!-- Key Metrics Grid -->
     <div class="row g-3 mb-4">
         <!-- Net Wealth -->
-        <div class="col-sm-6 col-lg-3">
-            <MetricCard Title="Net Wealth" 
-                        Value="@FormatHelper.FormatCurrency(summary.NetWealth)" 
-                        Icon="ti-sparkles" 
-                        Variant="gold" 
+        <div class="col-sm-6 col-xl-3">
+            <MetricCard Title="Net Wealth"
+                        Value="@FormatHelper.FormatCurrency(summary.NetWealth)"
+                        Icon="ti-sparkles"
+                        Variant="gold"
                         Subtitle="@($"{FormatHelper.FormatCurrency(summary.TotalMines)} mines − {FormatHelper.FormatCurrency(summary.TotalBurdens)} burdens")" />
         </div>
 
         <!-- Freedom Ratio -->
-        <div class="col-sm-6 col-lg-3">
-            <MetricCard Title="Freedom Ratio" 
-                        Value="@($"{summary.FreedomRatio:F0}%")" 
-                        Icon="ti-sun" 
-                        Variant="freedom" 
+        <div class="col-sm-6 col-xl-3">
+            <MetricCard Title="Freedom Ratio"
+                        Value="@($"{summary.FreedomRatio:F0}%")"
+                        Icon="ti-sun"
+                        Variant="freedom"
                         Subtitle="@GetFreedomLabel(summary.FreedomRatio)">
                 <ProgressBar Percentage="@summary.FreedomRatio" Variant="mine" Height="6px" />
             </MetricCard>
         </div>
 
         <!-- Passive Income -->
-        <div class="col-sm-6 col-lg-3">
-            <MetricCard Title="Passive / month" 
-                        Value="@FormatHelper.FormatCurrency(summary.PassiveIncomeMonthly)" 
-                        Icon="ti-trending-up" 
-                        Variant="mine" 
+        <div class="col-sm-6 col-xl-3">
+            <MetricCard Title="Passive / month"
+                        Value="@FormatHelper.FormatCurrency(summary.PassiveIncomeMonthly)"
+                        Icon="ti-trending-up"
+                        Variant="mine"
                         Subtitle="@($"vs {FormatHelper.FormatCurrency(summary.RecurringExpensesMonthly)} recurring exp.")" />
         </div>
 
         <!-- Total Growth -->
-        <div class="col-sm-6 col-lg-3">
-            <MetricCard Title="Total Growth" 
-                        Value="@FormatHelper.FormatCurrency(summary.TotalGrowth)" 
-                        Icon="@(summary.TotalGrowth >= 0 ? "ti-trending-up" : "ti-trending-down")" 
-                        Variant="@(summary.TotalGrowth >= 0 ? "mine" : "burden")" 
-                        Trend="@FormatHelper.FormatPercent(summary.TotalGrowthPct)" 
-                        TrendPositive="@(summary.TotalGrowth >= 0)" 
+        <div class="col-sm-6 col-xl-3">
+            <MetricCard Title="Total Growth"
+                        Value="@FormatHelper.FormatCurrency(summary.TotalGrowth)"
+                        Icon="@(summary.TotalGrowth >= 0 ? "ti-trending-up" : "ti-trending-down")"
+                        Variant="@(summary.TotalGrowth >= 0 ? "mine" : "burden")"
+                        Trend="@FormatHelper.FormatPercent(summary.TotalGrowthPct)"
+                        TrendPositive="@(summary.TotalGrowth >= 0)"
                         Subtitle="across all active mines" />
         </div>
     </div>

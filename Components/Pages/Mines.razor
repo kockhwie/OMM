@@ -21,15 +21,17 @@
 <!-- Search & Category Filters -->
 <div class="d-flex flex-column flex-md-row gap-3 mb-4 animate-fade-up">
     <div class="position-relative flex-grow-1" style="max-width: 340px;">
-        <i class="ti ti-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+        <i class="ti ti-search position-absolute text-muted" style="top: 50%; left: 14px; transform: translateY(-50%); pointer-events: none;"></i>
         <input type="text"
-               class="form-control ps-5 bg-white border-light-subtle rounded-3 py-2 shadow-xs"
+               class="form-control bg-white border-light-subtle rounded-3 py-2 shadow-xs"
+               style="padding-left: 2.5rem; padding-right: 2.25rem;"
                placeholder="Search mines, types..."
                @bind="searchQuery"
                @bind:event="oninput" />
         @if (!string.IsNullOrWhiteSpace(searchQuery))
         {
-            <button class="btn btn-sm btn-link position-absolute top-50 end-0 translate-middle-y me-2 text-muted p-0 text-decoration-none"
+            <button class="btn btn-sm btn-link position-absolute text-muted p-0 text-decoration-none"
+                    style="top: 50%; right: 10px; transform: translateY(-50%);"
                     @onclick="() => searchQuery = string.Empty">
                 <i class="ti ti-x"></i>
             </button>
@@ -64,43 +66,47 @@
                 <div class="card h-100 border-0 shadow-sm rounded-4 p-4 card-hover cursor-pointer position-relative"
                      style="transition: all 0.2s ease-in-out;"
                      @onclick="() => NavigateToDetail(mine.Id)">
-                    
-                    <!-- Header: Icon, Name & Status -->
-                    <div class="d-flex align-items-start justify-content-between mb-3">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="rounded-3 bg-dark-subtle text-dark d-flex align-items-center justify-center p-2"
-                                 style="width: 44px; height: 44px;">
-                                <i class="ti @FormatHelper.CategoryToIcon(mine.Category) fs-4"></i>
-                            </div>
-                            <div>
-                                <h3 class="h6 fw-bold mb-0 text-dark font-display text-truncate" style="max-width: 180px;">@mine.Name</h3>
-                                <small class="text-muted">
-                                    @FormatHelper.CategoryLabel(mine.Category) · @FormatHelper.MineTypeLabel(mine.Type)
-                                </small>
-                            </div>
+
+                    <!-- Status Badge — small, top of card -->
+                    <div class="d-flex justify-content-end mb-2">
+                        <StatusBadge Status="@mine.Status" Compact="true" />
+                    </div>
+
+                    <!-- Header: Icon, Name & Category (wraps, no truncation) -->
+                    <div class="d-flex align-items-start gap-3 mb-3">
+                        <div class="rounded-3 bg-dark-subtle text-dark d-flex align-items-center justify-content-center p-2 flex-shrink-0"
+                             style="width: 40px; height: 40px;">
+                            <i class="ti @FormatHelper.CategoryToIcon(mine.Category) fs-5"></i>
                         </div>
-                        <StatusBadge Status="@mine.Status" />
+                        <div class="min-w-0">
+                            <h3 class="h6 fw-bold mb-0 text-dark font-display" style="font-size: 0.92rem; line-height: 1.3; word-break: break-word;">
+                                @mine.Name
+                            </h3>
+                            <small class="text-muted d-block" style="font-size: 0.72rem; line-height: 1.35; word-break: break-word;">
+                                @FormatHelper.CategoryLabel(mine.Category) · @FormatHelper.MineTypeLabel(mine.Type)
+                            </small>
+                        </div>
                     </div>
 
                     <!-- Metrics Grid -->
                     <div class="row g-2 pt-2 border-top border-light-subtle text-center text-sm-start">
-                        <div class="col-4">
-                            <span class="text-uppercase text-muted fw-semibold" style="font-size: 0.65rem; letter-spacing: 0.05em;">Current</span>
-                            <div class="fw-bold text-dark fs-6 text-truncate">
-                                @FormatHelper.FormatCurrency(mine.CurrentValue)
+                        <div class="col-4 min-w-0">
+                            <span class="text-uppercase text-muted fw-semibold d-block" style="font-size: 0.62rem; letter-spacing: 0.05em;">Current</span>
+                            <div class="fw-bold text-dark" style="font-size: 0.85rem;" title="@FormatHelper.FormatCurrency(mine.CurrentValue)">
+                                @FormatHelper.FormatCurrencyCompact(mine.CurrentValue)
                             </div>
                         </div>
-                        <div class="col-4">
-                            <span class="text-uppercase text-muted fw-semibold" style="font-size: 0.65rem; letter-spacing: 0.05em;">Growth</span>
-                            <div class="fw-bold fs-6 d-flex align-items-center gap-1 @(growthPositive ? "text-success" : "text-danger")">
-                                <i class="ti @(growthPositive ? "ti-trending-up" : "ti-trending-down") fs-6"></i>
+                        <div class="col-4 min-w-0">
+                            <span class="text-uppercase text-muted fw-semibold d-block" style="font-size: 0.62rem; letter-spacing: 0.05em;">Growth</span>
+                            <div class="fw-bold d-flex align-items-center justify-content-center justify-content-sm-start gap-1 @(growthPositive ? "text-success" : "text-danger")" style="font-size: 0.85rem;">
+                                <i class="ti @(growthPositive ? "ti-trending-up" : "ti-trending-down")" style="font-size: 0.9rem;"></i>
                                 <span>@FormatHelper.FormatPercent(mine.GrowthPct)</span>
                             </div>
                         </div>
-                        <div class="col-4">
-                            <span class="text-uppercase text-muted fw-semibold" style="font-size: 0.65rem; letter-spacing: 0.05em;">Income/mo</span>
-                            <div class="fw-bold text-dark fs-6 text-truncate">
-                                @(mine.MonthlyIncome > 0 ? FormatHelper.FormatCurrency(mine.MonthlyIncome) : "—")
+                        <div class="col-4 min-w-0">
+                            <span class="text-uppercase text-muted fw-semibold d-block" style="font-size: 0.62rem; letter-spacing: 0.05em;">Income/mo</span>
+                            <div class="fw-bold text-dark" style="font-size: 0.85rem;" title="@(mine.MonthlyIncome > 0 ? FormatHelper.FormatCurrency(mine.MonthlyIncome) : "—")">
+                                @(mine.MonthlyIncome > 0 ? FormatHelper.FormatCurrencyCompact(mine.MonthlyIncome) : "—")
                             </div>
                         </div>
                     </div>

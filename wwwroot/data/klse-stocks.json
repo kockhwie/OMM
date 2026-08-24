@@ -1,12 +1,5292 @@
 [
-  { "code": "1155", "name": "Malayan Banking Berhad (Maybank)" },
-  { "code": "1295", "name": "Public Bank Berhad" },
-  { "code": "1023", "name": "CIMB Group Holdings Berhad" },
-  { "code": "5347", "name": "Tenaga Nasional Berhad" },
-  { "code": "5183", "name": "Petronas Chemicals Group Berhad" },
-  { "code": "6888", "name": "Axiata Group Berhad" },
-  { "code": "5225", "name": "IHH Healthcare Berhad" },
-  { "code": "1961", "name": "IOI Corporation Berhad" },
-  { "code": "4707", "name": "Nestle (Malaysia) Berhad" },
-  { "code": "5819", "name": "Hong Leong Bank Berhad" }
+ {
+   "name": "7-ELEVEN MALAYSIA HOLDINGS BERHAD",
+   "code": "5250",
+   "price": ""
+ },
+ {
+   "name": "ABF MALAYSIA BOND INDEX FUND",
+   "code": "0800EA",
+   "price": ""
+ },
+ {
+   "name": "ABLE GLOBAL BERHAD",
+   "code": "7167",
+   "price": ""
+ },
+ {
+   "name": "ABLEGROUP BERHAD",
+   "code": "7086",
+   "price": ""
+ },
+ {
+   "name": "ABM FUJIYA BERHAD",
+   "code": "5198",
+   "price": ""
+ },
+ {
+   "name": "ACME HOLDINGS BERHAD",
+   "code": "7131",
+   "price": ""
+ },
+ {
+   "name": "ACO GROUP BERHAD",
+   "code": "0218",
+   "price": ""
+ },
+ {
+   "name": "ADVANCE INFORMATION MARKETING BERHAD",
+   "code": "0122",
+   "price": ""
+ },
+ {
+   "name": "ADVANCE SYNERGY BERHAD",
+   "code": "1481",
+   "price": ""
+ },
+ {
+   "name": "ADVANCECON HOLDINGS BERHAD",
+   "code": "5281",
+   "price": ""
+ },
+ {
+   "name": "ADVENTA BERHAD",
+   "code": "7191",
+   "price": ""
+ },
+ {
+   "name": "AE MULTI HOLDINGS BERHAD",
+   "code": "7146",
+   "price": ""
+ },
+ {
+   "name": "AEMULUS HOLDINGS BERHAD",
+   "code": "0181",
+   "price": ""
+ },
+ {
+   "name": "AEON CO. (M) BHD",
+   "code": "6599",
+   "price": ""
+ },
+ {
+   "name": "AEON CREDIT SERVICE (M) BERHAD",
+   "code": "5139",
+   "price": ""
+ },
+ {
+   "name": "AFFIN BANK BERHAD",
+   "code": "5185",
+   "price": ""
+ },
+ {
+   "name": "AGESON BERHAD",
+   "code": "7145",
+   "price": ""
+ },
+ {
+   "name": "AGMO HOLDINGS BERHAD",
+   "code": "0258",
+   "price": ""
+ },
+ {
+   "name": "AGRICORE CS HOLDINGS BERHAD",
+   "code": "0309",
+   "price": ""
+ },
+ {
+   "name": "AGX GROUP BERHAD",
+   "code": "0299",
+   "price": ""
+ },
+ {
+   "name": "AHB HOLDINGS BERHAD",
+   "code": "7315",
+   "price": ""
+ },
+ {
+   "name": "AHMAD ZAKI RESOURCES BERHAD",
+   "code": "7078",
+   "price": ""
+ },
+ {
+   "name": "AIMFLEX BERHAD",
+   "code": "0209",
+   "price": ""
+ },
+ {
+   "name": "AIRASIA X BERHAD",
+   "code": "5238",
+   "price": ""
+ },
+ {
+   "name": "AJINOMOTO (MALAYSIA) BERHAD",
+   "code": "2658",
+   "price": ""
+ },
+ {
+   "name": "AJIYA BERHAD",
+   "code": "7609",
+   "price": ""
+ },
+ {
+   "name": "ALAM MARITIM RESOURCES BERHAD",
+   "code": "5115",
+   "price": ""
+ },
+ {
+   "name": "AL-'AQAR HEALTHCARE REIT",
+   "code": "5116",
+   "price": ""
+ },
+ {
+   "name": "ALCOM GROUP BERHAD",
+   "code": "2674",
+   "price": ""
+ },
+ {
+   "name": "ALDRICH RESOURCES BERHAD",
+   "code": "0079",
+   "price": ""
+ },
+ {
+   "name": "ALLIANCE BANK MALAYSIA BERHAD",
+   "code": "2488",
+   "price": ""
+ },
+ {
+   "name": "ALLIANZ MALAYSIA BERHAD",
+   "code": "1163",
+   "price": ""
+ },
+ {
+   "name": "ALPHA IVF GROUP BERHAD",
+   "code": "0303",
+   "price": ""
+ },
+ {
+   "name": "ALPHA OCEAN RESOURCES BERHAD",
+   "code": "03051",
+   "price": ""
+ },
+ {
+   "name": "AL-SALAM REAL ESTATE INVESTMENT TRUST",
+   "code": "5269",
+   "price": ""
+ },
+ {
+   "name": "AMANAHRAYA REAL ESTATE INVESTMENT TRUST",
+   "code": "5127",
+   "price": ""
+ },
+ {
+   "name": "AME ELITE CONSORTIUM BERHAD",
+   "code": "5293",
+   "price": ""
+ },
+ {
+   "name": "AME REAL ESTATE INVESTMENT TRUST",
+   "code": "5307",
+   "price": ""
+ },
+ {
+   "name": "AMFIRST REAL ESTATE INVESTMENT TRUST",
+   "code": "5120",
+   "price": ""
+ },
+ {
+   "name": "AMLEX HOLDINGS BERHAD",
+   "code": "03011",
+   "price": ""
+ },
+ {
+   "name": "AMMB HOLDINGS BERHAD",
+   "code": "1015",
+   "price": ""
+ },
+ {
+   "name": "AMTEL HOLDINGS BERHAD",
+   "code": "7031",
+   "price": ""
+ },
+ {
+   "name": "AMWAY (MALAYSIA) HOLDINGS BERHAD",
+   "code": "6351",
+   "price": ""
+ },
+ {
+   "name": "ANALABS RESOURCES BERHAD",
+   "code": "7083",
+   "price": ""
+ },
+ {
+   "name": "ANCOM LOGISTICS BERHAD",
+   "code": "0048",
+   "price": ""
+ },
+ {
+   "name": "ANCOM NYLEX BERHAD",
+   "code": "4758",
+   "price": ""
+ },
+ {
+   "name": "ANEKA JARINGAN HOLDINGS BERHAD",
+   "code": "0226",
+   "price": ""
+ },
+ {
+   "name": "ANN JOO RESOURCES BERHAD",
+   "code": "6556",
+   "price": ""
+ },
+ {
+   "name": "ANNUM BERHAD",
+   "code": "5082",
+   "price": ""
+ },
+ {
+   "name": "APB RESOURCES BERHAD",
+   "code": "5568",
+   "price": ""
+ },
+ {
+   "name": "APEX EQUITY HOLDINGS BERHAD",
+   "code": "5088",
+   "price": ""
+ },
+ {
+   "name": "APEX HEALTHCARE BERHAD",
+   "code": "7090",
+   "price": ""
+ },
+ {
+   "name": "APM AUTOMOTIVE HOLDINGS BERHAD",
+   "code": "5015",
+   "price": ""
+ },
+ {
+   "name": "APOLLO FOOD HOLDINGS BERHAD",
+   "code": "6432",
+   "price": ""
+ },
+ {
+   "name": "APPASIA BERHAD",
+   "code": "0119",
+   "price": ""
+ },
+ {
+   "name": "A-RANK BERHAD",
+   "code": "7214",
+   "price": ""
+ },
+ {
+   "name": "ARB BERHAD",
+   "code": "7181",
+   "price": ""
+ },
+ {
+   "name": "ARK RESOURCES HOLDINGS BERHAD",
+   "code": "7007",
+   "price": ""
+ },
+ {
+   "name": "ARKA BERHAD",
+   "code": "7218",
+   "price": ""
+ },
+ {
+   "name": "ARTRONIQ BERHAD",
+   "code": "0038",
+   "price": ""
+ },
+ {
+   "name": "ASDION BERHAD",
+   "code": "0068",
+   "price": ""
+ },
+ {
+   "name": "ASIA BRANDS BERHAD",
+   "code": "7722",
+   "price": ""
+ },
+ {
+   "name": "ASIA FILE CORPORATION BHD",
+   "code": "7129",
+   "price": ""
+ },
+ {
+   "name": "ASIA POLY HOLDINGS BERHAD",
+   "code": "0105",
+   "price": ""
+ },
+ {
+   "name": "ASIAN PAC HOLDINGS BERHAD",
+   "code": "4057",
+   "price": ""
+ },
+ {
+   "name": "ASTEEL GROUP BERHAD",
+   "code": "7020",
+   "price": ""
+ },
+ {
+   "name": "ASTINO BERHAD",
+   "code": "7162",
+   "price": ""
+ },
+ {
+   "name": "ASTRAL ASIA BERHAD",
+   "code": "7054",
+   "price": ""
+ },
+ {
+   "name": "ASTRAMINA GROUP BERHAD",
+   "code": "03032",
+   "price": ""
+ },
+ {
+   "name": "ASTRO MALAYSIA HOLDINGS BERHAD",
+   "code": "6399",
+   "price": ""
+ },
+ {
+   "name": "AT SYSTEMATIZATION BERHAD",
+   "code": "0072",
+   "price": ""
+ },
+ {
+   "name": "ATA IMS BERHAD",
+   "code": "8176",
+   "price": ""
+ },
+ {
+   "name": "ATLAN HOLDINGS BHD",
+   "code": "7048",
+   "price": ""
+ },
+ {
+   "name": "ATRIUM REAL ESTATE INVESTMENT TRUST",
+   "code": "5130",
+   "price": ""
+ },
+ {
+   "name": "AURELIUS TECHNOLOGIES BERHAD",
+   "code": "5302",
+   "price": ""
+ },
+ {
+   "name": "AURO HOLDINGS BERHAD",
+   "code": "5025",
+   "price": ""
+ },
+ {
+   "name": "AURORA ITALIA INTERNATIONAL BERHAD",
+   "code": "03037",
+   "price": ""
+ },
+ {
+   "name": "AUTOCOUNT DOTCOM BERHAD",
+   "code": "0276",
+   "price": ""
+ },
+ {
+   "name": "AVALAND BERHAD",
+   "code": "5182",
+   "price": ""
+ },
+ {
+   "name": "AVILLION BERHAD",
+   "code": "8885",
+   "price": ""
+ },
+ {
+   "name": "AWANBIRU TECHNOLOGY BERHAD",
+   "code": "5204",
+   "price": ""
+ },
+ {
+   "name": "AWC BERHAD",
+   "code": "7579",
+   "price": ""
+ },
+ {
+   "name": "AXIATA GROUP BERHAD",
+   "code": "6888",
+   "price": ""
+ },
+ {
+   "name": "AXIS REAL ESTATE INVESTMENT TRUST",
+   "code": "5106",
+   "price": ""
+ },
+ {
+   "name": "AXTERIA GROUP BERHAD",
+   "code": "7120",
+   "price": ""
+ },
+ {
+   "name": "AYER HOLDINGS BERHAD",
+   "code": "2305",
+   "price": ""
+ },
+ {
+   "name": "AYS VENTURES BERHAD",
+   "code": "5021",
+   "price": ""
+ },
+ {
+   "name": "B.I.G. INDUSTRIES BERHAD",
+   "code": "7005",
+   "price": ""
+ },
+ {
+   "name": "BABA ECO GROUP BERHAD",
+   "code": "03012",
+   "price": ""
+ },
+ {
+   "name": "BAHVEST RESOURCES BERHAD",
+   "code": "0098",
+   "price": ""
+ },
+ {
+   "name": "BANK ISLAM MALAYSIA BERHAD",
+   "code": "5258",
+   "price": ""
+ },
+ {
+   "name": "BARAKAH OFFSHORE PETROLEUM BERHAD",
+   "code": "7251",
+   "price": ""
+ },
+ {
+   "name": "BATU KAWAN BERHAD",
+   "code": "1899",
+   "price": ""
+ },
+ {
+   "name": "BCB BERHAD",
+   "code": "6602",
+   "price": ""
+ },
+ {
+   "name": "BCM ALLIANCE BERHAD",
+   "code": "0187",
+   "price": ""
+ },
+ {
+   "name": "BENALEC HOLDINGS BERHAD",
+   "code": "5190",
+   "price": ""
+ },
+ {
+   "name": "BERJAYA ASSETS BERHAD",
+   "code": "3239",
+   "price": ""
+ },
+ {
+   "name": "BERJAYA CORPORATION BERHAD",
+   "code": "3395",
+   "price": ""
+ },
+ {
+   "name": "BERJAYA FOOD BERHAD",
+   "code": "5196",
+   "price": ""
+ },
+ {
+   "name": "BERJAYA LAND BERHAD",
+   "code": "4219",
+   "price": ""
+ },
+ {
+   "name": "BERMAZ AUTO BERHAD",
+   "code": "5248",
+   "price": ""
+ },
+ {
+   "name": "BERTAM ALLIANCE BERHAD",
+   "code": "9814",
+   "price": ""
+ },
+ {
+   "name": "BESHOM HOLDINGS BERHAD",
+   "code": "7668",
+   "price": ""
+ },
+ {
+   "name": "BETAMEK BERHAD",
+   "code": "0263",
+   "price": ""
+ },
+ {
+   "name": "BINA DARULAMAN BERHAD",
+   "code": "6173",
+   "price": ""
+ },
+ {
+   "name": "BINA PURI HOLDINGS BHD",
+   "code": "5932",
+   "price": ""
+ },
+ {
+   "name": "BINASAT COMMUNICATIONS BERHAD",
+   "code": "0195",
+   "price": ""
+ },
+ {
+   "name": "BINASTRA CORPORATION BERHAD",
+   "code": "7195",
+   "price": ""
+ },
+ {
+   "name": "BINTAI KINDEN CORPORATION BERHAD",
+   "code": "6998",
+   "price": ""
+ },
+ {
+   "name": "BINTULU PORT HOLDINGS BERHAD",
+   "code": "5032",
+   "price": ""
+ },
+ {
+   "name": "BIOALPHA HOLDINGS BERHAD",
+   "code": "0179",
+   "price": ""
+ },
+ {
+   "name": "BLD PLANTATION BHD.",
+   "code": "5069",
+   "price": ""
+ },
+ {
+   "name": "BM GREENTECH BERHAD",
+   "code": "0168",
+   "price": ""
+ },
+ {
+   "name": "BONIA CORPORATION BERHAD",
+   "code": "9288",
+   "price": ""
+ },
+ {
+   "name": "BORNEO OIL BERHAD",
+   "code": "7036",
+   "price": ""
+ },
+ {
+   "name": "BOUSTEAD HEAVY INDUSTRIES CORPORATION BHD",
+   "code": "8133",
+   "price": ""
+ },
+ {
+   "name": "BOX-PAK (MALAYSIA) BERHAD",
+   "code": "6297",
+   "price": ""
+ },
+ {
+   "name": "BP PLASTICS HOLDING BHD",
+   "code": "5100",
+   "price": ""
+ },
+ {
+   "name": "BRIGHT PACKAGING INDUSTRY BERHAD",
+   "code": "9938",
+   "price": ""
+ },
+ {
+   "name": "BRITE-TECH BERHAD",
+   "code": "0011",
+   "price": ""
+ },
+ {
+   "name": "BRITISH AMERICAN TOBACCO (MALAYSIA) BERHAD",
+   "code": "4162",
+   "price": ""
+ },
+ {
+   "name": "BSL CORPORATION BERHAD",
+   "code": "7221",
+   "price": ""
+ },
+ {
+   "name": "BTM RESOURCES BERHAD",
+   "code": "7188",
+   "price": ""
+ },
+ {
+   "name": "BUMI ARMADA BERHAD",
+   "code": "5210",
+   "price": ""
+ },
+ {
+   "name": "BURSA MALAYSIA BERHAD",
+   "code": "1818",
+   "price": ""
+ },
+ {
+   "name": "BV LAND HOLDINGS BERHAD",
+   "code": "03042",
+   "price": ""
+ },
+ {
+   "name": "BWYS GROUP BERHAD",
+   "code": "0313",
+   "price": ""
+ },
+ {
+   "name": "C.I. HOLDINGS BERHAD",
+   "code": "2828",
+   "price": ""
+ },
+ {
+   "name": "CAB CAKARAN CORPORATION BERHAD",
+   "code": "7174",
+   "price": ""
+ },
+ {
+   "name": "CABNET HOLDINGS BERHAD",
+   "code": "0191",
+   "price": ""
+ },
+ {
+   "name": "CAHYA MATA SARAWAK BERHAD",
+   "code": "2852",
+   "price": ""
+ },
+ {
+   "name": "CAM RESOURCES BERHAD",
+   "code": "7128",
+   "price": ""
+ },
+ {
+   "name": "CAN-ONE BERHAD",
+   "code": "5105",
+   "price": ""
+ },
+ {
+   "name": "CAPE EMS BERHAD",
+   "code": "5311",
+   "price": ""
+ },
+ {
+   "name": "CAPITAL A BERHAD",
+   "code": "5099",
+   "price": ""
+ },
+ {
+   "name": "CAPITALAND MALAYSIA TRUST",
+   "code": "5180",
+   "price": ""
+ },
+ {
+   "name": "CAREPLUS GROUP BERHAD",
+   "code": "0163",
+   "price": ""
+ },
+ {
+   "name": "CARIMIN PETROLEUM BERHAD",
+   "code": "5257",
+   "price": ""
+ },
+ {
+   "name": "CARLO RINO GROUP BERHAD",
+   "code": "03016",
+   "price": ""
+ },
+ {
+   "name": "CARLSBERG BREWERY MALAYSIA BERHAD",
+   "code": "2836",
+   "price": ""
+ },
+ {
+   "name": "CARZO HOLDINGS BERHAD",
+   "code": "03048",
+   "price": ""
+ },
+ {
+   "name": "CATCHA DIGITAL BERHAD",
+   "code": "0173",
+   "price": ""
+ },
+ {
+   "name": "CB INDUSTRIAL PRODUCT HOLDING BERHAD",
+   "code": "7076",
+   "price": ""
+ },
+ {
+   "name": "CC INTERNATIONAL BERHAD",
+   "code": "03053",
+   "price": ""
+ },
+ {
+   "name": "CCK CONSOLIDATED HOLDINGS BERHAD",
+   "code": "7035",
+   "price": ""
+ },
+ {
+   "name": "CE TECHNOLOGY BERHAD",
+   "code": "03024",
+   "price": ""
+ },
+ {
+   "name": "CEKD BERHAD",
+   "code": "0238",
+   "price": ""
+ },
+ {
+   "name": "CELCOMDIGI BERHAD",
+   "code": "6947",
+   "price": ""
+ },
+ {
+   "name": "CENGILD MEDICAL BERHAD",
+   "code": "0243",
+   "price": ""
+ },
+ {
+   "name": "CENSOF HOLDINGS BERHAD",
+   "code": "5195",
+   "price": ""
+ },
+ {
+   "name": "CENTRAL GLOBAL BERHAD",
+   "code": "8052",
+   "price": ""
+ },
+ {
+   "name": "CEPATWAWASAN GROUP BERHAD",
+   "code": "8982",
+   "price": ""
+ },
+ {
+   "name": "CHEETAH HOLDINGS BERHAD",
+   "code": "7209",
+   "price": ""
+ },
+ {
+   "name": "CHIN HIN GROUP BERHAD",
+   "code": "5273",
+   "price": ""
+ },
+ {
+   "name": "CHIN HIN GROUP PROPERTY BERHAD",
+   "code": "7187",
+   "price": ""
+ },
+ {
+   "name": "CHIN TECK PLANTATIONS BERHAD",
+   "code": "1929",
+   "price": ""
+ },
+ {
+   "name": "CHIN WELL HOLDINGS BERHAD",
+   "code": "5007",
+   "price": ""
+ },
+ {
+   "name": "CHINA OUHUA WINERY HOLDINGS LIMITED",
+   "code": "5188",
+   "price": ""
+ },
+ {
+   "name": "CHOO BEE METAL INDUSTRIES BHD",
+   "code": "5797",
+   "price": ""
+ },
+ {
+   "name": "CHUAN HUAT RESOURCES BHD",
+   "code": "7016",
+   "price": ""
+ },
+ {
+   "name": "CIMB GROUP HOLDINGS BERHAD",
+   "code": "1023",
+   "price": ""
+ },
+ {
+   "name": "CITAGLOBAL BERHAD",
+   "code": "7245",
+   "price": ""
+ },
+ {
+   "name": "CITRA NUSA HOLDINGS BERHAD",
+   "code": "5104",
+   "price": ""
+ },
+ {
+   "name": "CJ CENTURY LOGISTICS HOLDINGS BERHAD",
+   "code": "7117",
+   "price": ""
+ },
+ {
+   "name": "CLASSITA HOLDINGS BERHAD",
+   "code": "7154",
+   "price": ""
+ },
+ {
+   "name": "CLOUDARON GROUP BERHAD",
+   "code": "03001",
+   "price": ""
+ },
+ {
+   "name": "CLOUDPOINT TECHNOLOGY BERHAD",
+   "code": "0277",
+   "price": ""
+ },
+ {
+   "name": "CME GROUP BERHAD",
+   "code": "7018",
+   "price": ""
+ },
+ {
+   "name": "CN ASIA CORPORATION BHD",
+   "code": "7986",
+   "price": ""
+ },
+ {
+   "name": "CNERGENZ BERHAD",
+   "code": "0246",
+   "price": ""
+ },
+ {
+   "name": "COASTAL CONTRACTS BHD",
+   "code": "5071",
+   "price": ""
+ },
+ {
+   "name": "COMFORT GLOVES BERHAD",
+   "code": "2127",
+   "price": ""
+ },
+ {
+   "name": "COMPUGATES HOLDINGS BERHAD",
+   "code": "5037",
+   "price": ""
+ },
+ {
+   "name": "COMPUTER FORMS (MALAYSIA) BERHAD",
+   "code": "8044",
+   "price": ""
+ },
+ {
+   "name": "CONCRETE ENGINEERING PRODUCTS BERHAD",
+   "code": "8435",
+   "price": ""
+ },
+ {
+   "name": "CORAZA INTEGRATED TECHNOLOGY BERHAD",
+   "code": "0240",
+   "price": ""
+ },
+ {
+   "name": "COSMOS TECHNOLOGY INTERNATIONAL BERHAD",
+   "code": "0261",
+   "price": ""
+ },
+ {
+   "name": "COUNTRY HEIGHTS HOLDINGS BHD",
+   "code": "5738",
+   "price": ""
+ },
+ {
+   "name": "COUNTRY VIEW BERHAD",
+   "code": "5049",
+   "price": ""
+ },
+ {
+   "name": "CPE TECHNOLOGY BERHAD",
+   "code": "5317",
+   "price": ""
+ },
+ {
+   "name": "CRESCENDO CORPORATION BERHAD",
+   "code": "6718",
+   "price": ""
+ },
+ {
+   "name": "CREST BUILDER HOLDINGS BERHAD",
+   "code": "8591",
+   "price": ""
+ },
+ {
+   "name": "CRITICAL HOLDINGS BERHAD",
+   "code": "0291",
+   "price": ""
+ },
+ {
+   "name": "CSC STEEL HOLDINGS BERHAD",
+   "code": "5094",
+   "price": ""
+ },
+ {
+   "name": "CTOS DIGITAL BERHAD",
+   "code": "5301",
+   "price": ""
+ },
+ {
+   "name": "CUSCAPI BERHAD",
+   "code": "0051",
+   "price": ""
+ },
+ {
+   "name": "CWG HOLDINGS BERHAD",
+   "code": "9423",
+   "price": ""
+ },
+ {
+   "name": "CYBERJAYA EDUCATION GROUP BERHAD",
+   "code": "5166",
+   "price": ""
+ },
+ {
+   "name": "CYL CORPORATION BERHAD",
+   "code": "7157",
+   "price": ""
+ },
+ {
+   "name": "CYPARK RESOURCES BERHAD",
+   "code": "5184",
+   "price": ""
+ },
+ {
+   "name": "D & O GREEN TECHNOLOGIES BERHAD",
+   "code": "7204",
+   "price": ""
+ },
+ {
+   "name": "DAGANG NEXCHANGE BERHAD",
+   "code": "4456",
+   "price": ""
+ },
+ {
+   "name": "DANAINFRA NASIONAL BERHAD",
+   "code": "0400GB",
+   "price": ""
+ },
+ {
+   "name": "DANCOMECH HOLDINGS BERHAD",
+   "code": "5276",
+   "price": ""
+ },
+ {
+   "name": "DATAPREP HOLDINGS BHD",
+   "code": "8338",
+   "price": ""
+ },
+ {
+   "name": "DATASONIC GROUP BERHAD",
+   "code": "5216",
+   "price": ""
+ },
+ {
+   "name": "DAYANG ENTERPRISE HOLDINGS BERHAD",
+   "code": "5141",
+   "price": ""
+ },
+ {
+   "name": "DAYTHREE DIGITAL BERHAD",
+   "code": "0281",
+   "price": ""
+ },
+ {
+   "name": "DC HEALTHCARE HOLDINGS BERHAD",
+   "code": "0283",
+   "price": ""
+ },
+ {
+   "name": "DELEUM BERHAD",
+   "code": "5132",
+   "price": ""
+ },
+ {
+   "name": "DESTINI BERHAD",
+   "code": "7212",
+   "price": ""
+ },
+ {
+   "name": "DFCITY GROUP BERHAD",
+   "code": "5165",
+   "price": ""
+ },
+ {
+   "name": "DGB ASIA BERHAD",
+   "code": "0152",
+   "price": ""
+ },
+ {
+   "name": "DIALOG GROUP BERHAD",
+   "code": "7277",
+   "price": ""
+ },
+ {
+   "name": "DIGISTAR CORPORATION BERHAD",
+   "code": "0029",
+   "price": ""
+ },
+ {
+   "name": "DIVFEX BERHAD",
+   "code": "0131",
+   "price": ""
+ },
+ {
+   "name": "DKLS INDUSTRIES BHD",
+   "code": "7528",
+   "price": ""
+ },
+ {
+   "name": "DKSH HOLDINGS (MALAYSIA) BERHAD",
+   "code": "5908",
+   "price": ""
+ },
+ {
+   "name": "D'NONCE TECHNOLOGY BHD",
+   "code": "7114",
+   "price": ""
+ },
+ {
+   "name": "DOLPHIN INTERNATIONAL BERHAD",
+   "code": "5265",
+   "price": ""
+ },
+ {
+   "name": "DOMINANT ENTERPRISE BERHAD",
+   "code": "7169",
+   "price": ""
+ },
+ {
+   "name": "DPI HOLDINGS BERHAD",
+   "code": "0205",
+   "price": ""
+ },
+ {
+   "name": "DPS RESOURCES BERHAD",
+   "code": "7198",
+   "price": ""
+ },
+ {
+   "name": "DRB-HICOM BERHAD",
+   "code": "1619",
+   "price": ""
+ },
+ {
+   "name": "DS SIGMA HOLDINGS BERHAD",
+   "code": "0269",
+   "price": ""
+ },
+ {
+   "name": "DSR TAIKO BERHAD",
+   "code": "03055",
+   "price": ""
+ },
+ {
+   "name": "DUFU TECHNOLOGY CORP. BERHAD",
+   "code": "7233",
+   "price": ""
+ },
+ {
+   "name": "DUOPHARMA BIOTECH BERHAD",
+   "code": "7148",
+   "price": ""
+ },
+ {
+   "name": "DUTALAND BERHAD",
+   "code": "3948",
+   "price": ""
+ },
+ {
+   "name": "DUTCH LADY MILK INDUSTRIES BERHAD",
+   "code": "3026",
+   "price": ""
+ },
+ {
+   "name": "DXN HOLDINGS BHD.",
+   "code": "5318",
+   "price": ""
+ },
+ {
+   "name": "DYNAFRONT HOLDINGS BERHAD",
+   "code": "03046",
+   "price": ""
+ },
+ {
+   "name": "E.A.TECHNIQUE (M) BERHAD",
+   "code": "5259",
+   "price": ""
+ },
+ {
+   "name": "EA HOLDINGS BERHAD",
+   "code": "0154",
+   "price": ""
+ },
+ {
+   "name": "EASTERN & ORIENTAL BERHAD",
+   "code": "3417",
+   "price": ""
+ },
+ {
+   "name": "ECA INTEGRATED SOLUTION BERHAD",
+   "code": "0267",
+   "price": ""
+ },
+ {
+   "name": "ECM LIBRA GROUP BERHAD",
+   "code": "2143",
+   "price": ""
+ },
+ {
+   "name": "ECO WORLD DEVELOPMENT GROUP BERHAD",
+   "code": "8206",
+   "price": ""
+ },
+ {
+   "name": "ECO WORLD INTERNATIONAL BERHAD",
+   "code": "5283",
+   "price": ""
+ },
+ {
+   "name": "ECOBUILT HOLDINGS BERHAD",
+   "code": "0059",
+   "price": ""
+ },
+ {
+   "name": "ECOFIRST CONSOLIDATED BHD",
+   "code": "3557",
+   "price": ""
+ },
+ {
+   "name": "ECOMATE HOLDINGS BERHAD",
+   "code": "0239",
+   "price": ""
+ },
+ {
+   "name": "ECONFRAME BERHAD",
+   "code": "0227",
+   "price": ""
+ },
+ {
+   "name": "ECONPILE HOLDINGS BERHAD",
+   "code": "5253",
+   "price": ""
+ },
+ {
+   "name": "ECOSCIENCE INTERNATIONAL BERHAD",
+   "code": "0255",
+   "price": ""
+ },
+ {
+   "name": "EDARAN BERHAD",
+   "code": "5036",
+   "price": ""
+ },
+ {
+   "name": "EDELTEQ HOLDINGS BERHAD",
+   "code": "0278",
+   "price": ""
+ },
+ {
+   "name": "EDEN INC. BERHAD",
+   "code": "7471",
+   "price": ""
+ },
+ {
+   "name": "EDUSPEC HOLDINGS BERHAD",
+   "code": "0107",
+   "price": ""
+ },
+ {
+   "name": "EFFICIENT E-SOLUTIONS BERHAD",
+   "code": "0064",
+   "price": ""
+ },
+ {
+   "name": "EG INDUSTRIES BERHAD",
+   "code": "8907",
+   "price": ""
+ },
+ {
+   "name": "EITA RESOURCES BERHAD",
+   "code": "5208",
+   "price": ""
+ },
+ {
+   "name": "EKOVEST BERHAD",
+   "code": "8877",
+   "price": ""
+ },
+ {
+   "name": "EKSONS CORPORATION BERHAD",
+   "code": "9016",
+   "price": ""
+ },
+ {
+   "name": "ELK-DESA RESOURCES BERHAD",
+   "code": "5228",
+   "price": ""
+ },
+ {
+   "name": "ELSOFT RESEARCH BERHAD",
+   "code": "0090",
+   "price": ""
+ },
+ {
+   "name": "EMICO HOLDINGS BERHAD",
+   "code": "9091",
+   "price": ""
+ },
+ {
+   "name": "ENCORP BERHAD",
+   "code": "6076",
+   "price": ""
+ },
+ {
+   "name": "ENEST GROUP BERHAD",
+   "code": "03025",
+   "price": ""
+ },
+ {
+   "name": "ENG KAH CORPORATION BERHAD",
+   "code": "7149",
+   "price": ""
+ },
+ {
+   "name": "ENGTEX GROUP BERHAD",
+   "code": "5056",
+   "price": ""
+ },
+ {
+   "name": "ENRA GROUP BERHAD",
+   "code": "8613",
+   "price": ""
+ },
+ {
+   "name": "EONMETALL GROUP BERHAD",
+   "code": "7217",
+   "price": ""
+ },
+ {
+   "name": "EP MANUFACTURING BHD",
+   "code": "7773",
+   "price": ""
+ },
+ {
+   "name": "EPICON BERHAD",
+   "code": "4847",
+   "price": ""
+ },
+ {
+   "name": "EQ8 DOW JONES ISLAMIC MARKET MALAYSIA TITANS 25 ETF",
+   "code": "0821EA",
+   "price": ""
+ },
+ {
+   "name": "EQ8 DOW JONES US TITANS 50 ETF",
+   "code": "0827EA",
+   "price": ""
+ },
+ {
+   "name": "EQ8 MSCI MALAYSIA ISLAMIC DIVIDEND ETF",
+   "code": "0824EA",
+   "price": ""
+ },
+ {
+   "name": "EQ8 MSCI SEA ISLAMIC DIVIDEND ETF",
+   "code": "0825EA",
+   "price": ""
+ },
+ {
+   "name": "EQUITIESTRACKER HOLDINGS BERHAD",
+   "code": "03021",
+   "price": ""
+ },
+ {
+   "name": "ES CERAMICS TECHNOLOGY BHD",
+   "code": "0100",
+   "price": ""
+ },
+ {
+   "name": "ESTHETICS INTERNATIONAL GROUP BERHAD",
+   "code": "5081",
+   "price": ""
+ },
+ {
+   "name": "EUPE CORPORATION BERHAD",
+   "code": "6815",
+   "price": ""
+ },
+ {
+   "name": "EURO HOLDINGS BERHAD",
+   "code": "7208",
+   "price": ""
+ },
+ {
+   "name": "EUROSPAN HOLDINGS BERHAD",
+   "code": "7094",
+   "price": ""
+ },
+ {
+   "name": "EVD BERHAD",
+   "code": "0174",
+   "price": ""
+ },
+ {
+   "name": "EVERGREEN FIBREBOARD BERHAD",
+   "code": "5101",
+   "price": ""
+ },
+ {
+   "name": "EVERGREEN MAX CASH CAPITAL BERHAD",
+   "code": "0286",
+   "price": ""
+ },
+ {
+   "name": "EVERSAFE RUBBER BERHAD",
+   "code": "0190",
+   "price": ""
+ },
+ {
+   "name": "EVERSENDAI CORPORATION BERHAD",
+   "code": "5205",
+   "price": ""
+ },
+ {
+   "name": "EWEIN BERHAD",
+   "code": "7249",
+   "price": ""
+ },
+ {
+   "name": "EXCEL FORCE MSC BERHAD",
+   "code": "0065",
+   "price": ""
+ },
+ {
+   "name": "FACB INDUSTRIES INCORPORATED BERHAD",
+   "code": "2984",
+   "price": ""
+ },
+ {
+   "name": "FAJARBARU BUILDER GROUP BHD",
+   "code": "7047",
+   "price": ""
+ },
+ {
+   "name": "FAR EAST HOLDINGS BERHAD",
+   "code": "5029",
+   "price": ""
+ },
+ {
+   "name": "FARLIM GROUP (MALAYSIA) BHD",
+   "code": "6041",
+   "price": ""
+ },
+ {
+   "name": "FARM FRESH BERHAD",
+   "code": "5306",
+   "price": ""
+ },
+ {
+   "name": "FARM PRICE HOLDINGS BERHAD",
+   "code": "0304",
+   "price": ""
+ },
+ {
+   "name": "FAST ENERGY HOLDINGS BERHAD",
+   "code": "0084",
+   "price": ""
+ },
+ {
+   "name": "FAVELLE FAVCO BERHAD",
+   "code": "7229",
+   "price": ""
+ },
+ {
+   "name": "FCW HOLDINGS BERHAD",
+   "code": "2755",
+   "price": ""
+ },
+ {
+   "name": "FEDERAL INTERNATIONAL HOLDINGS BERHAD",
+   "code": "8605",
+   "price": ""
+ },
+ {
+   "name": "FEYTECH HOLDINGS BERHAD",
+   "code": "5322",
+   "price": ""
+ },
+ {
+   "name": "FGV HOLDINGS BERHAD",
+   "code": "5222",
+   "price": ""
+ },
+ {
+   "name": "FIAMMA HOLDINGS BERHAD",
+   "code": "6939",
+   "price": ""
+ },
+ {
+   "name": "FIBON BERHAD",
+   "code": "0149",
+   "price": ""
+ },
+ {
+   "name": "FIBROMAT (M) BERHAD",
+   "code": "03026",
+   "price": ""
+ },
+ {
+   "name": "FIMA CORPORATION BERHAD",
+   "code": "3107",
+   "price": ""
+ },
+ {
+   "name": "FINTEC GLOBAL BERHAD",
+   "code": "0150",
+   "price": ""
+ },
+ {
+   "name": "FITTERS DIVERSIFIED BERHAD",
+   "code": "9318",
+   "price": ""
+ },
+ {
+   "name": "FLEXIDYNAMIC HOLDINGS BERHAD",
+   "code": "0231",
+   "price": ""
+ },
+ {
+   "name": "FM GLOBAL LOGISTICS HOLDINGS BERHAD",
+   "code": "7210",
+   "price": ""
+ },
+ {
+   "name": "FOCUS DYNAMICS GROUP BERHAD",
+   "code": "0116",
+   "price": ""
+ },
+ {
+   "name": "FOCUS LUMBER BERHAD",
+   "code": "5197",
+   "price": ""
+ },
+ {
+   "name": "FOCUS POINT HOLDINGS BERHAD",
+   "code": "0157",
+   "price": ""
+ },
+ {
+   "name": "FORMOSA PROSONIC INDUSTRIES BERHAD",
+   "code": "9172",
+   "price": ""
+ },
+ {
+   "name": "FOUNDPAC GROUP BERHAD",
+   "code": "5277",
+   "price": ""
+ },
+ {
+   "name": "FRASER & NEAVE HOLDINGS BHD",
+   "code": "3689",
+   "price": ""
+ },
+ {
+   "name": "FRONTKEN CORPORATION BERHAD",
+   "code": "0128",
+   "price": ""
+ },
+ {
+   "name": "FSBM HOLDINGS BERHAD",
+   "code": "9377",
+   "price": ""
+ },
+ {
+   "name": "FTSE BURSA MALAYSIA KLCI ETF",
+   "code": "0820EA",
+   "price": ""
+ },
+ {
+   "name": "G CAPITAL BERHAD",
+   "code": "7676",
+   "price": ""
+ },
+ {
+   "name": "G3 GLOBAL BERHAD",
+   "code": "7184",
+   "price": ""
+ },
+ {
+   "name": "GABUNGAN AQRS BERHAD",
+   "code": "5226",
+   "price": ""
+ },
+ {
+   "name": "GADANG HOLDINGS BHD",
+   "code": "9261",
+   "price": ""
+ },
+ {
+   "name": "GAGASAN NADI CERGAS BERHAD",
+   "code": "0206",
+   "price": ""
+ },
+ {
+   "name": "GAMUDA BERHAD",
+   "code": "5398",
+   "price": ""
+ },
+ {
+   "name": "GAS MALAYSIA BERHAD",
+   "code": "5209",
+   "price": ""
+ },
+ {
+   "name": "GDB HOLDINGS BERHAD",
+   "code": "0198",
+   "price": ""
+ },
+ {
+   "name": "GDEX BERHAD",
+   "code": "0078",
+   "price": ""
+ },
+ {
+   "name": "GENETEC TECHNOLOGY BERHAD",
+   "code": "0104",
+   "price": ""
+ },
+ {
+   "name": "GENTING BERHAD",
+   "code": "3182",
+   "price": ""
+ },
+ {
+   "name": "GENTING MALAYSIA BERHAD",
+   "code": "4715",
+   "price": ""
+ },
+ {
+   "name": "GENTING PLANTATIONS BERHAD",
+   "code": "2291",
+   "price": ""
+ },
+ {
+   "name": "GEORGE KENT (MALAYSIA) BERHAD",
+   "code": "3204",
+   "price": ""
+ },
+ {
+   "name": "GE-SHEN CORPORATION BERHAD",
+   "code": "7197",
+   "price": ""
+ },
+ {
+   "name": "GFM SERVICES BERHAD",
+   "code": "0039",
+   "price": ""
+ },
+ {
+   "name": "GHL SYSTEMS BERHAD",
+   "code": "0021",
+   "price": ""
+ },
+ {
+   "name": "GIIB HOLDINGS BERHAD",
+   "code": "7192",
+   "price": ""
+ },
+ {
+   "name": "GLOBAL ORIENTAL BERHAD",
+   "code": "1147",
+   "price": ""
+ },
+ {
+   "name": "GLOBALTEC FORMATION BERHAD",
+   "code": "5220",
+   "price": ""
+ },
+ {
+   "name": "GLOBETRONICS TECHNOLOGY BERHAD",
+   "code": "7022",
+   "price": ""
+ },
+ {
+   "name": "GLOMAC BERHAD",
+   "code": "5020",
+   "price": ""
+ },
+ {
+   "name": "GLOSTREXT BERHAD",
+   "code": "0284",
+   "price": ""
+ },
+ {
+   "name": "GO HUB CAPITAL BERHAD",
+   "code": "0311",
+   "price": ""
+ },
+ {
+   "name": "GO INNOVATE ASIA BERHAD",
+   "code": "03028",
+   "price": ""
+ },
+ {
+   "name": "GOLDEN LAND BERHAD",
+   "code": "7382",
+   "price": ""
+ },
+ {
+   "name": "GOLDEN PHAROS BERHAD",
+   "code": "5649",
+   "price": ""
+ },
+ {
+   "name": "GOPENG BERHAD",
+   "code": "2135",
+   "price": ""
+ },
+ {
+   "name": "GPP RESOURCES BERHAD",
+   "code": "03029",
+   "price": ""
+ },
+ {
+   "name": "GRAND CENTRAL ENTERPRISES BHD",
+   "code": "5592",
+   "price": ""
+ },
+ {
+   "name": "GREATECH TECHNOLOGY BERHAD",
+   "code": "0208",
+   "price": ""
+ },
+ {
+   "name": "GREATER BAY HOLDINGS BERHAD",
+   "code": "9148",
+   "price": ""
+ },
+ {
+   "name": "GREEN OCEAN CORPORATION BERHAD",
+   "code": "0074",
+   "price": ""
+ },
+ {
+   "name": "GREEN PACKET BERHAD",
+   "code": "0082",
+   "price": ""
+ },
+ {
+   "name": "GREENYIELD BERHAD",
+   "code": "0136",
+   "price": ""
+ },
+ {
+   "name": "GROMUTUAL BERHAD",
+   "code": "9962",
+   "price": ""
+ },
+ {
+   "name": "GUAN CHONG BERHAD",
+   "code": "5102",
+   "price": ""
+ },
+ {
+   "name": "GUH HOLDINGS BERHAD",
+   "code": "3247",
+   "price": ""
+ },
+ {
+   "name": "GUOCOLAND (MALAYSIA) BERHAD",
+   "code": "1503",
+   "price": ""
+ },
+ {
+   "name": "HAILY GROUP BERHAD",
+   "code": "0237",
+   "price": ""
+ },
+ {
+   "name": "HANDAL ENERGY BERHAD",
+   "code": "7253",
+   "price": ""
+ },
+ {
+   "name": "HAP SENG CONSOLIDATED BERHAD",
+   "code": "3034",
+   "price": ""
+ },
+ {
+   "name": "HAP SENG PLANTATIONS HOLDINGS BERHAD",
+   "code": "5138",
+   "price": ""
+ },
+ {
+   "name": "HARBOUR-LINK GROUP BERHAD",
+   "code": "2062",
+   "price": ""
+ },
+ {
+   "name": "HARN LEN CORPORATION BHD",
+   "code": "7501",
+   "price": ""
+ },
+ {
+   "name": "HARRISONS HOLDINGS (MALAYSIA) BERHAD",
+   "code": "5008",
+   "price": ""
+ },
+ {
+   "name": "HARTALEGA HOLDINGS BERHAD",
+   "code": "5168",
+   "price": ""
+ },
+ {
+   "name": "HARVEST MIRACLE CAPITAL BERHAD",
+   "code": "0060",
+   "price": ""
+ },
+ {
+   "name": "HB GLOBAL LIMITED",
+   "code": "5187",
+   "price": ""
+ },
+ {
+   "name": "HCK CAPITAL GROUP BERHAD",
+   "code": "7105",
+   "price": ""
+ },
+ {
+   "name": "HE GROUP BERHAD",
+   "code": "0296",
+   "price": ""
+ },
+ {
+   "name": "HEINEKEN MALAYSIA BERHAD",
+   "code": "3255",
+   "price": ""
+ },
+ {
+   "name": "HEITECH PADU BERHAD",
+   "code": "5028",
+   "price": ""
+ },
+ {
+   "name": "HEKTAR REAL ESTATE INVESTMENT TRUST",
+   "code": "5121",
+   "price": ""
+ },
+ {
+   "name": "HENGYUAN REFINING COMPANY BERHAD",
+   "code": "4324",
+   "price": ""
+ },
+ {
+   "name": "HEVEABOARD BERHAD",
+   "code": "5095",
+   "price": ""
+ },
+ {
+   "name": "HEXTAR CAPITAL BERHAD",
+   "code": "0035",
+   "price": ""
+ },
+ {
+   "name": "HEXTAR GLOBAL BERHAD",
+   "code": "5151",
+   "price": ""
+ },
+ {
+   "name": "HEXTAR HEALTHCARE BERHAD",
+   "code": "7803",
+   "price": ""
+ },
+ {
+   "name": "HEXTAR INDUSTRIES BERHAD",
+   "code": "0161",
+   "price": ""
+ },
+ {
+   "name": "HEXTAR RETAIL BERHAD",
+   "code": "7202",
+   "price": ""
+ },
+ {
+   "name": "HEXTAR TECHNOLOGIES SOLUTIONS BERHAD",
+   "code": "5136",
+   "price": ""
+ },
+ {
+   "name": "HEXZA CORPORATION BERHAD",
+   "code": "3298",
+   "price": ""
+ },
+ {
+   "name": "HHRG BERHAD",
+   "code": "0175",
+   "price": ""
+ },
+ {
+   "name": "HIAP HUAT HOLDINGS BERHAD",
+   "code": "0160",
+   "price": ""
+ },
+ {
+   "name": "HIAP TECK VENTURE BERHAD",
+   "code": "5072",
+   "price": ""
+ },
+ {
+   "name": "HIBISCUS PETROLEUM BERHAD",
+   "code": "5199",
+   "price": ""
+ },
+ {
+   "name": "HIL INDUSTRIES BERHAD",
+   "code": "8443",
+   "price": ""
+ },
+ {
+   "name": "HLT GLOBAL BERHAD",
+   "code": "0188",
+   "price": ""
+ },
+ {
+   "name": "HO HUP CONSTRUCTION COMPANY BHD",
+   "code": "5169",
+   "price": ""
+ },
+ {
+   "name": "HO WAH GENTING BERHAD",
+   "code": "9601",
+   "price": ""
+ },
+ {
+   "name": "HOMERITZ CORPORATION BERHAD",
+   "code": "5160",
+   "price": ""
+ },
+ {
+   "name": "HONG LEONG BANK BERHAD",
+   "code": "5819",
+   "price": ""
+ },
+ {
+   "name": "HONG LEONG CAPITAL BERHAD",
+   "code": "5274",
+   "price": ""
+ },
+ {
+   "name": "HONG LEONG FINANCIAL GROUP BERHAD",
+   "code": "1082",
+   "price": ""
+ },
+ {
+   "name": "HONG LEONG INDUSTRIES BERHAD",
+   "code": "3301",
+   "price": ""
+ },
+ {
+   "name": "HONG SENG CONSOLIDATED BERHAD",
+   "code": "0041",
+   "price": ""
+ },
+ {
+   "name": "HPMT HOLDINGS BERHAD",
+   "code": "5291",
+   "price": ""
+ },
+ {
+   "name": "HPP HOLDINGS BERHAD",
+   "code": "0228",
+   "price": ""
+ },
+ {
+   "name": "HSS ENGINEERS BERHAD",
+   "code": "0185",
+   "price": ""
+ },
+ {
+   "name": "HUA YANG BERHAD",
+   "code": "5062",
+   "price": ""
+ },
+ {
+   "name": "HUBLINE BERHAD",
+   "code": "7013",
+   "price": ""
+ },
+ {
+   "name": "HUME CEMENT INDUSTRIES BERHAD",
+   "code": "5000",
+   "price": ""
+ },
+ {
+   "name": "HUP SENG INDUSTRIES BERHAD",
+   "code": "5024",
+   "price": ""
+ },
+ {
+   "name": "HWA TAI INDUSTRIES BERHAD",
+   "code": "8478",
+   "price": ""
+ },
+ {
+   "name": "I-BERHAD",
+   "code": "4251",
+   "price": ""
+ },
+ {
+   "name": "IBRACO BERHAD",
+   "code": "5084",
+   "price": ""
+ },
+ {
+   "name": "ICAPITAL.BIZ BERHAD",
+   "code": "5108",
+   "price": ""
+ },
+ {
+   "name": "ICON OFFSHORE BERHAD",
+   "code": "5255",
+   "price": ""
+ },
+ {
+   "name": "ICONIC WORLDWIDE BERHAD",
+   "code": "9113",
+   "price": ""
+ },
+ {
+   "name": "ICT ZONE ASIA BERHAD",
+   "code": "03038",
+   "price": ""
+ },
+ {
+   "name": "IDB TECHNOLOGIES BERHAD",
+   "code": "03030",
+   "price": ""
+ },
+ {
+   "name": "IDEAL CAPITAL BERHAD",
+   "code": "9687",
+   "price": ""
+ },
+ {
+   "name": "IFCA MSC BERHAD",
+   "code": "0023",
+   "price": ""
+ },
+ {
+   "name": "IGB BERHAD",
+   "code": "5606",
+   "price": ""
+ },
+ {
+   "name": "IGB COMMERCIAL REAL ESTATE INVESTMENT TRUST",
+   "code": "5299",
+   "price": ""
+ },
+ {
+   "name": "IGB REAL ESTATE INVESTMENT TRUST",
+   "code": "5227",
+   "price": ""
+ },
+ {
+   "name": "IHH HEALTHCARE BERHAD",
+   "code": "5225",
+   "price": ""
+ },
+ {
+   "name": "IHSAN SUKUK-ETBS 4.60%0824",
+   "code": "0401GA",
+   "price": ""
+ },
+ {
+   "name": "IJM CORPORATION BERHAD",
+   "code": "3336",
+   "price": ""
+ },
+ {
+   "name": "ILB GROUP BERHAD",
+   "code": "5614",
+   "price": ""
+ },
+ {
+   "name": "IMASPRO CORPORATION BERHAD",
+   "code": "7222",
+   "price": ""
+ },
+ {
+   "name": "INARI AMERTRON BERHAD",
+   "code": "0166",
+   "price": ""
+ },
+ {
+   "name": "INCH KENNETH KAJANG RUBBER PUBLIC LTD CO",
+   "code": "2607",
+   "price": ""
+ },
+ {
+   "name": "INDUSTRONICS BERHAD",
+   "code": "9393",
+   "price": ""
+ },
+ {
+   "name": "INFOLINE TEC GROUP BERHAD",
+   "code": "0253",
+   "price": ""
+ },
+ {
+   "name": "INFOMINA BERHAD",
+   "code": "0265",
+   "price": ""
+ },
+ {
+   "name": "INFRAHARTA HOLDINGS BERHAD",
+   "code": "7240",
+   "price": ""
+ },
+ {
+   "name": "INGENIEUR GUDANG BERHAD",
+   "code": "5178",
+   "price": ""
+ },
+ {
+   "name": "INNATURE BERHAD",
+   "code": "5295",
+   "price": ""
+ },
+ {
+   "name": "INNITY CORPORATION BERHAD",
+   "code": "0147",
+   "price": ""
+ },
+ {
+   "name": "INNOPRISE PLANTATIONS BERHAD",
+   "code": "6262",
+   "price": ""
+ },
+ {
+   "name": "INSAS BERHAD",
+   "code": "3379",
+   "price": ""
+ },
+ {
+   "name": "INTA BINA GROUP BERHAD",
+   "code": "0192",
+   "price": ""
+ },
+ {
+   "name": "IOI CORPORATION BERHAD",
+   "code": "1961",
+   "price": ""
+ },
+ {
+   "name": "IOI PROPERTIES GROUP BERHAD",
+   "code": "5249",
+   "price": ""
+ },
+ {
+   "name": "IQ GROUP HOLDINGS BERHAD",
+   "code": "5107",
+   "price": ""
+ },
+ {
+   "name": "IQZAN HOLDING BERHAD",
+   "code": "7183",
+   "price": ""
+ },
+ {
+   "name": "IREKA CORPORATION BERHAD",
+   "code": "8834",
+   "price": ""
+ },
+ {
+   "name": "IRIS CORPORATION BERHAD",
+   "code": "0010",
+   "price": ""
+ },
+ {
+   "name": "ISKANDAR WATERFRONT CITY BERHAD",
+   "code": "1589",
+   "price": ""
+ },
+ {
+   "name": "ITMAX SYSTEM BERHAD",
+   "code": "5309",
+   "price": ""
+ },
+ {
+   "name": "IVORY PROPERTIES GROUP BERHAD",
+   "code": "5175",
+   "price": ""
+ },
+ {
+   "name": "JADI IMAGING HOLDINGS BERHAD",
+   "code": "7223",
+   "price": ""
+ },
+ {
+   "name": "JAG BERHAD",
+   "code": "0024",
+   "price": ""
+ },
+ {
+   "name": "JAKS RESOURCES BERHAD",
+   "code": "4723",
+   "price": ""
+ },
+ {
+   "name": "JASA KITA BERHAD",
+   "code": "8648",
+   "price": ""
+ },
+ {
+   "name": "JATI TINGGI GROUP BERHAD",
+   "code": "0292",
+   "price": ""
+ },
+ {
+   "name": "JAYA TIASA HOLDINGS BHD",
+   "code": "4383",
+   "price": ""
+ },
+ {
+   "name": "JAYCORP BERHAD",
+   "code": "7152",
+   "price": ""
+ },
+ {
+   "name": "JCBNEXT BERHAD",
+   "code": "0058",
+   "price": ""
+ },
+ {
+   "name": "JCY INTERNATIONAL BERHAD",
+   "code": "5161",
+   "price": ""
+ },
+ {
+   "name": "JENTAYU SUSTAINABLES BERHAD",
+   "code": "5673",
+   "price": ""
+ },
+ {
+   "name": "JF TECHNOLOGY BERHAD",
+   "code": "0146",
+   "price": ""
+ },
+ {
+   "name": "JHM CONSOLIDATION BERHAD",
+   "code": "0127",
+   "price": ""
+ },
+ {
+   "name": "JIANKUN INTERNATIONAL BERHAD",
+   "code": "8923",
+   "price": ""
+ },
+ {
+   "name": "JISHAN BERHAD",
+   "code": "03040",
+   "price": ""
+ },
+ {
+   "name": "JKG LAND BERHAD",
+   "code": "6769",
+   "price": ""
+ },
+ {
+   "name": "JOE HOLDING BERHAD",
+   "code": "7096",
+   "price": ""
+ },
+ {
+   "name": "JOHAN HOLDINGS BERHAD",
+   "code": "3441",
+   "price": ""
+ },
+ {
+   "name": "JOHOR PLANTATIONS GROUP BERHAD",
+   "code": "5323",
+   "price": ""
+ },
+ {
+   "name": "K. SENG SENG CORPORATION BERHAD",
+   "code": "5192",
+   "price": ""
+ },
+ {
+   "name": "KAMDAR GROUP (M) BERHAD",
+   "code": "8672",
+   "price": ""
+ },
+ {
+   "name": "KANGER INTERNATIONAL BERHAD",
+   "code": "0170",
+   "price": ""
+ },
+ {
+   "name": "KAREX BERHAD",
+   "code": "5247",
+   "price": ""
+ },
+ {
+   "name": "KARYON INDUSTRIES BERHAD",
+   "code": "0054",
+   "price": ""
+ },
+ {
+   "name": "KAWAN FOOD BERHAD",
+   "code": "7216",
+   "price": ""
+ },
+ {
+   "name": "KAWAN RENERGY BERHAD",
+   "code": "0307",
+   "price": ""
+ },
+ {
+   "name": "KECK SENG (MALAYSIA) BERHAD",
+   "code": "3476",
+   "price": ""
+ },
+ {
+   "name": "KEIN HING INTERNATIONAL BERHAD",
+   "code": "7199",
+   "price": ""
+ },
+ {
+   "name": "KELINGTON GROUP BERHAD",
+   "code": "0151",
+   "price": ""
+ },
+ {
+   "name": "KEN HOLDINGS BERHAD",
+   "code": "7323",
+   "price": ""
+ },
+ {
+   "name": "KENANGA INVESTMENT BANK BERHAD",
+   "code": "6483",
+   "price": ""
+ },
+ {
+   "name": "KENANGA KLCI DAILY (-1X) INVERSE ETF",
+   "code": "0835EA",
+   "price": ""
+ },
+ {
+   "name": "KENANGA KLCI DAILY 2X LEVERAGED ETF",
+   "code": "0834EA",
+   "price": ""
+ },
+ {
+   "name": "KERJAYA PROSPEK GROUP BERHAD",
+   "code": "7161",
+   "price": ""
+ },
+ {
+   "name": "KERJAYA PROSPEK PROPERTY BERHAD",
+   "code": "7077",
+   "price": ""
+ },
+ {
+   "name": "KESM INDUSTRIES BERHAD",
+   "code": "9334",
+   "price": ""
+ },
+ {
+   "name": "KEY ALLIANCE GROUP BERHAD",
+   "code": "0036",
+   "price": ""
+ },
+ {
+   "name": "KEY ASIC BERHAD",
+   "code": "0143",
+   "price": ""
+ },
+ {
+   "name": "KEYFIELD INTERNATIONAL BERHAD",
+   "code": "5321",
+   "price": ""
+ },
+ {
+   "name": "KGW GROUP BERHAD",
+   "code": "0282",
+   "price": ""
+ },
+ {
+   "name": "KHEE SAN BERHAD",
+   "code": "6203",
+   "price": ""
+ },
+ {
+   "name": "KHIND HOLDINGS BERHAD",
+   "code": "7062",
+   "price": ""
+ },
+ {
+   "name": "KIA LIM BERHAD",
+   "code": "6211",
+   "price": ""
+ },
+ {
+   "name": "KIM HIN INDUSTRY BERHAD",
+   "code": "5371",
+   "price": ""
+ },
+ {
+   "name": "KIM HIN JOO (MALAYSIA) BERHAD",
+   "code": "0210",
+   "price": ""
+ },
+ {
+   "name": "KIM LOONG RESOURCES BERHAD",
+   "code": "5027",
+   "price": ""
+ },
+ {
+   "name": "KIM TECK CHEONG CONSOLIDATED BERHAD",
+   "code": "0180",
+   "price": ""
+ },
+ {
+   "name": "KIMLUN CORPORATION BERHAD",
+   "code": "5171",
+   "price": ""
+ },
+ {
+   "name": "KINERGY ADVANCEMENT BERHAD",
+   "code": "0193",
+   "price": ""
+ },
+ {
+   "name": "KIP REAL ESTATE INVESTMENT TRUST",
+   "code": "5280",
+   "price": ""
+ },
+ {
+   "name": "KJTS GROUP BERHAD",
+   "code": "0293",
+   "price": ""
+ },
+ {
+   "name": "KKB ENGINEERING BERHAD",
+   "code": "9466",
+   "price": ""
+ },
+ {
+   "name": "KLCC PROPERTY HOLDINGS BERHAD",
+   "code": "5235SS",
+   "price": ""
+ },
+ {
+   "name": "KLCC REAL ESTATE INVESTMENT TRUST",
+   "code": "5235SS",
+   "price": ""
+ },
+ {
+   "name": "KLUANG RUBBER COMPANY (MALAYA) BERHAD",
+   "code": "2453",
+   "price": ""
+ },
+ {
+   "name": "KNM GROUP BERHAD",
+   "code": "7164",
+   "price": ""
+ },
+ {
+   "name": "KNUSFORD BERHAD",
+   "code": "5035",
+   "price": ""
+ },
+ {
+   "name": "KOBAY TECHNOLOGY BERHAD",
+   "code": "6971",
+   "price": ""
+ },
+ {
+   "name": "KOMARKCORP BERHAD",
+   "code": "7017",
+   "price": ""
+ },
+ {
+   "name": "K-ONE TECHNOLOGY BERHAD",
+   "code": "0111",
+   "price": ""
+ },
+ {
+   "name": "KOSSAN RUBBER INDUSTRIES BERHAD",
+   "code": "7153",
+   "price": ""
+ },
+ {
+   "name": "KOTRA INDUSTRIES BERHAD",
+   "code": "0002",
+   "price": ""
+ },
+ {
+   "name": "KPJ HEALTHCARE BERHAD",
+   "code": "5878",
+   "price": ""
+ },
+ {
+   "name": "KPS CONSORTIUM BERHAD",
+   "code": "9121",
+   "price": ""
+ },
+ {
+   "name": "KRETAM HOLDINGS BERHAD",
+   "code": "1996",
+   "price": ""
+ },
+ {
+   "name": "KRONOLOGI ASIA BERHAD",
+   "code": "0176",
+   "price": ""
+ },
+ {
+   "name": "KSL HOLDINGS BERHAD",
+   "code": "5038",
+   "price": ""
+ },
+ {
+   "name": "KTI LANDMARK BERHAD",
+   "code": "0308",
+   "price": ""
+ },
+ {
+   "name": "KUALA LUMPUR KEPONG BERHAD",
+   "code": "2445",
+   "price": ""
+ },
+ {
+   "name": "KUB MALAYSIA BERHAD",
+   "code": "6874",
+   "price": ""
+ },
+ {
+   "name": "KUCHAI DEVELOPMENT BERHAD",
+   "code": "2186",
+   "price": ""
+ },
+ {
+   "name": "KUCINGKO BERHAD",
+   "code": "0315",
+   "price": ""
+ },
+ {
+   "name": "KUMPULAN FIMA BERHAD",
+   "code": "6491",
+   "price": ""
+ },
+ {
+   "name": "KUMPULAN H & L HIGH-TECH BERHAD",
+   "code": "7033",
+   "price": ""
+ },
+ {
+   "name": "KUMPULAN JETSON BERHAD",
+   "code": "9083",
+   "price": ""
+ },
+ {
+   "name": "KUMPULAN KITACON BERHAD",
+   "code": "5310",
+   "price": ""
+ },
+ {
+   "name": "KUMPULAN PERANGSANG SELANGOR BERHAD",
+   "code": "5843",
+   "price": ""
+ },
+ {
+   "name": "KYM HOLDINGS BERHAD",
+   "code": "8362",
+   "price": ""
+ },
+ {
+   "name": "L&P GLOBAL BERHAD",
+   "code": "0268",
+   "price": ""
+ },
+ {
+   "name": "LAGENDA PROPERTIES BERHAD",
+   "code": "7179",
+   "price": ""
+ },
+ {
+   "name": "LAMBO GROUP BERHAD",
+   "code": "0018",
+   "price": ""
+ },
+ {
+   "name": "LAND & GENERAL BERHAD",
+   "code": "3174",
+   "price": ""
+ },
+ {
+   "name": "LANDMARKS BERHAD",
+   "code": "1643",
+   "price": ""
+ },
+ {
+   "name": "LAY HONG BERHAD",
+   "code": "9385",
+   "price": ""
+ },
+ {
+   "name": "LB ALUMINIUM BERHAD",
+   "code": "9326",
+   "price": ""
+ },
+ {
+   "name": "LBI CAPITAL BERHAD",
+   "code": "8494",
+   "price": ""
+ },
+ {
+   "name": "LBS BINA GROUP BERHAD",
+   "code": "5789",
+   "price": ""
+ },
+ {
+   "name": "LEADER STEEL HOLDINGS BERHAD",
+   "code": "9881",
+   "price": ""
+ },
+ {
+   "name": "LEBTECH BERHAD",
+   "code": "9628",
+   "price": ""
+ },
+ {
+   "name": "LEE SWEE KIAT GROUP BERHAD",
+   "code": "8079",
+   "price": ""
+ },
+ {
+   "name": "LEFORM BERHAD",
+   "code": "0266",
+   "price": ""
+ },
+ {
+   "name": "LEON FUAT BERHAD",
+   "code": "5232",
+   "price": ""
+ },
+ {
+   "name": "LEONG HUP INTERNATIONAL BERHAD",
+   "code": "6633",
+   "price": ""
+ },
+ {
+   "name": "LFE CORPORATION BERHAD",
+   "code": "7170",
+   "price": ""
+ },
+ {
+   "name": "LGMS BERHAD",
+   "code": "0249",
+   "price": ""
+ },
+ {
+   "name": "LIEN HOE CORPORATION BERHAD",
+   "code": "3573",
+   "price": ""
+ },
+ {
+   "name": "LII HEN INDUSTRIES BHD.",
+   "code": "7089",
+   "price": ""
+ },
+ {
+   "name": "LIM SEONG HAI CAPITAL BERHAD",
+   "code": "03047",
+   "price": ""
+ },
+ {
+   "name": "LION INDUSTRIES CORPORATION BERHAD",
+   "code": "4235",
+   "price": ""
+ },
+ {
+   "name": "LION POSIM BERHAD",
+   "code": "8486",
+   "price": ""
+ },
+ {
+   "name": "LKL INTERNATIONAL BERHAD",
+   "code": "0182",
+   "price": ""
+ },
+ {
+   "name": "LOTTE CHEMICAL TITAN HOLDING BERHAD",
+   "code": "5284",
+   "price": ""
+ },
+ {
+   "name": "LOTUS KFM BERHAD",
+   "code": "8303",
+   "price": ""
+ },
+ {
+   "name": "LPI CAPITAL BHD",
+   "code": "8621",
+   "price": ""
+ },
+ {
+   "name": "LTKM BERHAD",
+   "code": "7085",
+   "price": ""
+ },
+ {
+   "name": "LUSTER INDUSTRIES BHD.",
+   "code": "5068",
+   "price": ""
+ },
+ {
+   "name": "LUXCHEM CORPORATION BERHAD",
+   "code": "5143",
+   "price": ""
+ },
+ {
+   "name": "LYC HEALTHCARE BERHAD",
+   "code": "0075",
+   "price": ""
+ },
+ {
+   "name": "LYSAGHT GALVANIZED STEEL BERHAD",
+   "code": "9199",
+   "price": ""
+ },
+ {
+   "name": "M & A EQUITY HOLDINGS BERHAD",
+   "code": "7082",
+   "price": ""
+ },
+ {
+   "name": "M N C WIRELESS BERHAD",
+   "code": "0103",
+   "price": ""
+ },
+ {
+   "name": "MAA GROUP BERHAD",
+   "code": "1198",
+   "price": ""
+ },
+ {
+   "name": "MAG HOLDINGS BERHAD",
+   "code": "0095",
+   "price": ""
+ },
+ {
+   "name": "MAGMA GROUP BERHAD",
+   "code": "7243",
+   "price": ""
+ },
+ {
+   "name": "MAGNA PRIMA BERHAD",
+   "code": "7617",
+   "price": ""
+ },
+ {
+   "name": "MAGNI-TECH INDUSTRIES BERHAD",
+   "code": "7087",
+   "price": ""
+ },
+ {
+   "name": "MAGNUM BERHAD",
+   "code": "3859",
+   "price": ""
+ },
+ {
+   "name": "MAH SING GROUP BERHAD",
+   "code": "8583",
+   "price": ""
+ },
+ {
+   "name": "MAJUPERAK HOLDINGS BERHAD",
+   "code": "8141",
+   "price": ""
+ },
+ {
+   "name": "MALAKOFF CORPORATION BERHAD",
+   "code": "5264",
+   "price": ""
+ },
+ {
+   "name": "Maybank - MALAYAN BANKING BERHAD",
+   "code": "1155",
+   "price": ""
+ },
+ {
+   "name": "MALAYAN CEMENT BERHAD",
+   "code": "3794",
+   "price": ""
+ },
+ {
+   "name": "MALAYAN FLOUR MILLS BERHAD",
+   "code": "3662",
+   "price": ""
+ },
+ {
+   "name": "MALAYAN UNITED INDUSTRIES BERHAD",
+   "code": "3891",
+   "price": ""
+ },
+ {
+   "name": "MALAYSIA AIRPORTS HOLDINGS BERHAD",
+   "code": "5014",
+   "price": ""
+ },
+ {
+   "name": "MALAYSIA MARINE AND HEAVY ENGINEERING HOLDINGS BERHAD",
+   "code": "5186",
+   "price": ""
+ },
+ {
+   "name": "MALAYSIA SMELTING CORPORATION BERHAD",
+   "code": "5916",
+   "price": ""
+ },
+ {
+   "name": "MALAYSIA STEEL WORKS (KL) BHD",
+   "code": "5098",
+   "price": ""
+ },
+ {
+   "name": "MALAYSIAN GENOMICS RESOURCE CENTRE BERHAD",
+   "code": "0155",
+   "price": ""
+ },
+ {
+   "name": "MALAYSIAN PACIFIC INDUSTRIES BERHAD",
+   "code": "3867",
+   "price": ""
+ },
+ {
+   "name": "MALAYSIAN RESOURCES CORPORATION BERHAD",
+   "code": "1651",
+   "price": ""
+ },
+ {
+   "name": "MALPAC HOLDINGS BERHAD",
+   "code": "4936",
+   "price": ""
+ },
+ {
+   "name": "MALTON BERHAD",
+   "code": "6181",
+   "price": ""
+ },
+ {
+   "name": "MANAGEPAY SYSTEMS BERHAD",
+   "code": "0156",
+   "price": ""
+ },
+ {
+   "name": "MANFORCE GROUP BERHAD",
+   "code": "03015",
+   "price": ""
+ },
+ {
+   "name": "MANULIFE HOLDINGS BERHAD",
+   "code": "1058",
+   "price": ""
+ },
+ {
+   "name": "MARCO HOLDINGS BERHAD",
+   "code": "3514",
+   "price": ""
+ },
+ {
+   "name": "MARINE & GENERAL BERHAD",
+   "code": "5078",
+   "price": ""
+ },
+ {
+   "name": "MASTER TEC GROUP BERHAD",
+   "code": "0295",
+   "price": ""
+ },
+ {
+   "name": "MASTER-PACK GROUP BERHAD",
+   "code": "7029",
+   "price": ""
+ },
+ {
+   "name": "MATANG BERHAD",
+   "code": "0189",
+   "price": ""
+ },
+ {
+   "name": "MATRIX CONCEPTS HOLDINGS BERHAD",
+   "code": "5236",
+   "price": ""
+ },
+ {
+   "name": "MATRIX PARKING SOLUTION HOLDINGS BERHAD",
+   "code": "03019",
+   "price": ""
+ },
+ {
+   "name": "MAXIM GLOBAL BERHAD",
+   "code": "4022",
+   "price": ""
+ },
+ {
+   "name": "MAXIS BERHAD",
+   "code": "6012",
+   "price": ""
+ },
+ {
+   "name": "MAXLAND BERHAD",
+   "code": "7123",
+   "price": ""
+ },
+ {
+   "name": "MAYBULK BERHAD",
+   "code": "5077",
+   "price": ""
+ },
+ {
+   "name": "MAYU GLOBAL GROUP BERHAD",
+   "code": "7099",
+   "price": ""
+ },
+ {
+   "name": "MBM RESOURCES BHD",
+   "code": "5983",
+   "price": ""
+ },
+ {
+   "name": "MBSB BERHAD",
+   "code": "1171",
+   "price": ""
+ },
+ {
+   "name": "MCE HOLDINGS BERHAD",
+   "code": "7004",
+   "price": ""
+ },
+ {
+   "name": "MCLEAN TECHNOLOGIES BERHAD",
+   "code": "0167",
+   "price": ""
+ },
+ {
+   "name": "MCOM HOLDINGS BERHAD",
+   "code": "03022",
+   "price": ""
+ },
+ {
+   "name": "MEDIA CHINESE INTERNATIONAL LIMITED",
+   "code": "5090",
+   "price": ""
+ },
+ {
+   "name": "MEDIA PRIMA BERHAD",
+   "code": "4502",
+   "price": ""
+ },
+ {
+   "name": "MEGA FIRST CORPORATION BERHAD",
+   "code": "3069",
+   "price": ""
+ },
+ {
+   "name": "MELATI EHSAN HOLDINGS BERHAD",
+   "code": "5129",
+   "price": ""
+ },
+ {
+   "name": "MELEWAR INDUSTRIAL GROUP BERHAD",
+   "code": "3778",
+   "price": ""
+ },
+ {
+   "name": "MENANG CORPORATION (M) BERHAD",
+   "code": "1694",
+   "price": ""
+ },
+ {
+   "name": "MENTIGA CORPORATION BERHAD",
+   "code": "5223",
+   "price": ""
+ },
+ {
+   "name": "MERCURY INDUSTRIES BERHAD",
+   "code": "8192",
+   "price": ""
+ },
+ {
+   "name": "MERCURY SECURITIES GROUP BERHAD",
+   "code": "0285",
+   "price": ""
+ },
+ {
+   "name": "MERIDIAN BERHAD",
+   "code": "5040",
+   "price": ""
+ },
+ {
+   "name": "MESB BERHAD",
+   "code": "7234",
+   "price": ""
+ },
+ {
+   "name": "MESINIAGA BERHAD",
+   "code": "5011",
+   "price": ""
+ },
+ {
+   "name": "MESTRON HOLDINGS BERHAD",
+   "code": "0207",
+   "price": ""
+ },
+ {
+   "name": "META BRIGHT GROUP BERHAD",
+   "code": "2097",
+   "price": ""
+ },
+ {
+   "name": "METRO HEALTHCARE BERHAD",
+   "code": "03005",
+   "price": ""
+ },
+ {
+   "name": "METROD HOLDINGS BERHAD",
+   "code": "6149",
+   "price": ""
+ },
+ {
+   "name": "METRONIC GLOBAL BERHAD",
+   "code": "0043",
+   "price": ""
+ },
+ {
+   "name": "MGB BERHAD",
+   "code": "7595",
+   "price": ""
+ },
+ {
+   "name": "MHC PLANTATIONS BHD",
+   "code": "5026",
+   "price": ""
+ },
+ {
+   "name": "MI TECHNOVATION BERHAD",
+   "code": "5286",
+   "price": ""
+ },
+ {
+   "name": "MICROLINK SOLUTIONS BERHAD",
+   "code": "0126",
+   "price": ""
+ },
+ {
+   "name": "MIECO CHIPBOARD BERHAD",
+   "code": "5001",
+   "price": ""
+ },
+ {
+   "name": "MIKRO MSC BERHAD",
+   "code": "0112",
+   "price": ""
+ },
+ {
+   "name": "MILUX CORPORATION BERHAD",
+   "code": "7935",
+   "price": ""
+ },
+ {
+   "name": "MINETECH RESOURCES BERHAD",
+   "code": "7219",
+   "price": ""
+ },
+ {
+   "name": "MINHO (M) BERHAD",
+   "code": "5576",
+   "price": ""
+ },
+ {
+   "name": "MINOX INTERNATIONAL GROUP BERHAD",
+   "code": "0288",
+   "price": ""
+ },
+ {
+   "name": "MISC BERHAD",
+   "code": "3816",
+   "price": ""
+ },
+ {
+   "name": "MITRAJAYA HOLDINGS BERHAD",
+   "code": "9571",
+   "price": ""
+ },
+ {
+   "name": "MK LAND HOLDINGS BERHAD",
+   "code": "8893",
+   "price": ""
+ },
+ {
+   "name": "MKH BERHAD",
+   "code": "6114",
+   "price": ""
+ },
+ {
+   "name": "MKH OIL PALM (EAST KALIMANTAN) BERHAD",
+   "code": "5319",
+   "price": ""
+ },
+ {
+   "name": "MLABS SYSTEMS BERHAD",
+   "code": "0085",
+   "price": ""
+ },
+ {
+   "name": "MMAG HOLDINGS BERHAD",
+   "code": "0034",
+   "price": ""
+ },
+ {
+   "name": "MMIS BERHAD",
+   "code": "03027",
+   "price": ""
+ },
+ {
+   "name": "MMM GROUP BERHAD",
+   "code": "0159",
+   "price": ""
+ },
+ {
+   "name": "MMS VENTURES BERHAD",
+   "code": "0113",
+   "price": ""
+ },
+ {
+   "name": "MN HOLDINGS BERHAD",
+   "code": "0245",
+   "price": ""
+ },
+ {
+   "name": "MNRB HOLDINGS BERHAD",
+   "code": "6459",
+   "price": ""
+ },
+ {
+   "name": "MOBILIA HOLDINGS BERHAD",
+   "code": "0229",
+   "price": ""
+ },
+ {
+   "name": "MPHB CAPITAL BERHAD",
+   "code": "5237",
+   "price": ""
+ },
+ {
+   "name": "MPIRE GLOBAL BERHAD",
+   "code": "7943",
+   "price": ""
+ },
+ {
+   "name": "MQ TECHNOLOGY BERHAD",
+   "code": "0070",
+   "price": ""
+ },
+ {
+   "name": "MR D.I.Y. GROUP (M) BERHAD",
+   "code": "5296",
+   "price": ""
+ },
+ {
+   "name": "MSM MALAYSIA HOLDINGS BERHAD",
+   "code": "5202",
+   "price": ""
+ },
+ {
+   "name": "MST GOLF GROUP BERHAD",
+   "code": "5316",
+   "price": ""
+ },
+ {
+   "name": "MTAG GROUP BERHAD",
+   "code": "0213",
+   "price": ""
+ },
+ {
+   "name": "MTOUCHE TECHNOLOGY BERHAD",
+   "code": "0092",
+   "price": ""
+ },
+ {
+   "name": "MUAR BAN LEE GROUP BERHAD",
+   "code": "5152",
+   "price": ""
+ },
+ {
+   "name": "MUDA HOLDINGS BERHAD",
+   "code": "3883",
+   "price": ""
+ },
+ {
+   "name": "MUDAJAYA GROUP BERHAD",
+   "code": "5085",
+   "price": ""
+ },
+ {
+   "name": "MUHIBBAH ENGINEERING (M) BHD",
+   "code": "5703",
+   "price": ""
+ },
+ {
+   "name": "MUI PROPERTIES BERHAD",
+   "code": "3913",
+   "price": ""
+ },
+ {
+   "name": "MULPHA INTERNATIONAL BERHAD",
+   "code": "3905",
+   "price": ""
+ },
+ {
+   "name": "MULTI-USAGE HOLDINGS BERHAD",
+   "code": "9539",
+   "price": ""
+ },
+ {
+   "name": "MY E.G. SERVICES BERHAD",
+   "code": "0138",
+   "price": ""
+ },
+ {
+   "name": "MYCRON STEEL BERHAD",
+   "code": "5087",
+   "price": ""
+ },
+ {
+   "name": "MYMBN BERHAD",
+   "code": "0280",
+   "price": ""
+ },
+ {
+   "name": "MYNEWS HOLDINGS BERHAD",
+   "code": "5275",
+   "price": ""
+ },
+ {
+   "name": "MYTECH GROUP BERHAD",
+   "code": "7692",
+   "price": ""
+ },
+ {
+   "name": "N2N CONNECT BERHAD",
+   "code": "0108",
+   "price": ""
+ },
+ {
+   "name": "NAIM HOLDINGS BERHAD",
+   "code": "5073",
+   "price": ""
+ },
+ {
+   "name": "NATIONGATE HOLDINGS BERHAD",
+   "code": "0270",
+   "price": ""
+ },
+ {
+   "name": "NCT ALLIANCE BERHAD",
+   "code": "0056",
+   "price": ""
+ },
+ {
+   "name": "NEGRI SEMBILAN OIL PALMS BERHAD",
+   "code": "2038",
+   "price": ""
+ },
+ {
+   "name": "NESTCON BERHAD",
+   "code": "0235",
+   "price": ""
+ },
+ {
+   "name": "NESTLE (MALAYSIA) BERHAD",
+   "code": "4707",
+   "price": ""
+ },
+ {
+   "name": "NETX HOLDINGS BERHAD",
+   "code": "0020",
+   "price": ""
+ },
+ {
+   "name": "NEW HOONG FATT HOLDINGS BERHAD",
+   "code": "7060",
+   "price": ""
+ },
+ {
+   "name": "NEXGRAM HOLDINGS BERHAD",
+   "code": "0096",
+   "price": ""
+ },
+ {
+   "name": "NEXTGREEN GLOBAL BERHAD",
+   "code": "7241",
+   "price": ""
+ },
+ {
+   "name": "NI HSIN GROUP BERHAD",
+   "code": "7215",
+   "price": ""
+ },
+ {
+   "name": "NICHE CAPITAL EMAS HOLDINGS BERHAD",
+   "code": "7139",
+   "price": ""
+ },
+ {
+   "name": "NOTION VTEC BERHAD",
+   "code": "0083",
+   "price": ""
+ },
+ {
+   "name": "NOVA MSC BERHAD",
+   "code": "0026",
+   "price": ""
+ },
+ {
+   "name": "NOVA PHARMA SOLUTIONS BERHAD",
+   "code": "03006",
+   "price": ""
+ },
+ {
+   "name": "NOVA WELLNESS GROUP BERHAD",
+   "code": "0201",
+   "price": ""
+ },
+ {
+   "name": "NOVELPLUS TECHNOLOGY BERHAD",
+   "code": "03045",
+   "price": ""
+ },
+ {
+   "name": "NPC RESOURCES BERHAD",
+   "code": "5047",
+   "price": ""
+ },
+ {
+   "name": "NTPM HOLDINGS BERHAD",
+   "code": "5066",
+   "price": ""
+ },
+ {
+   "name": "NYLEX (MALAYSIA) BERHAD",
+   "code": "4944",
+   "price": ""
+ },
+ {
+   "name": "OCB BERHAD",
+   "code": "5533",
+   "price": ""
+ },
+ {
+   "name": "OCEAN FRESH BERHAD",
+   "code": "0312",
+   "price": ""
+ },
+ {
+   "name": "OCEAN VANTAGE HOLDINGS BERHAD",
+   "code": "0220",
+   "price": ""
+ },
+ {
+   "name": "OCEANCASH PACIFIC BERHAD",
+   "code": "0049",
+   "price": ""
+ },
+ {
+   "name": "OCK GROUP BERHAD",
+   "code": "0172",
+   "price": ""
+ },
+ {
+   "name": "OCR GROUP BERHAD",
+   "code": "7071",
+   "price": ""
+ },
+ {
+   "name": "OKA CORPORATION BHD",
+   "code": "7140",
+   "price": ""
+ },
+ {
+   "name": "OLYMPIA INDUSTRIES BERHAD",
+   "code": "3018",
+   "price": ""
+ },
+ {
+   "name": "OM HOLDINGS LIMITED",
+   "code": "5298",
+   "price": ""
+ },
+ {
+   "name": "OMESTI BERHAD",
+   "code": "9008",
+   "price": ""
+ },
+ {
+   "name": "ONE GLOVE GROUP BERHAD",
+   "code": "5079",
+   "price": ""
+ },
+ {
+   "name": "ONETECH SOLUTIONS HOLDINGS BERHAD",
+   "code": "03041",
+   "price": ""
+ },
+ {
+   "name": "ONLY WORLD GROUP HOLDINGS BERHAD",
+   "code": "5260",
+   "price": ""
+ },
+ {
+   "name": "OPENSYS (M) BERHAD",
+   "code": "0040",
+   "price": ""
+ },
+ {
+   "name": "OPPSTAR BERHAD",
+   "code": "0275",
+   "price": ""
+ },
+ {
+   "name": "OPTIMAX HOLDINGS BERHAD",
+   "code": "0222",
+   "price": ""
+ },
+ {
+   "name": "ORGABIO HOLDINGS BERHAD",
+   "code": "0252",
+   "price": ""
+ },
+ {
+   "name": "ORIENTAL FOOD INDUSTRIES HOLDINGS BERHAD",
+   "code": "7107",
+   "price": ""
+ },
+ {
+   "name": "ORIENTAL HOLDINGS BERHAD",
+   "code": "4006",
+   "price": ""
+ },
+ {
+   "name": "ORIENTAL INTEREST BERHAD",
+   "code": "5827",
+   "price": ""
+ },
+ {
+   "name": "ORNAPAPER BERHAD",
+   "code": "5065",
+   "price": ""
+ },
+ {
+   "name": "OSK HOLDINGS BERHAD",
+   "code": "5053",
+   "price": ""
+ },
+ {
+   "name": "OSK VENTURES INTERNATIONAL BERHAD",
+   "code": "0053",
+   "price": ""
+ },
+ {
+   "name": "OVERSEA ENTERPRISE BERHAD",
+   "code": "0153",
+   "price": ""
+ },
+ {
+   "name": "P.A. RESOURCES BERHAD",
+   "code": "7225",
+   "price": ""
+ },
+ {
+   "name": "P.I.E. INDUSTRIAL BERHAD",
+   "code": "7095",
+   "price": ""
+ },
+ {
+   "name": "PACIFIC & ORIENT BERHAD",
+   "code": "6009",
+   "price": ""
+ },
+ {
+   "name": "PADINI HOLDINGS BERHAD",
+   "code": "7052",
+   "price": ""
+ },
+ {
+   "name": "PAN MALAYSIA CORPORATION BERHAD",
+   "code": "4081",
+   "price": ""
+ },
+ {
+   "name": "PAN MALAYSIA HOLDINGS BERHAD",
+   "code": "1287",
+   "price": ""
+ },
+ {
+   "name": "PANASONIC MANUFACTURING MALAYSIA BERHAD",
+   "code": "3719",
+   "price": ""
+ },
+ {
+   "name": "PANDA ECO SYSTEM BERHAD",
+   "code": "0290",
+   "price": ""
+ },
+ {
+   "name": "PANSAR BERHAD",
+   "code": "8419",
+   "price": ""
+ },
+ {
+   "name": "PANTECH GROUP HOLDINGS BERHAD",
+   "code": "5125",
+   "price": ""
+ },
+ {
+   "name": "PAOS HOLDINGS BERHAD",
+   "code": "5022",
+   "price": ""
+ },
+ {
+   "name": "PAPPAJACK BERHAD",
+   "code": "0242",
+   "price": ""
+ },
+ {
+   "name": "PARAGON GLOBE BERHAD",
+   "code": "3611",
+   "price": ""
+ },
+ {
+   "name": "PARAGON UNION BERHAD",
+   "code": "9407",
+   "price": ""
+ },
+ {
+   "name": "PARAMOUNT CORPORATION BERHAD",
+   "code": "1724",
+   "price": ""
+ },
+ {
+   "name": "PARKSON HOLDINGS BERHAD",
+   "code": "5657",
+   "price": ""
+ },
+ {
+   "name": "PARKWOOD HOLDINGS BERHAD",
+   "code": "2682",
+   "price": ""
+ },
+ {
+   "name": "PARLO BERHAD",
+   "code": "0022",
+   "price": ""
+ },
+ {
+   "name": "PASDEC HOLDINGS BERHAD",
+   "code": "6912",
+   "price": ""
+ },
+ {
+   "name": "PASUKHAS GROUP BERHAD",
+   "code": "0177",
+   "price": ""
+ },
+ {
+   "name": "PAVILION REAL ESTATE INVESTMENT TRUST",
+   "code": "5212",
+   "price": ""
+ },
+ {
+   "name": "PBA HOLDINGS BHD",
+   "code": "5041",
+   "price": ""
+ },
+ {
+   "name": "PBS BERHAD",
+   "code": "5231",
+   "price": ""
+ },
+ {
+   "name": "PCCS GROUP BERHAD",
+   "code": "6068",
+   "price": ""
+ },
+ {
+   "name": "PDZ HOLDINGS BHD",
+   "code": "6254",
+   "price": ""
+ },
+ {
+   "name": "PECCA GROUP BERHAD",
+   "code": "5271",
+   "price": ""
+ },
+ {
+   "name": "PEGASUS HEIGHTS BERHAD",
+   "code": "4464",
+   "price": ""
+ },
+ {
+   "name": "PEKAT GROUP BERHAD",
+   "code": "0233",
+   "price": ""
+ },
+ {
+   "name": "PENSONIC HOLDINGS BERHAD",
+   "code": "9997",
+   "price": ""
+ },
+ {
+   "name": "PENTAMASTER CORPORATION BERHAD",
+   "code": "7160",
+   "price": ""
+ },
+ {
+   "name": "PERAK CORPORATION BERHAD",
+   "code": "8346",
+   "price": ""
+ },
+ {
+   "name": "PERAK TRANSIT BERHAD",
+   "code": "0186",
+   "price": ""
+ },
+ {
+   "name": "PERDANA PETROLEUM BERHAD",
+   "code": "7108",
+   "price": ""
+ },
+ {
+   "name": "PERMAJU INDUSTRIES BERHAD",
+   "code": "7080",
+   "price": ""
+ },
+ {
+   "name": "PERTAMA DIGITAL BERHAD",
+   "code": "8532",
+   "price": ""
+ },
+ {
+   "name": "PERUSAHAAN SADUR TIMAH MALAYSIA (PERSTIMA) BHD",
+   "code": "5436",
+   "price": ""
+ },
+ {
+   "name": "PESONA METRO HOLDINGS BERHAD",
+   "code": "8311",
+   "price": ""
+ },
+ {
+   "name": "PESTECH INTERNATIONAL BERHAD",
+   "code": "5219",
+   "price": ""
+ },
+ {
+   "name": "PETERLABS HOLDINGS BERHAD",
+   "code": "0171",
+   "price": ""
+ },
+ {
+   "name": "PETRA ENERGY BERHAD",
+   "code": "5133",
+   "price": ""
+ },
+ {
+   "name": "PETRON MALAYSIA REFINING & MARKETING BHD",
+   "code": "3042",
+   "price": ""
+ },
+ {
+   "name": "PETRONAS CHEMICALS GROUP BERHAD",
+   "code": "5183",
+   "price": ""
+ },
+ {
+   "name": "PETRONAS DAGANGAN BHD",
+   "code": "5681",
+   "price": ""
+ },
+ {
+   "name": "PETRONAS GAS BERHAD",
+   "code": "6033",
+   "price": ""
+ },
+ {
+   "name": "PGF CAPITAL BERHAD",
+   "code": "8117",
+   "price": ""
+ },
+ {
+   "name": "PHARMANIAGA BERHAD",
+   "code": "7081",
+   "price": ""
+ },
+ {
+   "name": "PIMPINAN EHSAN BERHAD",
+   "code": "5622",
+   "price": ""
+ },
+ {
+   "name": "PINEAPPLE RESOURCES BERHAD",
+   "code": "0006",
+   "price": ""
+ },
+ {
+   "name": "PINEHILL PACIFIC BERHAD",
+   "code": "1902",
+   "price": ""
+ },
+ {
+   "name": "PINTARAS JAYA BHD",
+   "code": "9598",
+   "price": ""
+ },
+ {
+   "name": "PJBUMI BERHAD",
+   "code": "7163",
+   "price": ""
+ },
+ {
+   "name": "PLB ENGINEERING BERHAD",
+   "code": "7055",
+   "price": ""
+ },
+ {
+   "name": "PLENITUDE BERHAD",
+   "code": "5075",
+   "price": ""
+ },
+ {
+   "name": "PLS PLANTATIONS BERHAD",
+   "code": "9695",
+   "price": ""
+ },
+ {
+   "name": "PLYTEC HOLDING BERHAD",
+   "code": "0289",
+   "price": ""
+ },
+ {
+   "name": "PMB TECHNOLOGY BERHAD",
+   "code": "7172",
+   "price": ""
+ },
+ {
+   "name": "PNE PCB BERHAD",
+   "code": "6637",
+   "price": ""
+ },
+ {
+   "name": "POH HUAT RESOURCES HOLDINGS BERHAD",
+   "code": "7088",
+   "price": ""
+ },
+ {
+   "name": "POH KONG HOLDINGS BERHAD",
+   "code": "5080",
+   "price": ""
+ },
+ {
+   "name": "POLYDAMIC GROUP BERHAD",
+   "code": "03031",
+   "price": ""
+ },
+ {
+   "name": "POS MALAYSIA BERHAD",
+   "code": "4634",
+   "price": ""
+ },
+ {
+   "name": "POWER ROOT BERHAD",
+   "code": "7237",
+   "price": ""
+ },
+ {
+   "name": "POWERWELL HOLDINGS BERHAD",
+   "code": "0217",
+   "price": ""
+ },
+ {
+   "name": "PPB GROUP BERHAD",
+   "code": "4065",
+   "price": ""
+ },
+ {
+   "name": "PRESS METAL ALUMINIUM HOLDINGS BERHAD",
+   "code": "8869",
+   "price": ""
+ },
+ {
+   "name": "PRESTAR RESOURCES BERHAD",
+   "code": "9873",
+   "price": ""
+ },
+ {
+   "name": "PRG HOLDINGS BERHAD",
+   "code": "7168",
+   "price": ""
+ },
+ {
+   "name": "PRINCIPAL FTSE ASEAN 40 MALAYSIA ETF",
+   "code": "0822EA",
+   "price": ""
+ },
+ {
+   "name": "PRINCIPAL FTSE CHINA 50 ETF",
+   "code": "0823EA",
+   "price": ""
+ },
+ {
+   "name": "PRIVASIA TECHNOLOGY BERHAD",
+   "code": "0123",
+   "price": ""
+ },
+ {
+   "name": "PROGRESSIVE IMPACT CORPORATION BERHAD",
+   "code": "7201",
+   "price": ""
+ },
+ {
+   "name": "PROLINTAS INFRA BUSINESS TRUST",
+   "code": "5320",
+   "price": ""
+ },
+ {
+   "name": "PROPEL GLOBAL BERHAD",
+   "code": "0091",
+   "price": ""
+ },
+ {
+   "name": "PROTASCO BERHAD",
+   "code": "5070",
+   "price": ""
+ },
+ {
+   "name": "PT RESOURCES HOLDINGS BERHAD",
+   "code": "0260",
+   "price": ""
+ },
+ {
+   "name": "PTT SYNERGY GROUP BERHAD",
+   "code": "7010",
+   "price": ""
+ },
+ {
+   "name": "PBB - PUBLIC BANK BERHAD",
+   "code": "1295",
+   "price": ""
+ },
+ {
+   "name": "PUBLIC PACKAGES HOLDINGS BHD",
+   "code": "8273",
+   "price": ""
+ },
+ {
+   "name": "PUC BERHAD",
+   "code": "0007",
+   "price": ""
+ },
+ {
+   "name": "PUNCAK NIAGA HOLDINGS BERHAD",
+   "code": "6807",
+   "price": ""
+ },
+ {
+   "name": "PWF CORPORATION BERHAD",
+   "code": "7134",
+   "price": ""
+ },
+ {
+   "name": "QES GROUP BERHAD",
+   "code": "0196",
+   "price": ""
+ },
+ {
+   "name": "QL RESOURCES BERHAD",
+   "code": "7084",
+   "price": ""
+ },
+ {
+   "name": "QUALITY CONCRETE HOLDINGS BERHAD",
+   "code": "7544",
+   "price": ""
+ },
+ {
+   "name": "RADIANT GLOBALTECH BERHAD",
+   "code": "0202",
+   "price": ""
+ },
+ {
+   "name": "RADIUM DEVELOPMENT BERHAD",
+   "code": "5313",
+   "price": ""
+ },
+ {
+   "name": "RALCO CORPORATION BERHAD",
+   "code": "7498",
+   "price": ""
+ },
+ {
+   "name": "RAMSSOL GROUP BERHAD",
+   "code": "0236",
+   "price": ""
+ },
+ {
+   "name": "RANHILL UTILITIES BERHAD",
+   "code": "5272",
+   "price": ""
+ },
+ {
+   "name": "RAPID SYNERGY BERHAD",
+   "code": "7765",
+   "price": ""
+ },
+ {
+   "name": "RAY GO SOLAR HOLDINGS BERHAD",
+   "code": "03052",
+   "price": ""
+ },
+ {
+   "name": "RCE CAPITAL BERHAD",
+   "code": "9296",
+   "price": ""
+ },
+ {
+   "name": "REACH ENERGY BERHAD",
+   "code": "5256",
+   "price": ""
+ },
+ {
+   "name": "RED IDEAS HOLDINGS BERHAD",
+   "code": "03002",
+   "price": ""
+ },
+ {
+   "name": "RED SENA BERHAD",
+   "code": "5270",
+   "price": ""
+ },
+ {
+   "name": "REDPLANET BERHAD",
+   "code": "03036",
+   "price": ""
+ },
+ {
+   "name": "REDTONE DIGITAL BERHAD",
+   "code": "0032",
+   "price": ""
+ },
+ {
+   "name": "REKATECH CAPITAL BERHAD",
+   "code": "0081",
+   "price": ""
+ },
+ {
+   "name": "RENEUCO BERHAD",
+   "code": "7130",
+   "price": ""
+ },
+ {
+   "name": "RESERVOIR LINK ENERGY BHD",
+   "code": "0219",
+   "price": ""
+ },
+ {
+   "name": "RESINTECH BERHAD",
+   "code": "7232",
+   "price": ""
+ },
+ {
+   "name": "REVENUE GROUP BERHAD",
+   "code": "0200",
+   "price": ""
+ },
+ {
+   "name": "REX INDUSTRY BERHAD",
+   "code": "9946",
+   "price": ""
+ },
+ {
+   "name": "REXIT BERHAD",
+   "code": "0106",
+   "price": ""
+ },
+ {
+   "name": "RGB INTERNATIONAL BHD",
+   "code": "0037",
+   "price": ""
+ },
+ {
+   "name": "RGT BERHAD",
+   "code": "9954",
+   "price": ""
+ },
+ {
+   "name": "RHB BANK BERHAD",
+   "code": "1066",
+   "price": ""
+ },
+ {
+   "name": "RHONE MA HOLDINGS BERHAD",
+   "code": "5278",
+   "price": ""
+ },
+ {
+   "name": "RHONG KHEN INTERNATIONAL BERHAD",
+   "code": "7006",
+   "price": ""
+ },
+ {
+   "name": "RIMBUNAN SAWIT BERHAD",
+   "code": "5113",
+   "price": ""
+ },
+ {
+   "name": "RIVERVIEW RUBBER ESTATES BERHAD",
+   "code": "2542",
+   "price": ""
+ },
+ {
+   "name": "ROHAS TECNIC BERHAD",
+   "code": "9741",
+   "price": ""
+ },
+ {
+   "name": "RTS TECHNOLOGY HOLDINGS BERHAD",
+   "code": "03039",
+   "price": ""
+ },
+ {
+   "name": "S & F CAPITAL BERHAD",
+   "code": "8745",
+   "price": ""
+ },
+ {
+   "name": "S P SETIA BERHAD",
+   "code": "8664",
+   "price": ""
+ },
+ {
+   "name": "SAFETYWARE GROUP BERHAD",
+   "code": "03056",
+   "price": ""
+ },
+ {
+   "name": "SALCON BERHAD",
+   "code": "8567",
+   "price": ""
+ },
+ {
+   "name": "SALUTICA BERHAD",
+   "code": "0183",
+   "price": ""
+ },
+ {
+   "name": "SAM ENGINEERING & EQUIPMENT (M) BERHAD",
+   "code": "9822",
+   "price": ""
+ },
+ {
+   "name": "SAMAIDEN GROUP BERHAD",
+   "code": "0223",
+   "price": ""
+ },
+ {
+   "name": "SAMCHEM HOLDINGS BERHAD",
+   "code": "5147",
+   "price": ""
+ },
+ {
+   "name": "SANCY BERHAD",
+   "code": "03057",
+   "price": ""
+ },
+ {
+   "name": "SANICHI TECHNOLOGY BERHAD",
+   "code": "0133",
+   "price": ""
+ },
+ {
+   "name": "SAPURA ENERGY BERHAD",
+   "code": "5218",
+   "price": ""
+ },
+ {
+   "name": "SAPURA INDUSTRIAL BERHAD",
+   "code": "7811",
+   "price": ""
+ },
+ {
+   "name": "SAPURA RESOURCES BERHAD",
+   "code": "4596",
+   "price": ""
+ },
+ {
+   "name": "SARAWAK CABLE BERHAD",
+   "code": "5170",
+   "price": ""
+ },
+ {
+   "name": "SARAWAK CONSOLIDATED INDUSTRIES BERHAD",
+   "code": "9237",
+   "price": ""
+ },
+ {
+   "name": "SARAWAK OIL PALMS BERHAD",
+   "code": "5126",
+   "price": ""
+ },
+ {
+   "name": "SARAWAK PLANTATION BERHAD",
+   "code": "5135",
+   "price": ""
+ },
+ {
+   "name": "SASBADI HOLDINGS BERHAD",
+   "code": "5252",
+   "price": ""
+ },
+ {
+   "name": "SAUDEE GROUP BERHAD",
+   "code": "5157",
+   "price": ""
+ },
+ {
+   "name": "SBC CORPORATION BERHAD",
+   "code": "5207",
+   "price": ""
+ },
+ {
+   "name": "SBH MARINE HOLDINGS BERHAD",
+   "code": "0300",
+   "price": ""
+ },
+ {
+   "name": "SC ESTATE BUILDER BERHAD",
+   "code": "0109",
+   "price": ""
+ },
+ {
+   "name": "SCANWOLF CORPORATION BERHAD",
+   "code": "7239",
+   "price": ""
+ },
+ {
+   "name": "SCC HOLDINGS BERHAD",
+   "code": "0158",
+   "price": ""
+ },
+ {
+   "name": "SCGM BHD",
+   "code": "7247",
+   "price": ""
+ },
+ {
+   "name": "SCICOM (MSC) BERHAD",
+   "code": "0099",
+   "price": ""
+ },
+ {
+   "name": "SCIENTEX BERHAD",
+   "code": "4731",
+   "price": ""
+ },
+ {
+   "name": "SCIENTEX PACKAGING (AYER KEROH) BERHAD",
+   "code": "8125",
+   "price": ""
+ },
+ {
+   "name": "SCOMI ENERGY SERVICES BHD",
+   "code": "7045",
+   "price": ""
+ },
+ {
+   "name": "SCOPE INDUSTRIES BERHAD",
+   "code": "0028",
+   "price": ""
+ },
+ {
+   "name": "SD GUTHRIE BERHAD",
+   "code": "5285",
+   "price": ""
+ },
+ {
+   "name": "SDS GROUP BERHAD",
+   "code": "0212",
+   "price": ""
+ },
+ {
+   "name": "SEACERA GROUP BERHAD",
+   "code": "7073",
+   "price": ""
+ },
+ {
+   "name": "SEAL INCORPORATED BERHAD",
+   "code": "4286",
+   "price": ""
+ },
+ {
+   "name": "SEALINK INTERNATIONAL BERHAD",
+   "code": "5145",
+   "price": ""
+ },
+ {
+   "name": "SECUREMETRIC BERHAD",
+   "code": "0203",
+   "price": ""
+ },
+ {
+   "name": "SEDANIA INNOVATOR BERHAD",
+   "code": "0178",
+   "price": ""
+ },
+ {
+   "name": "SEE HUP CONSOLIDATED BERHAD",
+   "code": "7053",
+   "price": ""
+ },
+ {
+   "name": "SEERS BERHAD",
+   "code": "03009",
+   "price": ""
+ },
+ {
+   "name": "SEG INTERNATIONAL BHD",
+   "code": "9792",
+   "price": ""
+ },
+ {
+   "name": "SELANGOR DREDGING BERHAD",
+   "code": "2224",
+   "price": ""
+ },
+ {
+   "name": "SENG FONG HOLDINGS BERHAD",
+   "code": "5308",
+   "price": ""
+ },
+ {
+   "name": "SENHENG NEW RETAIL BERHAD",
+   "code": "5305",
+   "price": ""
+ },
+ {
+   "name": "SENI JAYA CORPORATION BERHAD",
+   "code": "9431",
+   "price": ""
+ },
+ {
+   "name": "SENTORIA GROUP BERHAD",
+   "code": "5213",
+   "price": ""
+ },
+ {
+   "name": "SENTRAL REIT",
+   "code": "5123",
+   "price": ""
+ },
+ {
+   "name": "SEREMBAN ENGINEERING BERHAD",
+   "code": "5163",
+   "price": ""
+ },
+ {
+   "name": "SERN KOU RESOURCES BERHAD",
+   "code": "7180",
+   "price": ""
+ },
+ {
+   "name": "SERSOL BERHAD",
+   "code": "0055",
+   "price": ""
+ },
+ {
+   "name": "SFP TECH HOLDINGS BERHAD",
+   "code": "0251",
+   "price": ""
+ },
+ {
+   "name": "SHANGRI-LA HOTELS (MALAYSIA) BERHAD",
+   "code": "5517",
+   "price": ""
+ },
+ {
+   "name": "SHH RESOURCES HOLDINGS BERHAD",
+   "code": "7412",
+   "price": ""
+ },
+ {
+   "name": "SHIN YANG GROUP BERHAD",
+   "code": "5173",
+   "price": ""
+ },
+ {
+   "name": "SHL CONSOLIDATED BHD",
+   "code": "6017",
+   "price": ""
+ },
+ {
+   "name": "SIAB HOLDINGS BERHAD",
+   "code": "0241",
+   "price": ""
+ },
+ {
+   "name": "SIGNATURE INTERNATIONAL BERHAD",
+   "code": "7246",
+   "price": ""
+ },
+ {
+   "name": "SILVER RIDGE HOLDINGS BHD",
+   "code": "0129",
+   "price": ""
+ },
+ {
+   "name": "SIME DARBY BERHAD",
+   "code": "4197",
+   "price": ""
+ },
+ {
+   "name": "SIME DARBY PROPERTY BERHAD",
+   "code": "5288",
+   "price": ""
+ },
+ {
+   "name": "SIN HENG CHAN (MALAYA) BERHAD",
+   "code": "4316",
+   "price": ""
+ },
+ {
+   "name": "SINARAN ADVANCE GROUP BERHAD",
+   "code": "5172",
+   "price": ""
+ },
+ {
+   "name": "SIN-KUNG LOGISTICS BERHAD",
+   "code": "0305",
+   "price": ""
+ },
+ {
+   "name": "SINMAH CAPITAL BERHAD",
+   "code": "9776",
+   "price": ""
+ },
+ {
+   "name": "SKB SHUTTERS CORPORATION BERHAD",
+   "code": "7115",
+   "price": ""
+ },
+ {
+   "name": "SKP RESOURCES BHD",
+   "code": "7155",
+   "price": ""
+ },
+ {
+   "name": "SKYWORLD DEVELOPMENT BERHAD",
+   "code": "5315",
+   "price": ""
+ },
+ {
+   "name": "SL INNOVATION CAPITAL BERHAD",
+   "code": "03008",
+   "price": ""
+ },
+ {
+   "name": "SLP RESOURCES BERHAD",
+   "code": "7248",
+   "price": ""
+ },
+ {
+   "name": "SMART ASIA CHEMICAL BHD",
+   "code": "0306",
+   "price": ""
+ },
+ {
+   "name": "SMILE-LINK HEALTHCARE GLOBAL BERHAD",
+   "code": "03023",
+   "price": ""
+ },
+ {
+   "name": "SMIS CORPORATION BERHAD",
+   "code": "7132",
+   "price": ""
+ },
+ {
+   "name": "SMRT HOLDINGS BERHAD",
+   "code": "0117",
+   "price": ""
+ },
+ {
+   "name": "SMTRACK BERHAD",
+   "code": "0169",
+   "price": ""
+ },
+ {
+   "name": "SNOWFIT GROUP BERHAD",
+   "code": "03054",
+   "price": ""
+ },
+ {
+   "name": "SNS NETWORK TECHNOLOGY BERHAD",
+   "code": "0259",
+   "price": ""
+ },
+ {
+   "name": "SOLARVEST HOLDINGS BERHAD",
+   "code": "0215",
+   "price": ""
+ },
+ {
+   "name": "SOLID AUTOMOTIVE BERHAD",
+   "code": "5242",
+   "price": ""
+ },
+ {
+   "name": "SOLUTION GROUP BERHAD",
+   "code": "0093",
+   "price": ""
+ },
+ {
+   "name": "SOUTH MALAYSIA INDUSTRIES BERHAD",
+   "code": "4375",
+   "price": ""
+ },
+ {
+   "name": "SOUTHERN ACIDS (M) BERHAD",
+   "code": "5134",
+   "price": ""
+ },
+ {
+   "name": "SOUTHERN CABLE GROUP BERHAD",
+   "code": "0225",
+   "price": ""
+ },
+ {
+   "name": "SOUTHERN SCORE BUILDERS BERHAD",
+   "code": "0045",
+   "price": ""
+ },
+ {
+   "name": "SOUTHERN STEEL BERHAD",
+   "code": "5665",
+   "price": ""
+ },
+ {
+   "name": "SPORTS TOTO BERHAD",
+   "code": "1562",
+   "price": ""
+ },
+ {
+   "name": "SPRING ART HOLDINGS BERHAD",
+   "code": "0216",
+   "price": ""
+ },
+ {
+   "name": "SPRITZER BHD",
+   "code": "7103",
+   "price": ""
+ },
+ {
+   "name": "SSF HOME GROUP BERHAD",
+   "code": "0287",
+   "price": ""
+ },
+ {
+   "name": "STAR MEDIA GROUP BERHAD",
+   "code": "6084",
+   "price": ""
+ },
+ {
+   "name": "STEEL HAWK BERHAD",
+   "code": "03049",
+   "price": ""
+ },
+ {
+   "name": "STRAITS ENERGY RESOURCES BERHAD",
+   "code": "0080",
+   "price": ""
+ },
+ {
+   "name": "SUBUR TIASA HOLDINGS BERHAD",
+   "code": "6904",
+   "price": ""
+ },
+ {
+   "name": "SUCCESS TRANSFORMER CORPORATION BERHAD",
+   "code": "7207",
+   "price": ""
+ },
+ {
+   "name": "SUNGEI BAGAN RUBBER COMPANY (MALAYA) BERHAD",
+   "code": "2569",
+   "price": ""
+ },
+ {
+   "name": "SUNMOW HOLDING BERHAD",
+   "code": "03050",
+   "price": ""
+ },
+ {
+   "name": "SUNSURIA BERHAD",
+   "code": "3743",
+   "price": ""
+ },
+ {
+   "name": "SUNVIEW GROUP BERHAD",
+   "code": "0262",
+   "price": ""
+ },
+ {
+   "name": "SUNWAY BERHAD",
+   "code": "5211",
+   "price": ""
+ },
+ {
+   "name": "SUNWAY CONSTRUCTION GROUP BERHAD",
+   "code": "5263",
+   "price": ""
+ },
+ {
+   "name": "SUNWAY REAL ESTATE INVESTMENT TRUST",
+   "code": "5176",
+   "price": ""
+ },
+ {
+   "name": "SUNZEN BIOTECH BERHAD",
+   "code": "0148",
+   "price": ""
+ },
+ {
+   "name": "SUPERCOMNET TECHNOLOGIES BERHAD",
+   "code": "0001",
+   "price": ""
+ },
+ {
+   "name": "SUPERGENICS BERHAD",
+   "code": "03033",
+   "price": ""
+ },
+ {
+   "name": "SUPERLON HOLDINGS BERHAD",
+   "code": "7235",
+   "price": ""
+ },
+ {
+   "name": "SUPERMAX CORPORATION BERHAD",
+   "code": "7106",
+   "price": ""
+ },
+ {
+   "name": "SUPREME CONSOLIDATED RESOURCES BERHAD",
+   "code": "03018",
+   "price": ""
+ },
+ {
+   "name": "SURIA CAPITAL HOLDINGS BERHAD",
+   "code": "6521",
+   "price": ""
+ },
+ {
+   "name": "SWIFT HAULAGE BERHAD",
+   "code": "5303",
+   "price": ""
+ },
+ {
+   "name": "SWS CAPITAL BERHAD",
+   "code": "7186",
+   "price": ""
+ },
+ {
+   "name": "SYARIKAT TAKAFUL MALAYSIA KELUARGA BERHAD",
+   "code": "6139",
+   "price": ""
+ },
+ {
+   "name": "SYCAL VENTURES BERHAD",
+   "code": "9717",
+   "price": ""
+ },
+ {
+   "name": "SYMPHONY LIFE BERHAD",
+   "code": "1538",
+   "price": ""
+ },
+ {
+   "name": "SYNERGY HOUSE BERHAD",
+   "code": "0279",
+   "price": ""
+ },
+ {
+   "name": "SYSTECH BHD",
+   "code": "0050",
+   "price": ""
+ },
+ {
+   "name": "T7 GLOBAL BERHAD",
+   "code": "7228",
+   "price": ""
+ },
+ {
+   "name": "TA ANN HOLDINGS BERHAD",
+   "code": "5012",
+   "price": ""
+ },
+ {
+   "name": "TA WIN HOLDINGS BERHAD",
+   "code": "7097",
+   "price": ""
+ },
+ {
+   "name": "TAFI INDUSTRIES BERHAD",
+   "code": "7211",
+   "price": ""
+ },
+ {
+   "name": "TALAM TRANSFORM BERHAD",
+   "code": "2259",
+   "price": ""
+ },
+ {
+   "name": "TALIWORKS CORPORATION BERHAD",
+   "code": "8524",
+   "price": ""
+ },
+ {
+   "name": "TAMBUN INDAH LAND BERHAD",
+   "code": "5191",
+   "price": ""
+ },
+ {
+   "name": "TAN CHONG MOTOR HOLDINGS BERHAD",
+   "code": "4405",
+   "price": ""
+ },
+ {
+   "name": "TANCO HOLDINGS BERHAD",
+   "code": "2429",
+   "price": ""
+ },
+ {
+   "name": "TAS OFFSHORE BERHAD",
+   "code": "5149",
+   "price": ""
+ },
+ {
+   "name": "TASCO BERHAD",
+   "code": "5140",
+   "price": ""
+ },
+ {
+   "name": "TASHIN HOLDINGS BERHAD",
+   "code": "0211",
+   "price": ""
+ },
+ {
+   "name": "TCS GROUP HOLDINGS BERHAD",
+   "code": "0221",
+   "price": ""
+ },
+ {
+   "name": "TDM BERHAD",
+   "code": "2054",
+   "price": ""
+ },
+ {
+   "name": "TECHBASE INDUSTRIES BERHAD",
+   "code": "8966",
+   "price": ""
+ },
+ {
+   "name": "TECHBOND GROUP BERHAD",
+   "code": "5289",
+   "price": ""
+ },
+ {
+   "name": "TECHNA-X BERHAD",
+   "code": "2739",
+   "price": ""
+ },
+ {
+   "name": "TECHNODEX BHD",
+   "code": "0132",
+   "price": ""
+ },
+ {
+   "name": "TECK GUAN PERDANA BERHAD",
+   "code": "7439",
+   "price": ""
+ },
+ {
+   "name": "TEK SENG HOLDINGS BERHAD",
+   "code": "7200",
+   "price": ""
+ },
+ {
+   "name": "TELADAN GROUP BERHAD",
+   "code": "0230",
+   "price": ""
+ },
+ {
+   "name": "TELEKOM MALAYSIA BERHAD",
+   "code": "4863",
+   "price": ""
+ },
+ {
+   "name": "TENAGA NASIONAL BHD",
+   "code": "5347",
+   "price": ""
+ },
+ {
+   "name": "TEO GUAN LEE CORPORATION BERHAD",
+   "code": "9369",
+   "price": ""
+ },
+ {
+   "name": "TEO SENG CAPITAL BERHAD",
+   "code": "7252",
+   "price": ""
+ },
+ {
+   "name": "TEX CYCLE TECHNOLOGY (M) BERHAD",
+   "code": "0089",
+   "price": ""
+ },
+ {
+   "name": "TEXCHEM RESOURCES BERHAD",
+   "code": "8702",
+   "price": ""
+ },
+ {
+   "name": "TFP SOLUTIONS BERHAD",
+   "code": "0145",
+   "price": ""
+ },
+ {
+   "name": "TH PLANTATIONS BERHAD",
+   "code": "5112",
+   "price": ""
+ },
+ {
+   "name": "THETA EDGE BERHAD",
+   "code": "9075",
+   "price": ""
+ },
+ {
+   "name": "THONG GUAN INDUSTRIES BERHAD",
+   "code": "7034",
+   "price": ""
+ },
+ {
+   "name": "THREE-A RESOURCES BERHAD",
+   "code": "0012",
+   "price": ""
+ },
+ {
+   "name": "THRIVEN GLOBAL BERHAD",
+   "code": "7889",
+   "price": ""
+ },
+ {
+   "name": "TIEN WAH PRESS HOLDINGS BERHAD",
+   "code": "7374",
+   "price": ""
+ },
+ {
+   "name": "TIMBERWELL BERHAD",
+   "code": "7854",
+   "price": ""
+ },
+ {
+   "name": "TIME DOTCOM BERHAD",
+   "code": "5031",
+   "price": ""
+ },
+ {
+   "name": "TIONG NAM LOGISTICS HOLDINGS BERHAD",
+   "code": "8397",
+   "price": ""
+ },
+ {
+   "name": "TITIJAYA LAND BERHAD",
+   "code": "5239",
+   "price": ""
+ },
+ {
+   "name": "TMC LIFE SCIENCES BERHAD",
+   "code": "0101",
+   "price": ""
+ },
+ {
+   "name": "TOMEI CONSOLIDATED BERHAD",
+   "code": "7230",
+   "price": ""
+ },
+ {
+   "name": "TOMYPAK HOLDINGS BERHAD",
+   "code": "7285",
+   "price": ""
+ },
+ {
+   "name": "TONG HERR RESOURCES BERHAD",
+   "code": "5010",
+   "price": ""
+ },
+ {
+   "name": "TOP GLOVE CORPORATION BHD",
+   "code": "7113",
+   "price": ""
+ },
+ {
+   "name": "TOPMIX BERHAD",
+   "code": "0302",
+   "price": ""
+ },
+ {
+   "name": "TOPVISION EYE SPECIALIST BERHAD",
+   "code": "03013",
+   "price": ""
+ },
+ {
+   "name": "TOTAL DYNAMIC HOLDINGS BERHAD",
+   "code": "03058",
+   "price": ""
+ },
+ {
+   "name": "TOWER REAL ESTATE INVESTMENT TRUST",
+   "code": "5111",
+   "price": ""
+ },
+ {
+   "name": "TOYO VENTURES HOLDINGS BERHAD",
+   "code": "7173",
+   "price": ""
+ },
+ {
+   "name": "TPC PLUS BERHAD",
+   "code": "7176",
+   "price": ""
+ },
+ {
+   "name": "TRADEPLUS DWA MALAYSIA MOMENTUM TRACKER",
+   "code": "0836EA",
+   "price": ""
+ },
+ {
+   "name": "TRADEPLUS MSCI ASIA EX JAPAN REITS TRACKER",
+   "code": "0837EA",
+   "price": ""
+ },
+ {
+   "name": "TRADEPLUS S&P NEW CHINA TRACKER-MYR",
+   "code": "0829EA",
+   "price": ""
+ },
+ {
+   "name": "TRADEPLUS S&P NEW CHINA TRACKER-USD",
+   "code": "0829EB",
+   "price": ""
+ },
+ {
+   "name": "TRADEPLUS SHARIAH GOLD TRACKER",
+   "code": "0828EA",
+   "price": ""
+ },
+ {
+   "name": "TRC SYNERGY BERHAD",
+   "code": "5054",
+   "price": ""
+ },
+ {
+   "name": "TRI-MODE SYSTEM (M) BERHAD",
+   "code": "0199",
+   "price": ""
+ },
+ {
+   "name": "TRIVE PROPERTY GROUP BERHAD",
+   "code": "0118",
+   "price": ""
+ },
+ {
+   "name": "TROPICANA CORPORATION BERHAD",
+   "code": "5401",
+   "price": ""
+ },
+ {
+   "name": "TSA GROUP BERHAD",
+   "code": "0297",
+   "price": ""
+ },
+ {
+   "name": "TSH RESOURCES BERHAD",
+   "code": "9059",
+   "price": ""
+ },
+ {
+   "name": "TSR CAPITAL BERHAD",
+   "code": "5042",
+   "price": ""
+ },
+ {
+   "name": "TT VISION HOLDINGS BERHAD",
+   "code": "0272",
+   "price": ""
+ },
+ {
+   "name": "TUJU SETIA BERHAD",
+   "code": "5297",
+   "price": ""
+ },
+ {
+   "name": "TUNE PROTECT GROUP BERHAD",
+   "code": "5230",
+   "price": ""
+ },
+ {
+   "name": "TURBO-MECH BERHAD",
+   "code": "5167",
+   "price": ""
+ },
+ {
+   "name": "TURIYA BERHAD",
+   "code": "4359",
+   "price": ""
+ },
+ {
+   "name": "TWL HOLDINGS BERHAD",
+   "code": "7079",
+   "price": ""
+ },
+ {
+   "name": "UCHI TECHNOLOGIES BERHAD",
+   "code": "7100",
+   "price": ""
+ },
+ {
+   "name": "UCI RESOURCES BERHAD",
+   "code": "03043",
+   "price": ""
+ },
+ {
+   "name": "UCREST BERHAD",
+   "code": "0005",
+   "price": ""
+ },
+ {
+   "name": "UEM EDGENTA BERHAD",
+   "code": "1368",
+   "price": ""
+ },
+ {
+   "name": "UEM SUNRISE BERHAD",
+   "code": "5148",
+   "price": ""
+ },
+ {
+   "name": "UMEDIC GROUP BERHAD",
+   "code": "0256",
+   "price": ""
+ },
+ {
+   "name": "UMS HOLDINGS BERHAD",
+   "code": "7137",
+   "price": ""
+ },
+ {
+   "name": "UMS-NEIKEN GROUP BERHAD",
+   "code": "7227",
+   "price": ""
+ },
+ {
+   "name": "UNI WALL APS HOLDINGS BERHAD",
+   "code": "03017",
+   "price": ""
+ },
+ {
+   "name": "UNIMECH GROUP BERHAD",
+   "code": "7091",
+   "price": ""
+ },
+ {
+   "name": "UNIQUE FIRE HOLDINGS BERHAD",
+   "code": "0257",
+   "price": ""
+ },
+ {
+   "name": "UNISEM (M) BERHAD",
+   "code": "5005",
+   "price": ""
+ },
+ {
+   "name": "UNITED MALACCA BERHAD",
+   "code": "2593",
+   "price": ""
+ },
+ {
+   "name": "UNITED PLANTATIONS BERHAD",
+   "code": "2089",
+   "price": ""
+ },
+ {
+   "name": "UNITED U-LI CORPORATION BERHAD",
+   "code": "7133",
+   "price": ""
+ },
+ {
+   "name": "UNITRADE INDUSTRIES BERHAD",
+   "code": "0247",
+   "price": ""
+ },
+ {
+   "name": "UOA DEVELOPMENT BHD",
+   "code": "5200",
+   "price": ""
+ },
+ {
+   "name": "UOA REAL ESTATE INVESTMENT TRUST",
+   "code": "5110",
+   "price": ""
+ },
+ {
+   "name": "UPA CORPORATION BHD",
+   "code": "7757",
+   "price": ""
+ },
+ {
+   "name": "UUE HOLDINGS BERHAD",
+   "code": "0310",
+   "price": ""
+ },
+ {
+   "name": "UWC BERHAD",
+   "code": "5292",
+   "price": ""
+ },
+ {
+   "name": "UZMA BERHAD",
+   "code": "7250",
+   "price": ""
+ },
+ {
+   "name": "V.S. INDUSTRY BERHAD",
+   "code": "6963",
+   "price": ""
+ },
+ {
+   "name": "VARIA BERHAD",
+   "code": "5006",
+   "price": ""
+ },
+ {
+   "name": "VELESTO ENERGY BERHAD",
+   "code": "5243",
+   "price": ""
+ },
+ {
+   "name": "VELOCITY CAPITAL PARTNER BERHAD",
+   "code": "7165",
+   "price": ""
+ },
+ {
+   "name": "VERSATILE CREATIVE BERHAD",
+   "code": "4995",
+   "price": ""
+ },
+ {
+   "name": "VESTLAND BERHAD",
+   "code": "0273",
+   "price": ""
+ },
+ {
+   "name": "VINVEST CAPITAL HOLDINGS BERHAD",
+   "code": "0069",
+   "price": ""
+ },
+ {
+   "name": "VISDYNAMICS HOLDINGS BERHAD",
+   "code": "0120",
+   "price": ""
+ },
+ {
+   "name": "VITROX CORPORATION BERHAD",
+   "code": "0097",
+   "price": ""
+ },
+ {
+   "name": "VIZIONE HOLDINGS BERHAD",
+   "code": "7070",
+   "price": ""
+ },
+ {
+   "name": "VOLCANO BERHAD",
+   "code": "0232",
+   "price": ""
+ },
+ {
+   "name": "VP-DJ SHARIAH CHINA A-SHARES 100 ETF - MYR",
+   "code": "0838EA",
+   "price": ""
+ },
+ {
+   "name": "VSOLAR GROUP BERHAD",
+   "code": "0066",
+   "price": ""
+ },
+ {
+   "name": "VSTECS BERHAD",
+   "code": "5162",
+   "price": ""
+ },
+ {
+   "name": "WAJA KONSORTIUM BERHAD",
+   "code": "0102",
+   "price": ""
+ },
+ {
+   "name": "WANG-ZHENG BERHAD",
+   "code": "7203",
+   "price": ""
+ },
+ {
+   "name": "WARISAN TC HOLDINGS BERHAD",
+   "code": "5016",
+   "price": ""
+ },
+ {
+   "name": "WASCO BERHAD",
+   "code": "5142",
+   "price": ""
+ },
+ {
+   "name": "WATTA HOLDING BERHAD",
+   "code": "7226",
+   "price": ""
+ },
+ {
+   "name": "WCE HOLDINGS BERHAD",
+   "code": "3565",
+   "price": ""
+ },
+ {
+   "name": "WCT HOLDINGS BERHAD",
+   "code": "9679",
+   "price": ""
+ },
+ {
+   "name": "WEGMANS HOLDINGS BERHAD",
+   "code": "0197",
+   "price": ""
+ },
+ {
+   "name": "WELL CHIP GROUP BERHAD",
+   "code": "5325",
+   "price": ""
+ },
+ {
+   "name": "WELLCALL HOLDINGS BERHAD",
+   "code": "7231",
+   "price": ""
+ },
+ {
+   "name": "WELLSPIRE HOLDINGS BERHAD",
+   "code": "0271",
+   "price": ""
+ },
+ {
+   "name": "WENTEL ENGINEERING HOLDINGS BERHAD",
+   "code": "0298",
+   "price": ""
+ },
+ {
+   "name": "WESTPORTS HOLDINGS BERHAD",
+   "code": "5246",
+   "price": ""
+ },
+ {
+   "name": "WHITE HORSE BERHAD",
+   "code": "5009",
+   "price": ""
+ },
+ {
+   "name": "WIDAD GROUP BERHAD",
+   "code": "0162",
+   "price": ""
+ },
+ {
+   "name": "WILLOWGLEN MSC BERHAD",
+   "code": "0008",
+   "price": ""
+ },
+ {
+   "name": "WMG HOLDINGS BERHAD",
+   "code": "6378",
+   "price": ""
+ },
+ {
+   "name": "WONG ENGINEERING CORPORATION BERHAD",
+   "code": "7050",
+   "price": ""
+ },
+ {
+   "name": "WOODLANDOR HOLDINGS BHD",
+   "code": "7025",
+   "price": ""
+ },
+ {
+   "name": "WTK HOLDINGS BERHAD",
+   "code": "4243",
+   "price": ""
+ },
+ {
+   "name": "XIDELANG HOLDINGS LTD",
+   "code": "5156",
+   "price": ""
+ },
+ {
+   "name": "XIN HWA HOLDINGS BERHAD",
+   "code": "5267",
+   "price": ""
+ },
+ {
+   "name": "XIN SYNERGY GROUP BERHAD",
+   "code": "7043",
+   "price": ""
+ },
+ {
+   "name": "XL HOLDINGS BERHAD",
+   "code": "7121",
+   "price": ""
+ },
+ {
+   "name": "XOX BHD",
+   "code": "0165",
+   "price": ""
+ },
+ {
+   "name": "XOX NETWORKS BERHAD",
+   "code": "0140",
+   "price": ""
+ },
+ {
+   "name": "XOX TECHNOLOGY BERHAD",
+   "code": "0017",
+   "price": ""
+ },
+ {
+   "name": "Y&G CORPORATION BHD",
+   "code": "7003",
+   "price": ""
+ },
+ {
+   "name": "Y.S.P. SOUTHEAST ASIA HOLDING BERHAD",
+   "code": "7178",
+   "price": ""
+ },
+ {
+   "name": "YB VENTURES BERHAD",
+   "code": "5048",
+   "price": ""
+ },
+ {
+   "name": "YBS INTERNATIONAL BERHAD",
+   "code": "0025",
+   "price": ""
+ },
+ {
+   "name": "YENHER HOLDINGS BERHAD",
+   "code": "5300",
+   "price": ""
+ },
+ {
+   "name": "YEW LEE PACIFIC GROUP BERHAD",
+   "code": "0248",
+   "price": ""
+ },
+ {
+   "name": "YGL CONVERGENCE BERHAD",
+   "code": "0086",
+   "price": ""
+ },
+ {
+   "name": "YINSON HOLDINGS BERHAD",
+   "code": "7293",
+   "price": ""
+ },
+ {
+   "name": "YLI HOLDINGS BERHAD",
+   "code": "7014",
+   "price": ""
+ },
+ {
+   "name": "YNH PROPERTY BERHAD",
+   "code": "3158",
+   "price": ""
+ },
+ {
+   "name": "YONG TAI BERHAD",
+   "code": "7066",
+   "price": ""
+ },
+ {
+   "name": "YOONG ONN CORPORATION BERHAD",
+   "code": "5159",
+   "price": ""
+ },
+ {
+   "name": "YTL CORPORATION BERHAD",
+   "code": "4677",
+   "price": ""
+ },
+ {
+   "name": "YTL HOSPITALITY REIT",
+   "code": "5109",
+   "price": ""
+ },
+ {
+   "name": "YTL POWER INTERNATIONAL BHD",
+   "code": "6742",
+   "price": ""
+ },
+ {
+   "name": "YX PRECIOUS METALS BHD",
+   "code": "0250",
+   "price": ""
+ },
+ {
+   "name": "ZANTAT HOLDINGS BERHAD",
+   "code": "0301",
+   "price": ""
+ },
+ {
+   "name": "ZECON BERHAD",
+   "code": "7028",
+   "price": ""
+ },
+ {
+   "name": "ZELAN BERHAD",
+   "code": "2283",
+   "price": ""
+ },
+ {
+   "name": "ZEN TECH INTERNATIONAL BERHAD",
+   "code": "0094",
+   "price": ""
+ },
+ {
+   "name": "ZHULIAN CORPORATION BERHAD",
+   "code": "5131",
+   "price": ""
+ }
 ]

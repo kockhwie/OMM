@@ -1,5 +1,6 @@
 @page "/"
 @namespace omm.Components.Pages
+@inject IJSRuntime JS
 
 <PageTitle>OhMyMine - Master Your Mines & Burdens</PageTitle>
 
@@ -8,27 +9,27 @@
 
     <!-- Hero Section -->
     <section class="omm-home-hero position-relative overflow-hidden">
-        <!-- Overlay gradient for text readability -->      
+        <!-- Overlay gradient for text readability -->
         <div class="position-absolute top-0 start-0 end-0 bottom-0" style="background: linear-gradient(135deg, rgba(255, 255, 255, 0) 80%, rgba(255, 255, 255, 0.15) 0%);"></div>
         <div class="container-xl position-relative">
             <div class="row justify-content-center text-lg-start">
                 <div class="col-lg-10">
-                    <div class="omm-hero-eyebrow d-inline-flex align-items-center gap-2 rounded-pill px-3 py-1 mb-4" 
+                    <div class="omm-hero-eyebrow omm-hero-reveal d-inline-flex align-items-center gap-2 rounded-pill px-3 py-1 mb-4 animate-fade-up"
                          style="background-color: var(--omm-clay-100); color: var(--omm-clay-600); font-size: 0.8rem; font-weight: 600;">
                         <i class="ti ti-sparkles"></i>
                         Built for the Malaysian miner
                     </div>
 
-                    <h1 class="display-4 fw-extrabold text-dark tracking-tight mb-4" style="letter-spacing: -0.035em; line-height: 1.15; text-shadow: 1px 1px 2px #ffffffbf;" ">
+                    <h1 class="display-4 fw-extrabold text-dark tracking-tight mb-4 omm-hero-reveal animate-fade-up" style="letter-spacing: -0.035em; line-height: 1.15; text-shadow: 1px 1px 2px #ffffffbf; animation-delay: 0.08s;">
                         <b>Everything you own is a mine.</b><br />
                         <span style="color: var(--omm-clay-500);">Everything you owe is a burden.</span>
                     </h1>
 
-                    <p class="lead text-muted mb-3" style="line-height: 1.25; text-shadow: 1px 1px 2px #ffffffbf;">
+                    <p class="lead text-muted mb-3 omm-hero-reveal animate-fade-up" style="line-height: 1.25; text-shadow: 1px 1px 2px #ffffffbf; animation-delay: 0.16s;">
                         OhMyMine is a personal wealth planning workspace that reframes your financial life as a collection of productive mines and the burdens that weigh on them, so you can see your freedom ratio at a glance.
                     </p>
 
-                    <div class="omm-hero-actions gap-3 justify-content-center justify-content-lg-start mb-5">
+                    <div class="omm-hero-actions omm-hero-reveal gap-3 justify-content-center justify-content-lg-start mb-5 animate-fade-up" style="animation-delay: 0.24s;">
                         <a href="/dashboard" class="btn btn-omm-primary btn-lg px-4 py-3" style="font-size: 1rem;">
                             Enter Mine Board
                             <i class="ti ti-arrow-right fs-5"></i>
@@ -38,7 +39,7 @@
                         </a>
                     </div>
 
-                    <div class="d-flex flex-wrap gap-4 text-muted justify-content-center justify-content-lg-start" style="font-size: 0.875rem;">
+                    <div class="d-flex flex-wrap gap-4 text-muted justify-content-center justify-content-lg-start omm-hero-reveal animate-fade-up" style="font-size: 0.875rem; animation-delay: 0.32s;">
                         <span class="d-flex align-items-center gap-1">
                             <i class="ti ti-check text-success fs-5"></i> No sign-up to explore
                         </span>
@@ -53,9 +54,9 @@
             </div>
 
             <!-- Hero Visual Card -->
-            <div class="row justify-content-center mt-4 pt-3">
+            <!--div  class="row justify-content-center mt-4 pt-3">
                 <div class="col-lg-9">
-                    <div class="omm-card p-4 p-md-5 shadow-lg border-0" style="border-radius: 20px;">
+                    <div class="omm-card omm-snapshot-card p-4 p-md-5 shadow-lg border-0" style="border-radius: 20px;">
                         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                             <div>
                                 <span class="text-muted text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em;">Net Wealth Snapshot</span>
@@ -99,8 +100,67 @@
                             </div>
                         </div>
 
-                        <div class="mt-4">
+                        <div class="mt-4 omm-bar-animate">
                             <ProgressBar Percentage="22" Variant="mine" Height="10px" />
+                        </div>
+                    </div>
+                </div>
+            </div-->
+            <!-- Hero Visual Card -->
+            <div class="row justify-content-center mt-4 pt-3">
+                <div class="col-lg-9">
+                    <div class="omm-hero-glow animate-fade-up" style="animation-delay: 0.4s;">
+                        <div class="omm-card p-4 p-md-5 shadow-lg border-0" style="border-radius: 20px;">
+                            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                                <div>
+                                    <span class="text-muted text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em;">Net Wealth Snapshot</span>
+                                    <div class="h2 font-display fw-bold text-dark mb-0 mt-1">
+                                        <span data-counter-target="535100" data-counter-prefix="RM " data-counter-duration="1500">RM 0</span>
+                                    </div>
+                                </div>
+                                <div class="text-md-end">
+                                    <span class="text-muted text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 0.05em;">Freedom Ratio</span>
+                                    <div class="h2 font-display fw-bold text-success mb-0 mt-1">
+                                        <span data-counter-target="22" data-counter-suffix="%" data-counter-duration="1200">0%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="p-3 rounded-3" style="background-color: var(--omm-ink-50);">
+                                        <div class="d-flex align-items-center gap-2 text-muted mb-1" style="font-size: 0.8rem;">
+                                            <i class="ti ti-shovel fs-4 omm-icon-interactive"></i>
+                                            <span>Total Mines</span>
+                                        </div>
+                                        <div class="fw-bold fs-5 text-dark">RM 945k</div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="p-3 rounded-3" style="background-color: var(--omm-ink-50);">
+                                        <div class="d-flex align-items-center gap-2 text-muted mb-1" style="font-size: 0.8rem;">
+                                            <i class="ti ti-scale omm-icon-interactive"></i>
+                                            <span>Total Burdens</span>
+                                        </div>
+                                        <div class="fw-bold fs-5 text-dark">RM 409k</div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="p-3 rounded-3" style="background-color: var(--omm-ink-50);">
+                                        <div class="d-flex align-items-center gap-2 text-muted mb-1" style="font-size: 0.8rem;">
+                                            <i class="ti ti-trending-up omm-icon-interactive"></i>
+                                            <span>Passive / month</span>
+                                        </div>
+                                        <div class="fw-bold fs-5 text-dark">RM 2,578</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 omm-bar-animate">
+                                <ProgressBar Percentage="22" Variant="mine" Height="10px" />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -109,19 +169,19 @@
     </section>
 
     <!-- Toolkit Section -->
-    <section id="tools" class="py-5" style="padding-top: 80px !important; padding-bottom: 80px !important;">
+    <section id="tools" class="py-5" style="padding-top: 50px !important; padding-bottom: 50px !important;">
         <div class="container-xl">
-            <div class="mb-5" style="max-width: 620px;">
+            <div class="mb-5" data-reveal>
                 <span class="text-uppercase fw-bold" style="font-size: 0.8rem; color: var(--omm-clay-500); letter-spacing: 0.08em;">The toolkit</span>
                 <h2 class="display-6 font-display fw-bold text-dark mt-2">Six instruments for one job: knowing where you stand.</h2>
             </div>
 
             <div class="row g-4">
-                <div class="col-md-6 col-lg-4">
+                <div class="col-md-6 col-lg-4" data-reveal>
                     <a href="/mines" class="text-decoration-none">
                         <div class="omm-card omm-card-hover p-4 h-100">
                             <div class="d-inline-flex p-3 rounded-3 bg-dark text-warning mb-3">
-                                <i class="ti ti-shovel fs-4"></i>
+                                <i class="ti ti-shovel fs-4 omm-icon-interactive"></i>
                             </div>
                             <h5 class="fw-bold text-dark">Mine Board</h5>
                             <p class="text-muted mb-0" style="font-size: 0.9rem; line-height: 1.6;">Track every asset you own - EPF, fixed deposits, stocks, property, gold - in one dashboard with live valuation and growth.</p>
@@ -129,11 +189,11 @@
                     </a>
                 </div>
 
-                <div class="col-md-6 col-lg-4">
+                <div class="col-md-6 col-lg-4" data-reveal>
                     <a href="/burdens" class="text-decoration-none">
                         <div class="omm-card omm-card-hover p-4 h-100">
                             <div class="d-inline-flex p-3 rounded-3 bg-dark text-warning mb-3">
-                                <i class="ti ti-scale fs-4"></i>
+                                <i class="ti ti-scale fs-4 omm-icon-interactive"></i>
                             </div>
                             <h5 class="fw-bold text-dark">Burden Tracker</h5>
                             <p class="text-muted mb-0" style="font-size: 0.9rem; line-height: 1.6;">See every loan and debt mapped against the mine it funds. Watch your burden shrink as your mine grows.</p>
@@ -141,11 +201,11 @@
                     </a>
                 </div>
 
-                <div class="col-md-6 col-lg-4">
+                <div class="col-md-6 col-lg-4" data-reveal>
                     <a href="/income" class="text-decoration-none">
                         <div class="omm-card omm-card-hover p-4 h-100">
                             <div class="d-inline-flex p-3 rounded-3 bg-dark text-warning mb-3">
-                                <i class="ti ti-trending-up fs-4"></i>
+                                <i class="ti ti-trending-up fs-4 omm-icon-interactive"></i>
                             </div>
                             <h5 class="fw-bold text-dark">Income Classifier</h5>
                             <p class="text-muted mb-0" style="font-size: 0.9rem; line-height: 1.6;">Split income into Active, Passive, and Non-recurring. Know exactly how much of your life is funded by your mines.</p>
@@ -153,11 +213,11 @@
                     </a>
                 </div>
 
-                <div class="col-md-6 col-lg-4">
+                <div class="col-md-6 col-lg-4" data-reveal>
                     <a href="/goals" class="text-decoration-none">
                         <div class="omm-card omm-card-hover p-4 h-100">
                             <div class="d-inline-flex p-3 rounded-3 bg-dark text-warning mb-3">
-                                <i class="ti ti-target fs-4"></i>
+                                <i class="ti ti-target fs-4 omm-icon-interactive"></i>
                             </div>
                             <h5 class="fw-bold text-dark">Goal Mining</h5>
                             <p class="text-muted mb-0" style="font-size: 0.9rem; line-height: 1.6;">Set wealth goals with target dates and link them to specific mines. Get milestone alerts as you close the gap.</p>
@@ -165,11 +225,11 @@
                     </a>
                 </div>
 
-                <div class="col-md-6 col-lg-4">
+                <div class="col-md-6 col-lg-4" data-reveal>
                     <a href="/tools" class="text-decoration-none">
                         <div class="omm-card omm-card-hover p-4 h-100">
                             <div class="d-inline-flex p-3 rounded-3 bg-dark text-warning mb-3">
-                                <i class="ti ti-shield-check fs-4"></i>
+                                <i class="ti ti-shield-check fs-4 omm-icon-interactive"></i>
                             </div>
                             <h5 class="fw-bold text-dark">Safety Net Planner</h5>
                             <p class="text-muted mb-0" style="font-size: 0.9rem; line-height: 1.6;">Calculate your emergency fund target based on recurring expenses and current passive income coverage.</p>
@@ -177,11 +237,11 @@
                     </a>
                 </div>
 
-                <div class="col-md-6 col-lg-4">
+                <div class="col-md-6 col-lg-4" data-reveal>
                     <a href="/dashboard" class="text-decoration-none">
                         <div class="omm-card omm-card-hover p-4 h-100">
                             <div class="d-inline-flex p-3 rounded-3 bg-dark text-warning mb-3">
-                                <i class="ti ti-layers-intersect fs-4"></i>
+                                <i class="ti ti-layers-intersect fs-4 omm-icon-interactive"></i>
                             </div>
                             <h5 class="fw-bold text-dark">Net Wealth View</h5>
                             <p class="text-muted mb-0" style="font-size: 0.9rem; line-height: 1.6;">Total mines minus total burdens, updated as values change. The single number that tells you where you stand.</p>
@@ -195,7 +255,7 @@
     <!-- Concepts Section -->
     <section id="concepts" class="py-5 bg-white border-top border-bottom">
         <div class="container-xl py-4">
-            <div class="mb-5" style="max-width: 650px;">
+            <div class="mb-5" data-reveal>
                 <span class="text-uppercase fw-bold" style="font-size: 0.8rem; color: var(--omm-clay-500); letter-spacing: 0.08em;">The ideas</span>
                 <h2 class="display-6 font-display fw-bold text-dark mt-2">The mining metaphor is the whole interface.</h2>
                 <p class="text-muted mt-3" style="font-size: 1.05rem;">
@@ -204,7 +264,7 @@
             </div>
 
             <div class="row g-4">
-                <div class="col-md-6">
+                <div class="col-md-6" data-reveal>
                     <div class="d-flex gap-3">
                         <div class="d-flex align-items-center justify-content-center rounded-3 p-3 text-warning bg-dark" style="width: 48px; height: 48px; flex-shrink: 0;">
                             <i class="ti ti-shovel fs-4"></i>
@@ -218,7 +278,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-md-6" data-reveal>
                     <div class="d-flex gap-3">
                         <div class="d-flex align-items-center justify-content-center rounded-3 p-3 text-danger bg-danger-subtle" style="width: 48px; height: 48px; flex-shrink: 0;">
                             <i class="ti ti-scale fs-4"></i>
@@ -232,7 +292,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-md-6" data-reveal>
                     <div class="d-flex gap-3">
                         <div class="d-flex align-items-center justify-content-center rounded-3 p-3 text-success bg-success-subtle" style="width: 48px; height: 48px; flex-shrink: 0;">
                             <i class="ti ti-trending-up fs-4"></i>
@@ -246,7 +306,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-md-6" data-reveal>
                     <div class="d-flex gap-3">
                         <div class="d-flex align-items-center justify-content-center rounded-3 p-3 text-primary bg-primary-subtle" style="width: 48px; height: 48px; flex-shrink: 0;">
                             <i class="ti ti-sun fs-4"></i>
@@ -260,7 +320,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-md-6" data-reveal>
                     <div class="d-flex gap-3">
                         <div class="d-flex align-items-center justify-content-center rounded-3 p-3 text-info bg-info-subtle" style="width: 48px; height: 48px; flex-shrink: 0;">
                             <i class="ti ti-target fs-4"></i>
@@ -274,7 +334,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-md-6" data-reveal>
                     <div class="d-flex gap-3">
                         <div class="d-flex align-items-center justify-content-center rounded-3 p-3 text-secondary bg-secondary-subtle" style="width: 48px; height: 48px; flex-shrink: 0;">
                             <i class="ti ti-compass fs-4"></i>
@@ -294,7 +354,7 @@
     <!-- Malaysia Instruments Section -->
     <section id="malaysia" class="py-5">
         <div class="container-xl py-4">
-            <div class="mb-5" style="max-width: 650px;">
+            <div class="mb-5" data-reveal>
                 <span class="text-uppercase fw-bold" style="font-size: 0.8rem; color: var(--omm-clay-500); letter-spacing: 0.08em;">Made for Malaysia</span>
                 <h2 class="display-6 font-display fw-bold text-dark mt-2">Malaysian financial instruments, first-class citizens.</h2>
                 <p class="text-muted mt-3" style="font-size: 1.05rem;">
@@ -303,7 +363,7 @@
             </div>
 
             <div class="row g-4">
-                <div class="col-md-6 col-lg-4">
+                <div class="col-md-6 col-lg-4" data-reveal>
                     <div class="omm-card p-4 h-100">
                         <div class="d-flex align-items-center gap-2 mb-3">
                             <div class="p-2 rounded-3 bg-success-subtle text-success">
@@ -317,7 +377,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-6 col-lg-4">
+                <div class="col-md-6 col-lg-4" data-reveal>
                     <div class="omm-card p-4 h-100">
                         <div class="d-flex align-items-center gap-2 mb-3">
                             <div class="p-2 rounded-3 bg-success-subtle text-success">
@@ -331,7 +391,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-6 col-lg-4">
+                <div class="col-md-6 col-lg-4" data-reveal>
                     <div class="omm-card p-4 h-100">
                         <div class="d-flex align-items-center gap-2 mb-3">
                             <div class="p-2 rounded-3 bg-success-subtle text-success">
@@ -345,7 +405,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-6 col-lg-4">
+                <div class="col-md-6 col-lg-4" data-reveal>
                     <div class="omm-card p-4 h-100">
                         <div class="d-flex align-items-center gap-2 mb-3">
                             <div class="p-2 rounded-3 bg-success-subtle text-success">
@@ -359,7 +419,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-6 col-lg-4">
+                <div class="col-md-6 col-lg-4" data-reveal>
                     <div class="omm-card p-4 h-100">
                         <div class="d-flex align-items-center gap-2 mb-3">
                             <div class="p-2 rounded-3 bg-danger-subtle text-danger">
@@ -373,7 +433,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-6 col-lg-4">
+                <div class="col-md-6 col-lg-4" data-reveal>
                     <div class="omm-card p-4 h-100">
                         <div class="d-flex align-items-center gap-2 mb-3">
                             <div class="p-2 rounded-3 bg-success-subtle text-success">
@@ -395,7 +455,7 @@
         <div class="position-absolute top-0 start-0 end-0 bottom-0 grid-pattern-dark opacity-30"></div>
         <div class="container-xl py-5 position-relative">
             <div class="row align-items-center g-5">
-                <div class="col-lg-6">
+                <div class="col-lg-6" data-reveal>
                     <span class="text-uppercase fw-bold" style="font-size: 0.8rem; color: var(--omm-clay-500); letter-spacing: 0.08em;">About</span>
                     <h2 class="display-6 font-display fw-bold text-white mt-2">A compass, not a salesperson.</h2>
                     <p class="text-white-50 mt-4 lead" style="line-height: 1.6;">
@@ -406,7 +466,7 @@
                     </p>
                 </div>
 
-                <div class="col-lg-6">
+                <div class="col-lg-6" data-reveal data-reveal-delay="150">
                     <div class="d-flex flex-column gap-3">
                         <div class="p-3 rounded-3 border border-secondary border-opacity-25 d-flex align-items-center gap-3 bg-dark bg-opacity-50">
                             <i class="ti ti-check text-warning fs-5 flex-shrink-0"></i>
@@ -429,9 +489,9 @@
             </div>
 
             <!-- Quote Block -->
-            <div class="mt-5 pt-4 border-top border-secondary border-opacity-25">
+            <div class="mt-5 pt-4 border-top border-secondary border-opacity-25" data-reveal>
                 <i class="ti ti-quote text-warning fs-1"></i>
-                <blockquote class="blockquote text-white fs-4 fw-medium mt-2" style="max-width: 800px; line-height: 1.5;">
+                <blockquote class="blockquote text-white fs-4 fw-medium mt-2" style="line-height: 1.5;">
                     "I do not need another app telling me to cut coffee. I need to see that my EPF dividend covers 5% of my monthly expenses - and how to get that number to 100%."
                 </blockquote>
                 <figcaption class="blockquote-footer text-warning-emphasis mt-1">the problem OhMyMine solves</figcaption>
@@ -440,9 +500,9 @@
     </section>
 
     <!-- CTA Section -->
-    <section class="py-5" style="padding-top: 80px !important; padding-bottom: 80px !important;">
+    <section class="py-5" style="padding-top: 50px !important; padding-bottom: 50px !important;">
         <div class="container-xl">
-            <div class="gradient-dark p-5 rounded-4 text-center position-relative overflow-hidden shadow-lg">
+            <div class="gradient-dark p-5 rounded-4 text-center position-relative overflow-hidden shadow-lg" data-reveal>
                 <div class="position-absolute top-0 start-0 end-0 bottom-0 grid-pattern-dark opacity-20"></div>
                 <div class="position-relative py-3">
                     <h2 class="display-6 font-display fw-bold text-white mb-3">Start mining your own wealth picture.</h2>
@@ -460,3 +520,27 @@
 
     <AppFooter />
 </div>
+@code {
+    private bool animationsInitialized;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Runs after the DOM for this render is in place. Guard with a flag
+        // rather than only "firstRender" since Blazor Server can re-render
+        // this page (e.g. reconnect) and the JS module tracks bound elements
+        // itself (data-reveal-bound / data-counter-bound), so repeat calls
+        // are safe and cheap either way.
+        if (firstRender || !animationsInitialized)
+        {
+            animationsInitialized = true;
+            try
+            {
+                await JS.InvokeVoidAsync("ommAnimations.init");
+            }
+            catch
+            {
+                // Non-fatal — page still works without the motion layer.
+            }
+        }
+    }
+}

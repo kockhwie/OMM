@@ -42,6 +42,10 @@
     <!-- App Styles -->
     <link rel="stylesheet" href="app.css" />
     <link rel="stylesheet" href="omm.styles.css" />
+
+    <!-- in <head>, after app.css -->
+    <link rel="stylesheet" href="home-animations.css" />
+
     <HeadOutlet @rendermode="PageRenderMode" />
 </head>
 
@@ -51,11 +55,16 @@
     
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    
     <!-- Dividend Calculator Charts -->
     <script src="dividend-charts.js"></script>
     <script src="_framework/blazor.web.js"></script>
+
+    <!-- custom js -->
+    <script src="home-animations.js"></script>
 </body>
 
 </html>

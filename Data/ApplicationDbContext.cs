@@ -94,6 +94,19 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.HasOne(e => e.Market).WithMany(e => e.Stocks).HasForeignKey(e => e.MarketId);
             entity.HasOne(e => e.Sector).WithMany(e => e.Stocks).HasForeignKey(e => e.SectorId).OnDelete(DeleteBehavior.NoAction);
             entity.HasOne(e => e.SubSector).WithMany(e => e.Stocks).HasForeignKey(e => e.SubSectorId).OnDelete(DeleteBehavior.NoAction);
+            // Specify precision for decimal properties to avoid silent truncation on SQL Server
+            entity.Property(e => e.CurrentPrice).HasPrecision(18, 4);
+            entity.Property(e => e.MarketCap).HasPrecision(18, 4);
+            entity.Property(e => e.EPS).HasPrecision(18, 4);
+            entity.Property(e => e.DPS).HasPrecision(18, 4);
+            entity.Property(e => e.NTA).HasPrecision(18, 4);
+            entity.Property(e => e.ROE).HasPrecision(18, 4);
+            entity.Property(e => e.ROA).HasPrecision(18, 4);
+            entity.Property(e => e.DebtToEquity).HasPrecision(18, 4);
+            entity.Property(e => e.CurrentRatio).HasPrecision(18, 4);
+            entity.Property(e => e.PB).HasPrecision(18, 4);
+            entity.Property(e => e.PE).HasPrecision(18, 4);
+            entity.Property(e => e.DividendYield).HasPrecision(18, 4);
         });
 
         ConfigureAudit(modelBuilder.Entity<Country>());

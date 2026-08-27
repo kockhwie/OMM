@@ -44,6 +44,14 @@ builder.Services.AddSingleton<IKlseStockLookupService, KlseStockLookupService>()
 
 var app = builder.Build();
 
+if (app.Environment.IsDevelopment())
+{
+    await using var scope = app.Services.CreateAsyncScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await dbContext.Database.MigrateAsync();
+    await StockDataSeeder.SeedAsync(dbContext, Path.Combine(app.Environment.ContentRootPath, "wwwroot", "data", "klse-stocks.json"));
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

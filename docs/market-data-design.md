@@ -32,7 +32,7 @@ user and nothing is hard-deleted:
 
 | Column | Type | Notes |
 |---|---|---|
-| `CreatedByUserId` | `string` (FK → `AspNetUsers.Id`) | Who created the row |
+| `CreatedByUserId` | `string?` (FK → `AspNetUsers.Id`) | **Nullable.** `null` means the row was inserted by an automated seed/migration, not a human — this is the normal case for Phase 1's bootstrap reference data, since no admin user exists yet when that data is seeded. Populated with a real user ID for anything created afterward through the admin UI. |
 | `CreatedAt` | `DateTimeOffset` | UTC |
 | `ModifiedByUserId` | `string?` (FK → `AspNetUsers.Id`) | Null until first edit |
 | `ModifiedAt` | `DateTimeOffset?` | Null until first edit |
@@ -40,12 +40,19 @@ user and nothing is hard-deleted:
 | `DeletedAt` | `DateTimeOffset?` | Set on soft delete |
 | `IsDeleted` | `bool` | Default `false`. All queries filter `IsDeleted == false` by default (EF Core global query filter) |
 
-All `*ByUserId` columns are real FKs into `AspNetUsers.Id` (your existing Identity
-table) — not free-text names — since Identity auth is already wired up.
+All `*ByUserId` columns are real, nullable FKs into `AspNetUsers.Id` (your existing
+Identity table) — not free-text names — since Identity auth is already wired up. A
+`null` value on any of them simply means "no human has done this yet" (never
+created/edited/deleted by a person) — it does not weaken the FK constraint or allow
+arbitrary strings in.
 
-A dedicated **`superadmin`** user is seeded (see `admin-backend-tasks.md` Phase 2) and
-used as the `CreatedByUserId` for all seed data, and as the login for the admin
-backend itself.
+Phase 1's seed data (countries, exchanges, markets, sectors, institutions, the ~900
+migrated stocks) uses `CreatedByUserId = null` throughout, since no admin user exists
+at that point in the build order. Once Phase 2 seeds the `superadmin` account and
+admin CRUD pages exist (Phases 5–6), every row an admin actually creates or edits
+through the UI gets a real, non-null `CreatedByUserId`/`ModifiedByUserId`. No
+coordination between Phase 1 and Phase 2 on user IDs is needed as a result of this
+change.
 
 ---
 
@@ -107,7 +114,7 @@ Phase 1 seed: `MAIN`, `ACE`, `LEAP` under Bursa Malaysia.
 | `Sector` Column | Type | Notes |
 |---|---|---|
 | `Id` | `int` PK | |
-| `CountryId` | `int` FK → `Country` | **See flagged decision below** |
+| `CountryId` | `int` FK → `Country` | **Locked decision — see note below** |
 | `SectorCode` | `string` | Short code |
 | `SectorName_EN` / `_ZH_TW` / `_ZH_CN` | `string` | |
 | `IsActive` | `bool` | |
@@ -162,7 +169,7 @@ CIMB, Public Bank, KWSP, Bursa Malaysia (as a data-source reference, category `O
 | `YahooSymbol` | `string?` | e.g. `1155.KL` — for Yahoo Finance live price polling |
 | `IsinCode` | `string?` | e.g. `MYL1155OO000` — regulatory / corporate-action mapping |
 | `MarketId` | `int` FK → `Market` | |
-| `SectorId` | `int` FK → `Sector` | |
+| `SectorId` | `int?` FK → `Sector` | Nullable — the migrated JSON has no sector data, so seeded rows leave this `null` until classified later |
 | `SubSectorId` | `int?` FK → `SubSector` | |
 | `ShariahCompliant` | `bool` | |
 | `Currency` | `string(3)` | Defaults from `Country.DefaultCurrencyCode` via `Market → Exchange → Country`, but stays an explicit, overridable column (a stock can be foreign-currency-denominated) |

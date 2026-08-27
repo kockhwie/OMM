@@ -37,7 +37,7 @@ JSON file.
 
 | Column | Type | Notes |
 |---|---|---|
-| `CreatedByUserId` | `string` FK → `AspNetUsers.Id` | Required |
+| `CreatedByUserId` | `string?` FK → `AspNetUsers.Id` | **Nullable.** Use `null` for all seed data in this phase — see below |
 | `CreatedAt` | `DateTimeOffset` | UTC |
 | `ModifiedByUserId` | `string?` FK → `AspNetUsers.Id` | Null until first edit |
 | `ModifiedAt` | `DateTimeOffset?` | Null until first edit |
@@ -45,15 +45,14 @@ JSON file.
 | `DeletedAt` | `DateTimeOffset?` | Set on soft delete |
 | `IsDeleted` | `bool` | Default `false` |
 
-`CreatedByUserId` for all seed data in this phase must be a known, fixed
-`AspNetUsers.Id`. **This phase does not create that user** — Phase 2 seeds the
-`superadmin` account. Coordinate one of these two ways:
-- **(a)** If Phase 2 has already run in this environment, look up the real
-  `superadmin` user ID and use it, or
-- **(b)** If not, seed a fixed well-known GUID as a placeholder `CreatedByUserId`
-  string (not yet backed by a real `AspNetUsers` row) and leave a `TODO` comment to
-  backfill once Phase 2's `superadmin` exists. **State clearly in your PR/summary
-  which option you used.**
+**`CreatedByUserId` is nullable, and every row seeded in this phase uses `null`.** No
+admin user exists yet at this point in the build order (that's Phase 2), so there is
+nothing to point this column at. `null` correctly means "inserted by an automated
+seed/migration, not a human" — it is not a placeholder or a workaround, it's the
+correct value for this case. Do **not** invent a placeholder GUID or attempt to
+pre-create an `AspNetUsers` row here — that belongs entirely to Phase 2, and mixing it
+into this phase blurs a boundary that's deliberately kept clean. No coordination with
+Phase 2 is needed as a result.
 
 ## Entity definitions
 
@@ -222,8 +221,8 @@ anyway).
 - [ ] Soft-deleting a `Stock` row (set `IsDeleted = true` and refresh) makes it
       disappear from a normal EF query, but the row is still present if you bypass the
       filter (`IgnoreQueryFilters()`).
-- [ ] State explicitly which `CreatedByUserId` approach you used (real `superadmin`
-      lookup vs. placeholder GUID + TODO).
+- [ ] Confirm `CreatedByUserId` is nullable on all 7 tables and every seeded row has
+      it set to `null` (not a placeholder string of any kind).
 - [ ] State explicitly which `Stock` seeding approach you used (`HasData` vs. separate
       seed method).
 

@@ -146,8 +146,7 @@ password change; account lockout is enabled app-wide.
      already exist:
      - `UserName = "superadmin"`, `Email = "kockhwie@msn.com"`
      - `EmailConfirmed = true` (bypass the normal confirmation flow)
-     - `FirstName`/`LastName` — ask Jason for real values at execution time if not
-       already provided
+     - `FirstName`/`LastName`  = "Jason / Goh"
      - `MustChangePassword = true`
      - `Id` — let Identity generate it normally (no coordination with Phase 1 needed)
      - Password from configuration (`SeedData:SuperAdminInitialPassword`) — fail
@@ -155,8 +154,8 @@ password change; account lockout is enabled app-wide.
      - Assign to the `SuperAdmin` role
    - Create the second (`Admin`-role) account the same way, with its own
      configuration key for the initial password (e.g.
-     `SeedData:AdminInitialPassword`), username/email supplied by Jason at execution
-     time, `MustChangePassword = true`, assigned to the `Admin` role.
+     `SeedData:AdminInitialPassword`), username `UserName = "kockhwie"`, `Email = "kockhwie@gmail.com"`, 
+     `FirstName`/`LastName`  = "Kock Hwie / Goh", `MustChangePassword = true`, assigned to the `Admin` role.
 
 6. **Enforce `MustChangePassword` at login.** In `Login.razor`'s `LoginUser()`
    method, after a successful `PasswordSignInAsync` result, check

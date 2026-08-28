@@ -9,8 +9,8 @@
   `AddIdentityCore<ApplicationUser>()` in `Program.cs`.
 - `ApplicationUser : IdentityUser` currently has no extra properties
   (`Data/ApplicationUser.cs`).
-- `Program.cs`'s Identity setup does **not** currently call `.AddRoles<IdentityRole>()`
-  — role support isn't wired up yet. This phase adds it.
+- At Phase 2 start, `Program.cs`'s Identity setup did **not** call
+  `.AddRoles<IdentityRole>()` — role support was not wired up yet. This phase adds it.
 - `UserManager.Options.SignIn.RequireConfirmedAccount = true` is already set — normal
   registration requires email confirmation before login. Seeded admin accounts bypass
   this by setting `EmailConfirmed = true` directly at creation.
@@ -20,9 +20,9 @@
   it's a separate, real piece of work (real SMTP/SendGrid config) for a later phase.
   Until then, password resets can't be delivered by email even though the "forgot
   password" UI flow exists.
-- `Login.razor` currently calls
+- At Phase 2 start, `Login.razor` called
   `SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe,
-  lockoutOnFailure: false)` — account lockout is off, for every account, admin and
+  `lockoutOnFailure: false)` — account lockout was off, for every account, admin and
   member alike. This phase turns it on, app-wide.
 - **Phase 1 note:** Phase 1's schema and seed data use `CreatedByUserId = null`
   throughout (no admin user existed yet at that point) — this phase does **not** need
@@ -39,7 +39,7 @@ password change; account lockout is enabled app-wide.
 ## Locked decisions
 
 1. **No stored `DisplayName`.** Every admin user has `FirstName` and `LastName`
-   (`varchar(50)` each) on `ApplicationUser`. Anywhere a name needs to be displayed,
+   (`nvarchar(50)` each in SQL Server) on `ApplicationUser`. Anywhere a name needs to be displayed,
    compute `$"{FirstName} {LastName}"` — don't store a separate display string that
    could drift out of sync.
 2. **Roles: `Admin` and `SuperAdmin`.** Not job-title names (`DataEntry`, etc.) — the
@@ -58,21 +58,17 @@ password change; account lockout is enabled app-wide.
    This phase only sets up the **authorization policies** for this split
    (`RequireAdminRole`, `RequireSuperAdminRole`). The actual purge UI/action belongs to
    later CRUD phases (5–6) — it just needs the policy to already exist by then.
-4. **`MustChangePassword` flag.** New `bool` column on `ApplicationUser`, defaults to
-   `true` for any account created by an admin (not through normal self-registration).
-   Checked at login — minimum viable enforcement for this phase is: on successful
-   login, if `MustChangePassword == true`, redirect to the change-password page
-   instead of the normal return URL. (Fully blocking *all* other navigation until
-   changed is a nice-to-have, not required for this phase — note it as a known gap if
-   you don't implement it, don't silently skip without saying so.)
+4. **`MustChangePassword` flag.** New `bool` column on `ApplicationUser`, with the
+   model defaulting to `false` for ordinary accounts. The two Phase 2 seeded admin
+   accounts are explicitly created with `true`. On successful login, flagged users are
+   redirected to the change-password page; after the password is changed, the flag is
+   cleared to `false`. Full navigation blocking is not included.
 5. **Two real seeded accounts, not one:**
    - **SuperAdmin** — username `superadmin`, real email `kockhwie@msn.com` (stored as
      a normal `Email` column value on this user's row — not hardcoded anywhere in
      source code, not treated as a special case anywhere in the codebase beyond being
      assigned the `SuperAdmin` role), role `SuperAdmin`.
-   - **Admin** — your data-management colleague's account. Username and email:
-     *(fill in when executing — not specified in this doc, ask Jason at execution
-     time if not already provided)*, role `Admin`.
+   - **Admin** — username `kockhwie`, email `kockhwie@gmail.com`, role `Admin`.
    - Both accounts are otherwise completely normal rows in `AspNetUsers` — same table,
      same shape, same rules as any future admin account. Nothing about "being the
      superadmin" is special-cased in code beyond the role assignment itself. This is
@@ -157,22 +153,33 @@ password change; account lockout is enabled app-wide.
      `SeedData:AdminInitialPassword`), username `UserName = "kockhwie"`, `Email = "kockhwie@gmail.com"`, 
      `FirstName`/`LastName`  = "Kock Hwie / Goh", `MustChangePassword = true`, assigned to the `Admin` role.
 
-6. **Enforce `MustChangePassword` at login.** In `Login.razor`'s `LoginUser()`
-   method, after a successful `PasswordSignInAsync` result, check
-   `await UserManager.FindByEmailAsync(Input.Email)` (or reuse the already-fetched
-   user) for `MustChangePassword == true`. If set, redirect to
-   `Account/Manage/ChangePassword` instead of `RedirectManager.RedirectTo(ReturnUrl)`.
-   Clear the flag (`MustChangePassword = false`, `await
-   UserManager.UpdateAsync(user)`) once the password change succeeds — this likely
-   means a small addition to `ChangePassword.razor`'s `OnValidSubmitAsync` as well, to
-   reset the flag after a successful change.
+6. **Enforce `MustChangePassword` at login.** The login field accepts an email.
+   `Login.razor` resolves it with `UserManager.FindByEmailAsync`, signs in using the
+   resolved Identity username, and redirects flagged users to
+   `Account/Manage/ChangePassword`. After a successful change,
+   `ChangePassword.razor` clears the flag, saves, and refreshes the sign-in session.
 
 7. **Enable account lockout.** In `Login.razor`, change:
    ```csharp
-   result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+   result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: true);
    ```
    to `lockoutOnFailure: true`. Leave `IdentityOptions.Lockout` defaults untouched
    (5 attempts, 5-minute lockout, enabled for new users) unless told otherwise.
+
+## Execution notes
+
+- The Phase 2 migration was applied to the local-only SQL Express database
+  `omm_phase1_dev_20260827`; no shared or production database was used.
+- Initial passwords are configured through User Secrets keys
+  `SeedData:SuperAdminInitialPassword` and `SeedData:AdminInitialPassword`; password
+  values are intentionally not recorded here.
+- Login is email-based while stored Identity usernames remain `superadmin` and
+  `kockhwie`.
+- The user-confirmed flow passed: initial login, password-change redirect, password
+  change, and subsequent login using the new password.
+- Full navigation blocking beyond the login redirect was intentionally not implemented.
+- Role-policy and account-lockout behavior is implemented; dedicated manual verification
+  of those acceptance items remains separate if not already performed.
 
 ## Acceptance criteria (report these back explicitly)
 

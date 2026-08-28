@@ -11,18 +11,18 @@
   ASP.NET Identity already scaffolded (`Data/ApplicationUser.cs`,
   `Data/ApplicationDbContext.cs`).
 - Existing stock data lives as static JSON at `wwwroot/data/klse-stocks.json`
-  (~900 rows, shape: `{ "name": "...", "code": "...", "price": "" }`), read at runtime
+  (1,058 rows at execution time, shape: `{ "name": "...", "code": "...", "price": "" }`), read at runtime
   by `Services/IKlseStockLookupService.cs`. **This phase does not touch that service**
   — it only gets the data into the database. Wiring the service to read from the DB
   instead of the JSON file is Phase 7, later.
-- No existing `Country`/`Exchange`/`Market`/`Sector`/`SubSector`/`Institution`/`Stock`
-  tables exist yet. This phase creates all seven from scratch.
+- At Phase 1 start, no `Country`/`Exchange`/`Market`/`Sector`/`SubSector`/`Institution`/
+  `Stock` tables existed. This phase creates all seven from scratch.
 
 ## Goal
 
 Get all seven tables into the database via EF Core migration, with Phase-1 reference
-data seeded (Malaysia only) and the existing ~900 KLSE stocks migrated in from the
-JSON file.
+data seeded (Malaysia only) and the existing KLSE stocks migrated in from the JSON
+file.
 
 ## Naming & conventions (non-negotiable)
 
@@ -184,7 +184,8 @@ eventually point to.
   `DividendYield`, `LastCalculatedAt` (`DateTimeOffset?`)
 - *(+ shared audit columns)*
 
-**Seed:** one `Stock` row per entry in `wwwroot/data/klse-stocks.json` (~900 rows).
+**Seed:** one `Stock` row per entry in `wwwroot/data/klse-stocks.json` (1,058 rows at
+execution time).
 Map `code` → `StockCode`, `name` → `ShortName_EN`. Ignore the JSON's `price` field
 entirely (it's always empty in the source file and superseded by `CurrentPrice`
 anyway).
@@ -201,7 +202,7 @@ anyway).
    - Global query filters: `modelBuilder.Entity<T>().HasQueryFilter(e => !e.IsDeleted)`
      for all 7 entities.
    - Any `HasData(...)` seed calls for `Country`/`Exchange`/`Market`/`Sector`/
-     `SubSector`/`Institution` (the small reference tables). The ~900-row `Stock` seed
+     `SubSector`/`Institution` (the small reference tables). The `Stock` seed
      is large enough that a separate data-seeding method (run once, e.g. from
      `Program.cs` on startup if the table is empty, or a one-off console command) is
      cleaner than a giant `HasData` migration — your call, just document which
@@ -225,6 +226,17 @@ anyway).
       it set to `null` (not a placeholder string of any kind).
 - [ ] State explicitly which `Stock` seeding approach you used (`HasData` vs. separate
       seed method).
+
+## Execution notes
+
+- Executed on August 27, 2026 against the local-only SQL Express database
+  `omm_phase1_dev_20260827`; no shared or production database was used.
+- Reference tables use `HasData(...)`.
+- Stocks use the separate `Data/StockDataSeeder.cs` startup seed method, which runs in
+  Development after migrations and reads `wwwroot/data/klse-stocks.json`.
+- The source file contained 1,058 entries and 1,057 distinct stock codes because
+  `5235SS` appears twice; both source rows were preserved.
+- All Phase 1 seed rows use `CreatedByUserId = null`; no placeholder user was created.
 
 ## Explicitly out of scope for this phase
 

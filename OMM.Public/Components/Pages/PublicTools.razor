@@ -1,0 +1,12 @@
+@page "/tools"
+@page "/tools/{ToolSlug}"
+@layout MainLayout
+
+<PublicPageShell>
+    <ToolsContent ToolSlug="@ToolSlug" BasePath="/tools" />
+</PublicPageShell>
+
+@code {
+    [Parameter]
+    public string? ToolSlug { get; set; }
+}

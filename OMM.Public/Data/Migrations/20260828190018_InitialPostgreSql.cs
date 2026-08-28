@@ -1,37 +1,205 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
-namespace OMM.Public.Migrations
+namespace OMM.Public.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class AddMasterDataSchema : Migration
+    public partial class InitialPostgreSql : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "AspNetRoles",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    Name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    NormalizedName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetRoles", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUsers",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    FirstName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    LastName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    MustChangePassword = table.Column<bool>(type: "boolean", nullable: false),
+                    UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    NormalizedEmail = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    EmailConfirmed = table.Column<bool>(type: "boolean", nullable: false),
+                    PasswordHash = table.Column<string>(type: "text", nullable: true),
+                    SecurityStamp = table.Column<string>(type: "text", nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "text", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    PhoneNumberConfirmed = table.Column<bool>(type: "boolean", nullable: false),
+                    TwoFactorEnabled = table.Column<bool>(type: "boolean", nullable: false),
+                    LockoutEnd = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    LockoutEnabled = table.Column<bool>(type: "boolean", nullable: false),
+                    AccessFailedCount = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetRoleClaims",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    RoleId = table.Column<string>(type: "text", nullable: false),
+                    ClaimType = table.Column<string>(type: "text", nullable: true),
+                    ClaimValue = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetRoleClaims", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AspNetRoleClaims_AspNetRoles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "AspNetRoles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserClaims",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<string>(type: "text", nullable: false),
+                    ClaimType = table.Column<string>(type: "text", nullable: true),
+                    ClaimValue = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserClaims", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AspNetUserClaims_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserLogins",
+                columns: table => new
+                {
+                    LoginProvider = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                    ProviderKey = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                    ProviderDisplayName = table.Column<string>(type: "text", nullable: true),
+                    UserId = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserLogins", x => new { x.LoginProvider, x.ProviderKey });
+                    table.ForeignKey(
+                        name: "FK_AspNetUserLogins_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserPasskeys",
+                columns: table => new
+                {
+                    CredentialId = table.Column<byte[]>(type: "bytea", maxLength: 1024, nullable: false),
+                    UserId = table.Column<string>(type: "text", nullable: false),
+                    Data = table.Column<string>(type: "jsonb", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserPasskeys", x => x.CredentialId);
+                    table.ForeignKey(
+                        name: "FK_AspNetUserPasskeys_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserRoles",
+                columns: table => new
+                {
+                    UserId = table.Column<string>(type: "text", nullable: false),
+                    RoleId = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserRoles", x => new { x.UserId, x.RoleId });
+                    table.ForeignKey(
+                        name: "FK_AspNetUserRoles_AspNetRoles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "AspNetRoles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AspNetUserRoles_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUserTokens",
+                columns: table => new
+                {
+                    UserId = table.Column<string>(type: "text", nullable: false),
+                    LoginProvider = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                    Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                    Value = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUserTokens", x => new { x.UserId, x.LoginProvider, x.Name });
+                    table.ForeignKey(
+                        name: "FK_AspNetUserTokens_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Country",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    CountryCode = table.Column<string>(type: "nvarchar(2)", maxLength: 2, nullable: false),
-                    CountryName_EN = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CountryName_ZH_TW = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CountryName_ZH_CN = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    DefaultCurrencyCode = table.Column<string>(type: "nvarchar(3)", maxLength: 3, nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedByUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    ModifiedByUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    ModifiedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    DeletedByUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    DeletedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    CountryCode = table.Column<string>(type: "character varying(2)", maxLength: 2, nullable: false),
+                    CountryName_EN = table.Column<string>(type: "text", nullable: false),
+                    CountryName_ZH_TW = table.Column<string>(type: "text", nullable: false),
+                    CountryName_ZH_CN = table.Column<string>(type: "text", nullable: false),
+                    DefaultCurrencyCode = table.Column<string>(type: "character varying(3)", maxLength: 3, nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedByUserId = table.Column<string>(type: "text", nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    ModifiedByUserId = table.Column<string>(type: "text", nullable: true),
+                    ModifiedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    DeletedByUserId = table.Column<string>(type: "text", nullable: true),
+                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -57,21 +225,21 @@ namespace OMM.Public.Migrations
                 name: "Exchange",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    CountryId = table.Column<int>(type: "int", nullable: false),
-                    ExchangeCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ExchangeName_EN = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ExchangeName_ZH_TW = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ExchangeName_ZH_CN = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedByUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    ModifiedByUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    ModifiedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    DeletedByUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    DeletedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    CountryId = table.Column<int>(type: "integer", nullable: false),
+                    ExchangeCode = table.Column<string>(type: "text", nullable: false),
+                    ExchangeName_EN = table.Column<string>(type: "text", nullable: false),
+                    ExchangeName_ZH_TW = table.Column<string>(type: "text", nullable: false),
+                    ExchangeName_ZH_CN = table.Column<string>(type: "text", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedByUserId = table.Column<string>(type: "text", nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    ModifiedByUserId = table.Column<string>(type: "text", nullable: true),
+                    ModifiedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    DeletedByUserId = table.Column<string>(type: "text", nullable: true),
+                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -103,22 +271,22 @@ namespace OMM.Public.Migrations
                 name: "Institution",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    CountryId = table.Column<int>(type: "int", nullable: true),
-                    InstitutionCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    InstitutionName_EN = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    InstitutionName_ZH_TW = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    InstitutionName_ZH_CN = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    InstitutionCategory = table.Column<int>(type: "int", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedByUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    ModifiedByUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    ModifiedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    DeletedByUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    DeletedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    CountryId = table.Column<int>(type: "integer", nullable: true),
+                    InstitutionCode = table.Column<string>(type: "text", nullable: false),
+                    InstitutionName_EN = table.Column<string>(type: "text", nullable: false),
+                    InstitutionName_ZH_TW = table.Column<string>(type: "text", nullable: false),
+                    InstitutionName_ZH_CN = table.Column<string>(type: "text", nullable: false),
+                    InstitutionCategory = table.Column<int>(type: "integer", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedByUserId = table.Column<string>(type: "text", nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    ModifiedByUserId = table.Column<string>(type: "text", nullable: true),
+                    ModifiedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    DeletedByUserId = table.Column<string>(type: "text", nullable: true),
+                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -149,21 +317,21 @@ namespace OMM.Public.Migrations
                 name: "Sector",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    CountryId = table.Column<int>(type: "int", nullable: false),
-                    SectorCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    SectorName_EN = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    SectorName_ZH_TW = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    SectorName_ZH_CN = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedByUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    ModifiedByUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    ModifiedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    DeletedByUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    DeletedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    CountryId = table.Column<int>(type: "integer", nullable: false),
+                    SectorCode = table.Column<string>(type: "text", nullable: false),
+                    SectorName_EN = table.Column<string>(type: "text", nullable: false),
+                    SectorName_ZH_TW = table.Column<string>(type: "text", nullable: false),
+                    SectorName_ZH_CN = table.Column<string>(type: "text", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedByUserId = table.Column<string>(type: "text", nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    ModifiedByUserId = table.Column<string>(type: "text", nullable: true),
+                    ModifiedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    DeletedByUserId = table.Column<string>(type: "text", nullable: true),
+                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -195,21 +363,21 @@ namespace OMM.Public.Migrations
                 name: "Market",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ExchangeId = table.Column<int>(type: "int", nullable: false),
-                    MarketCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    MarketName_EN = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    MarketName_ZH_TW = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    MarketName_ZH_CN = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedByUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    ModifiedByUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    ModifiedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    DeletedByUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    DeletedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ExchangeId = table.Column<int>(type: "integer", nullable: false),
+                    MarketCode = table.Column<string>(type: "text", nullable: false),
+                    MarketName_EN = table.Column<string>(type: "text", nullable: false),
+                    MarketName_ZH_TW = table.Column<string>(type: "text", nullable: false),
+                    MarketName_ZH_CN = table.Column<string>(type: "text", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedByUserId = table.Column<string>(type: "text", nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    ModifiedByUserId = table.Column<string>(type: "text", nullable: true),
+                    ModifiedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    DeletedByUserId = table.Column<string>(type: "text", nullable: true),
+                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -241,21 +409,21 @@ namespace OMM.Public.Migrations
                 name: "SubSector",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    SectorId = table.Column<int>(type: "int", nullable: false),
-                    SubSectorCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    SubSectorName_EN = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    SubSectorName_ZH_TW = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    SubSectorName_ZH_CN = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedByUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    ModifiedByUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    ModifiedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    DeletedByUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    DeletedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    SectorId = table.Column<int>(type: "integer", nullable: false),
+                    SubSectorCode = table.Column<string>(type: "text", nullable: false),
+                    SubSectorName_EN = table.Column<string>(type: "text", nullable: false),
+                    SubSectorName_ZH_TW = table.Column<string>(type: "text", nullable: false),
+                    SubSectorName_ZH_CN = table.Column<string>(type: "text", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedByUserId = table.Column<string>(type: "text", nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    ModifiedByUserId = table.Column<string>(type: "text", nullable: true),
+                    ModifiedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    DeletedByUserId = table.Column<string>(type: "text", nullable: true),
+                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -287,45 +455,45 @@ namespace OMM.Public.Migrations
                 name: "Stock",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    StockCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ShortName_EN = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ShortName_ZH_TW = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ShortName_ZH_CN = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    LegalName_EN = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    LegalName_ZH_TW = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    LegalName_ZH_CN = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    RicCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    YahooSymbol = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    IsinCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    MarketId = table.Column<int>(type: "int", nullable: false),
-                    SectorId = table.Column<int>(type: "int", nullable: true),
-                    SubSectorId = table.Column<int>(type: "int", nullable: true),
-                    ShariahCompliant = table.Column<bool>(type: "bit", nullable: false),
-                    Currency = table.Column<string>(type: "nvarchar(3)", maxLength: 3, nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    CurrentPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    MarketCap = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    EPS = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    DPS = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    NTA = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    ROE = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    ROA = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    DebtToEquity = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    CurrentRatio = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    LastScrapedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    PE = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    PB = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    DividendYield = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    LastCalculatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    CreatedByUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    ModifiedByUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    ModifiedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    DeletedByUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    DeletedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    StockCode = table.Column<string>(type: "text", nullable: false),
+                    ShortName_EN = table.Column<string>(type: "text", nullable: false),
+                    ShortName_ZH_TW = table.Column<string>(type: "text", nullable: true),
+                    ShortName_ZH_CN = table.Column<string>(type: "text", nullable: true),
+                    LegalName_EN = table.Column<string>(type: "text", nullable: true),
+                    LegalName_ZH_TW = table.Column<string>(type: "text", nullable: true),
+                    LegalName_ZH_CN = table.Column<string>(type: "text", nullable: true),
+                    RicCode = table.Column<string>(type: "text", nullable: true),
+                    YahooSymbol = table.Column<string>(type: "text", nullable: true),
+                    IsinCode = table.Column<string>(type: "text", nullable: true),
+                    MarketId = table.Column<int>(type: "integer", nullable: false),
+                    SectorId = table.Column<int>(type: "integer", nullable: true),
+                    SubSectorId = table.Column<int>(type: "integer", nullable: true),
+                    ShariahCompliant = table.Column<bool>(type: "boolean", nullable: false),
+                    Currency = table.Column<string>(type: "character varying(3)", maxLength: 3, nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CurrentPrice = table.Column<decimal>(type: "numeric(18,4)", precision: 18, scale: 4, nullable: true),
+                    MarketCap = table.Column<decimal>(type: "numeric(18,4)", precision: 18, scale: 4, nullable: true),
+                    EPS = table.Column<decimal>(type: "numeric(18,4)", precision: 18, scale: 4, nullable: true),
+                    DPS = table.Column<decimal>(type: "numeric(18,4)", precision: 18, scale: 4, nullable: true),
+                    NTA = table.Column<decimal>(type: "numeric(18,4)", precision: 18, scale: 4, nullable: true),
+                    ROE = table.Column<decimal>(type: "numeric(18,4)", precision: 18, scale: 4, nullable: true),
+                    ROA = table.Column<decimal>(type: "numeric(18,4)", precision: 18, scale: 4, nullable: true),
+                    DebtToEquity = table.Column<decimal>(type: "numeric(18,4)", precision: 18, scale: 4, nullable: true),
+                    CurrentRatio = table.Column<decimal>(type: "numeric(18,4)", precision: 18, scale: 4, nullable: true),
+                    LastScrapedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    PE = table.Column<decimal>(type: "numeric(18,4)", precision: 18, scale: 4, nullable: true),
+                    PB = table.Column<decimal>(type: "numeric(18,4)", precision: 18, scale: 4, nullable: true),
+                    DividendYield = table.Column<decimal>(type: "numeric(18,4)", precision: 18, scale: 4, nullable: true),
+                    LastCalculatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    CreatedByUserId = table.Column<string>(type: "text", nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    ModifiedByUserId = table.Column<string>(type: "text", nullable: true),
+                    ModifiedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    DeletedByUserId = table.Column<string>(type: "text", nullable: true),
+                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -468,6 +636,48 @@ namespace OMM.Public.Migrations
                     { 46, new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, null, null, true, false, null, null, 13, "ELECTRICITY", "Electricity", "Electricity", "Electricity" },
                     { 47, new DateTimeOffset(new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, null, null, true, false, null, null, 13, "GAS-WATER", "Gas & Water Distribution", "Gas & Water Distribution", "Gas & Water Distribution" }
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetRoleClaims_RoleId",
+                table: "AspNetRoleClaims",
+                column: "RoleId");
+
+            migrationBuilder.CreateIndex(
+                name: "RoleNameIndex",
+                table: "AspNetRoles",
+                column: "NormalizedName",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUserClaims_UserId",
+                table: "AspNetUserClaims",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUserLogins_UserId",
+                table: "AspNetUserLogins",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUserPasskeys_UserId",
+                table: "AspNetUserPasskeys",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUserRoles_RoleId",
+                table: "AspNetUserRoles",
+                column: "RoleId");
+
+            migrationBuilder.CreateIndex(
+                name: "EmailIndex",
+                table: "AspNetUsers",
+                column: "NormalizedEmail");
+
+            migrationBuilder.CreateIndex(
+                name: "UserNameIndex",
+                table: "AspNetUsers",
+                column: "NormalizedUserName",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Country_CreatedByUserId",
@@ -619,10 +829,31 @@ namespace OMM.Public.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "AspNetRoleClaims");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUserClaims");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUserLogins");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUserPasskeys");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUserRoles");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUserTokens");
+
+            migrationBuilder.DropTable(
                 name: "Institution");
 
             migrationBuilder.DropTable(
                 name: "Stock");
+
+            migrationBuilder.DropTable(
+                name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "Market");
@@ -638,6 +869,9 @@ namespace OMM.Public.Migrations
 
             migrationBuilder.DropTable(
                 name: "Country");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUsers");
         }
     }
 }

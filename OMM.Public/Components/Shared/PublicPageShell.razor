@@ -1,0 +1,10 @@
+@namespace OMM.Public.Components.Shared
+
+<div class="omm-public-page container-xl px-3 px-md-4">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public RenderFragment ChildContent { get; set; } = default!;
+}

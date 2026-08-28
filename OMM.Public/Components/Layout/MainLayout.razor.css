@@ -12,6 +12,11 @@
     z-index: 1000;
 }
 
+.omm-public-content {
+    padding-top: 64px;
+    overflow-x: hidden;
+}
+
     #blazor-error-ui .dismiss {
         cursor: pointer;
         position: absolute;

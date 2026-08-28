@@ -73,6 +73,11 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
+.omm-public-page {
+    padding-top: clamp(2rem, 4vw, 4rem);
+    padding-bottom: clamp(3rem, 6vw, 6rem);
+}
+
 h1, h2, h3, h4, h5, h6, .font-display {
     font-family: var(--omm-font-display);
     font-weight: 700;
@@ -119,7 +124,7 @@ h1, h2, h3, h4, h5, h6, .font-display {
 
 /* Buttons */
 .omm-home-hero {
-    padding-top: 110px;
+    padding-top: 46px;
     padding-bottom: 90px;
     background-image: url('/images/omm-hero.webp');
     background-repeat: no-repeat;
@@ -236,7 +241,7 @@ h1, h2, h3, h4, h5, h6, .font-display {
 @media (max-width: 575.98px) {
  
     .omm-home-hero {
-        padding-top: 85px;
+        padding-top: 21px;
         padding-bottom: 20px;
         background-size: min(130%, 500px) auto;
         background-position: 30px 170px;

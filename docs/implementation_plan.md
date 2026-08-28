@@ -14,6 +14,7 @@
 | [`docs/market-data-design.md`](docs/market-data-design.md) | **Locked schema.** Every table, every column, every naming decision for `Country`, `Exchange`, `Market`, `Sector`, `SubSector`, `Institution`, `Stock`. If you need to know a field name or type, it's here. |
 | [`docs/admin-backend-tasks.md`](docs/admin-backend-tasks.md) | **Phase-by-phase task breakdown**, Phase 1 through 8, with acceptance criteria per phase and explicit dependency order. |
 | [`docs/phase-1-schema-migration.md`](docs/phase-1-schema-migration.md) | **Standalone, self-contained Phase 1 doc.** Everything needed to execute Phase 1 (schema + migration + seed) is inlined here — hand this single file to an agent and they shouldn't need to open the other two. |
+| [`docs/calculator-history-product-direction.md`](docs/calculator-history-product-direction.md) | **Future product direction.** Defines guest calculator history, registration handoff, and the explicit “Save as Mine” flow. |
 
 ## Handing this to another AI agent (e.g. Codex)
 

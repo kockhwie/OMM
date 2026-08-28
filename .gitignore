@@ -138,3 +138,5 @@ BenchmarkDotNet.Artifacts/
 
 # Docker local overrides
 docker-compose.override.yml
+.neon
+node_modules/

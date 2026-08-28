@@ -1,0 +1,83 @@
+.omm-auth-main {
+    width: 100%;
+    padding-top: 5rem;
+    padding-bottom: 5rem;
+}
+
+.omm-auth-card {
+    width: min(100%, 1120px);
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 3.5rem);
+    background: #fff;
+    border: 1px solid var(--omm-ink-200);
+    border-radius: var(--omm-radius-lg);
+    box-shadow: 0 1rem 3rem rgb(24 34 51 / 0.07);
+}
+
+.omm-auth-card ::deep h1 {
+    font-size: clamp(1.75rem, 3vw, 2.75rem);
+    letter-spacing: -0.04em;
+    color: var(--omm-ink-900);
+}
+
+.omm-auth-card ::deep h2,
+.omm-auth-card ::deep h3 {
+    letter-spacing: -0.03em;
+    color: var(--omm-ink-900);
+}
+
+.omm-auth-card ::deep hr {
+    border-color: var(--omm-ink-200);
+    opacity: 1;
+}
+
+.omm-auth-card ::deep .form-control {
+    min-height: 3.25rem;
+    border-color: var(--omm-ink-200);
+    border-radius: var(--omm-radius-sm);
+}
+
+.omm-auth-card ::deep .form-control:focus {
+    border-color: var(--omm-clay-500);
+    box-shadow: 0 0 0 0.2rem rgb(197 132 58 / 0.16);
+}
+
+.omm-auth-card ::deep button[type="submit"] {
+    min-height: 3.25rem;
+    border: 0;
+    border-radius: var(--omm-radius-sm);
+    background: var(--omm-ink-900);
+    color: #fff;
+    font-weight: 700;
+}
+
+.omm-auth-card ::deep button[type="submit"]:hover,
+.omm-auth-card ::deep button[type="submit"]:focus-visible {
+    background: var(--omm-clay-500);
+}
+
+.omm-auth-card ::deep a {
+    color: var(--omm-ink-700);
+}
+
+.omm-auth-card ::deep a:hover {
+    color: var(--omm-clay-500);
+}
+
+.omm-auth-card ::deep .validation-message,
+.omm-auth-card ::deep .validation-errors,
+.omm-auth-card ::deep .text-danger {
+    color: var(--omm-burden-red) !important;
+}
+
+@media (max-width: 767.98px) {
+    .omm-auth-main {
+        padding-top: 6.5rem;
+        padding-bottom: 3rem;
+    }
+
+    .omm-auth-card {
+        padding: 1.25rem;
+        border-radius: var(--omm-radius-md);
+    }
+}

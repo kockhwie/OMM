@@ -5,6 +5,7 @@
 @using System.Text.Encodings.Web
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.EntityFrameworkCore
 @using OMM.Public.Data
 
 @inject UserManager<ApplicationUser> UserManager
@@ -24,8 +25,6 @@
         <StatusMessage Message="@Message" />
         <EditForm Model="Input" method="post" OnValidSubmit="RegisterUser" FormName="register">
             <DataAnnotationsValidator />
-            <h2>Create a new account.</h2>
-            <hr />
             <ValidationSummary class="text-danger" role="alert" />
             <div class="form-floating mb-3">
                 <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
@@ -72,6 +71,25 @@
 
     public async Task RegisterUser(EditContext editContext)
     {
+        var normalizedEmail = UserManager.NormalizeEmail(Input.Email);
+        var matchingUsers = await UserManager.Users
+            .Where(user => user.NormalizedEmail == normalizedEmail)
+            .Take(2)
+            .CountAsync();
+
+        if (matchingUsers > 0)
+        {
+            identityErrors =
+            [
+                new IdentityError
+                {
+                    Code = "DuplicateEmail",
+                    Description = "An account with this email already exists. Please sign in or reset your password."
+                }
+            ];
+            return;
+        }
+
         var user = CreateUser();
 
         await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);

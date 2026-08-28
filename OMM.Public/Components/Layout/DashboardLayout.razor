@@ -1,0 +1,221 @@
+@inherits LayoutComponentBase
+@inject IMineService MineService
+@inject NavigationManager NavigationManager
+
+<div class="d-flex min-vh-100" style="background-color: #f3f8fe;">
+    <!-- Desktop Sidebar -->
+    <aside class="d-none d-lg-flex flex-column position-fixed top-0 bottom-0 start-0 bg-white border-end" style="width: 256px; z-index: 1020;">
+        <div class="d-flex align-items-center px-4 border-bottom" style="height: 64px;">
+            <Logo Size="sm" Href="/" />
+        </div>
+
+        <nav class="flex-grow-1 px-3 py-3 overflow-y-auto d-flex flex-column gap-1">
+            <NavLink class="sidebar-link" href="dashboard" Match="NavLinkMatch.All">
+                <i class="ti ti-layout-dashboard fs-5"></i>
+                <span>Mine Board</span>
+            </NavLink>
+            <NavLink class="sidebar-link" href="mines">
+                <i class="ti ti-shovel fs-5"></i>
+                <span>My Mines</span>
+            </NavLink>
+            <NavLink class="sidebar-link" href="burdens">
+                <i class="ti ti-scale fs-5"></i>
+                <span>Burdens</span>
+            </NavLink>
+            <NavLink class="sidebar-link" href="income">
+                <i class="ti ti-trending-up fs-5"></i>
+                <span>Income</span>
+            </NavLink>
+            <NavLink class="sidebar-link" href="goals">
+                <i class="ti ti-target fs-5"></i>
+                <span>Goals</span>
+            </NavLink>
+            <NavLink class="sidebar-link" href="tools">
+                <i class="ti ti-calculator fs-5"></i>
+                <span>Tools</span>
+            </NavLink>
+            <NavLink class="sidebar-link" href="learn">
+                <i class="ti ti-book fs-5"></i>
+                <span>Learn</span>
+            </NavLink>
+        </nav>
+
+        <div class="p-3 border-top">
+            <NavLink class="sidebar-link mb-2" href="settings">
+                <i class="ti ti-settings fs-5"></i>
+                <span>Settings</span>
+            </NavLink>
+
+            @if (profile != null)
+            {
+                <div class="d-flex align-items-center gap-2 p-2 rounded-3" style="background-color: var(--omm-ink-50);">
+                    <div class="rounded-circle text-white d-flex align-items-center justify-content-center fw-bold flex-shrink-0" 
+                         style="width: 36px; height: 36px; background-color: var(--omm-clay-500); font-size: 0.8rem;">
+                        @GetInitials(profile.Name)
+                    </div>
+                    <div class="flex-grow-1 overflow-hidden" style="line-height: 1.2;">
+                        <div class="fw-semibold text-truncate" style="font-size: 0.85rem;">@profile.Name</div>
+                        <div class="text-muted text-truncate" style="font-size: 0.75rem;">@profile.Email</div>
+                    </div>
+                </div>
+            }
+        </div>
+    </aside>
+
+    <!-- Mobile Sidebar Offcanvas -->
+    @if (isMobileNavOpen)
+    {
+        <div class="position-fixed top-0 bottom-0 start-0 end-0 d-lg-none" style="z-index: 1040;">
+            <div class="position-absolute top-0 bottom-0 start-0 end-0 bg-dark opacity-50" @onclick="ToggleMobileNav"></div>
+            <div class="position-relative bg-white h-100 d-flex flex-column" style="width: 280px;">
+                <div class="d-flex align-items-center justify-content-between px-4 border-bottom" style="height: 64px;">
+                    <Logo Size="sm" Href="/" />
+                    <button class="btn btn-sm text-muted" @onclick="ToggleMobileNav">
+                        <i class="ti ti-x fs-4"></i>
+                    </button>
+                </div>
+                <nav class="flex-grow-1 px-3 py-3 overflow-y-auto d-flex flex-column gap-1">
+                    <NavLink class="sidebar-link" href="dashboard" Match="NavLinkMatch.All" @onclick="ToggleMobileNav">
+                        <i class="ti ti-layout-dashboard fs-5"></i>
+                        <span>Mine Board</span>
+                    </NavLink>
+                    <NavLink class="sidebar-link" href="mines" @onclick="ToggleMobileNav">
+                        <i class="ti ti-shovel fs-5"></i>
+                        <span>My Mines</span>
+                    </NavLink>
+                    <NavLink class="sidebar-link" href="burdens" @onclick="ToggleMobileNav">
+                        <i class="ti ti-scale fs-5"></i>
+                        <span>Burdens</span>
+                    </NavLink>
+                    <NavLink class="sidebar-link" href="income" @onclick="ToggleMobileNav">
+                        <i class="ti ti-trending-up fs-5"></i>
+                        <span>Income</span>
+                    </NavLink>
+                    <NavLink class="sidebar-link" href="goals" @onclick="ToggleMobileNav">
+                        <i class="ti ti-target fs-5"></i>
+                        <span>Goals</span>
+                    </NavLink>
+                    <NavLink class="sidebar-link" href="tools" @onclick="ToggleMobileNav">
+                        <i class="ti ti-calculator fs-5"></i>
+                        <span>Tools</span>
+                    </NavLink>
+                    <NavLink class="sidebar-link" href="learn" @onclick="ToggleMobileNav">
+                        <i class="ti ti-book fs-5"></i>
+                        <span>Learn</span>
+                    </NavLink>
+                    <NavLink class="sidebar-link" href="settings" @onclick="ToggleMobileNav">
+                        <i class="ti ti-settings fs-5"></i>
+                        <span>Settings</span>
+                    </NavLink>
+                </nav>
+            </div>
+        </div>
+    }
+
+    <!-- Main Content Area -->
+    <div class="flex-grow-1 d-flex flex-column dashboard-content-wrapper" style="min-width: 0;">
+        <!-- Top Bar -->
+        <header class="sticky-top bg-white bg-opacity-95 border-bottom px-4 px-lg-5 d-flex align-items-center justify-content-between" 
+                style="height: 64px; backdrop-filter: blur(8px); z-index: 1010; width: 100%;">
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-sm d-lg-none p-1 text-dark border-0" @onclick="ToggleMobileNav">
+                    <i class="ti ti-menu-2 fs-4"></i>
+                </button>
+                <div class="d-none d-sm-flex search-input-group" style="width: 100%; max-width: 320px; min-width: 160px;">
+                    <i class="ti ti-search"></i>
+                    <input type="text" placeholder="Search mines, burdens..." />
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-3 position-relative">
+                <!-- Notification Bell -->
+                <div class="position-relative">
+                    <button class="btn btn-sm btn-light position-relative p-2 rounded-circle border-0" 
+                            @onclick="ToggleNotifDropdown" 
+                            style="background-color: var(--omm-ink-100);" aria-label="Notifications">
+                        <i class="ti ti-bell fs-5 text-dark"></i>
+                        @if (unreadNotifCount > 0)
+                        {
+                            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
+                                <span class="visually-hidden">New alerts</span>
+                            </span>
+                        }
+                    </button>
+
+                    @if (isNotifOpen)
+                    {
+                        <div class="position-fixed top-0 bottom-0 start-0 end-0" style="z-index: 1050;" @onclick="ToggleNotifDropdown"></div>
+                        <div class="position-absolute end-0 mt-2 omm-card shadow-lg bg-white overflow-hidden" 
+                             style="width: 320px; z-index: 1060; border-radius: 16px;">
+                            <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom bg-light">
+                                <span class="fw-bold" style="font-size: 0.85rem;">Notifications</span>
+                                <span class="badge bg-danger-subtle text-danger" style="font-size: 0.75rem;">@unreadNotifCount new</span>
+                            </div>
+                            <div class="overflow-y-auto" style="max-height: 320px;">
+                                @if (notifications != null)
+                                {
+                                    @foreach (var n in notifications)
+                                    {
+                                        <div class="p-3 border-bottom @(!n.Read ? "bg-warning-subtle bg-opacity-25" : "")">
+                                            <div class="d-flex gap-2">
+                                                @if (!n.Read)
+                                                {
+                                                    <span class="rounded-circle bg-warning mt-1" style="width: 8px; height: 8px; flex-shrink: 0;"></span>
+                                                }
+                                                <div>
+                                                    <div class="fw-semibold text-dark" style="font-size: 0.825rem;">@n.Title</div>
+                                                    <div class="text-muted mt-1" style="font-size: 0.75rem; line-height: 1.4;">@n.Body</div>
+                                                    <div class="text-muted mt-1" style="font-size: 0.7rem;">@n.Date</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- User Profile Pill -->
+                @if (profile != null)
+                {
+                    <a href="settings" class="d-flex align-items-center text-decoration-none flex-shrink-0">
+                        <div class="rounded-circle text-white d-flex align-items-center justify-content-center fw-bold shadow-sm flex-shrink-0"
+                             style="width: 36px; height: 36px; min-width: 36px; background-color: var(--omm-clay-500); font-size: 0.85rem;">
+                            @GetInitials(profile.Name)
+                        </div>
+                    </a>
+                }
+            </div>
+        </header>
+
+        <!-- Dynamic Body Container -->
+        <main class="flex-grow-1 px-4 px-lg-5 py-4 w-100" style="max-width: 1800px;">
+            @Body
+        </main>
+    </div>
+</div>
+
+@code {
+    private MinerProfile? profile;
+    private List<Notification>? notifications;
+    private bool isMobileNavOpen = false;
+    private bool isNotifOpen = false;
+    private int unreadNotifCount => notifications?.Count(n => !n.Read) ?? 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        profile = await MineService.GetMinerProfileAsync();
+        notifications = await MineService.GetNotificationsAsync();
+    }
+
+    private void ToggleMobileNav() => isMobileNavOpen = !isMobileNavOpen;
+    private void ToggleNotifDropdown() => isNotifOpen = !isNotifOpen;
+
+    private string GetInitials(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "M";
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return string.Concat(parts.Select(p => p[0]));
+    }
+}

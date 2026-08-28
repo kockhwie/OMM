@@ -4,12 +4,15 @@ using Microsoft.EntityFrameworkCore;
 using OMM.Public.Components;
 using OMM.Public.Components.Account;
 using OMM.Public.Data;
+using OMM.Public.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddScoped<IMineService, MockMineService>();
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityRedirectManager>();
@@ -22,6 +25,8 @@ builder.Services.AddAuthentication(options =>
     })
     .AddIdentityCookies();
 
+builder.Services.AddAuthorizationBuilder(); // Non-Admin
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
@@ -32,13 +37,28 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
         options.SignIn.RequireConfirmedAccount = true;
         options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
     })
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+builder.Services.AddSingleton<IKlseStockLookupService, KlseStockLookupService>();
 
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    await using var scope = app.Services.CreateAsyncScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await dbContext.Database.MigrateAsync();
+    await StockDataSeeder.SeedAsync(dbContext, Path.Combine(app.Environment.ContentRootPath, "wwwroot", "data", "klse-stocks.json"));
+}
+
+await using (var scope = app.Services.CreateAsyncScope())
+{
+    //await IdentitySeedData.SeedAsync(scope.ServiceProvider, app.Configuration);
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

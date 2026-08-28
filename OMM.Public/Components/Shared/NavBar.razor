@@ -1,0 +1,55 @@
+@namespace OMM.Public.Components.Shared
+
+<header class="fixed-top bg-white bg-opacity-95 shadow-sm border-bottom border-light" style="backdrop-filter: blur(8px); z-index: 1030;">
+    <div class="container-xl d-flex align-items-center justify-content-between py-2">
+        <Logo Href="/" />
+
+        <nav class="d-none d-md-flex align-items-center gap-1">
+            <a href="/tools" class="nav-link px-3 py-2 text-secondary fw-semibold" style="font-size: 0.9rem;">Financial Tools</a>
+            <a href="/learn" class="nav-link px-3 py-2 text-secondary fw-semibold" style="font-size: 0.9rem;">Learn</a>
+            <a href="#about" class="nav-link px-3 py-2 text-secondary fw-semibold" style="font-size: 0.9rem;">About</a>
+        </nav>
+
+        <div class="d-none d-md-flex align-items-center gap-2">
+            <a href="/dashboard" class="btn-omm-ghost">
+                Sign in
+            </a>
+            <a href="/dashboard" class="btn btn-omm-primary">
+                <span>Enter Mine Board</span>
+                <i class="ti ti-chevron-right fs-6"></i>
+            </a>
+        </div>
+
+        <button class="btn btn-sm d-md-none border-0 text-dark" @onclick="ToggleMobileMenu" aria-label="Toggle menu">
+            <i class="ti @(isMobileMenuOpen ? "ti-x" : "ti-menu-2") fs-3"></i>
+        </button>
+    </div>
+
+    @if (isMobileMenuOpen)
+    {
+        <div class="d-md-none bg-white border-top px-4 py-3 shadow-sm">
+            <div class="d-flex flex-column gap-2">
+                <a href="/tools" @onclick="ToggleMobileMenu" class="text-dark text-decoration-none py-2 fw-medium">Financial Tools</a>
+                <a href="/learn" @onclick="ToggleMobileMenu" class="text-dark text-decoration-none py-2 fw-medium">Learn</a>
+                <a href="#about" @onclick="ToggleMobileMenu" class="text-dark text-decoration-none py-2 fw-medium">About</a>
+                <hr class="my-2" />
+                <a href="/dashboard" class="btn btn-omm-secondary w-100">
+                    Sign in
+                </a>
+                <a href="/dashboard" class="btn btn-omm-primary w-100 mt-1">
+                    <span>Enter Mine Board</span>
+                    <i class="ti ti-chevron-right fs-6"></i>
+                </a>
+            </div>
+        </div>
+    }
+</header>
+
+@code {
+    private bool isMobileMenuOpen = false;
+
+    private void ToggleMobileMenu()
+    {
+        isMobileMenuOpen = !isMobileMenuOpen;
+    }
+}

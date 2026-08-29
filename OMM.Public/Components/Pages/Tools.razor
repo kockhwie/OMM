@@ -1,0 +1,11 @@
+@page "/dashboard/tools"
+@page "/dashboard/tools/{ToolSlug}"
+@layout DashboardLayout
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+<ToolsContent ToolSlug="@ToolSlug" BasePath="/dashboard/tools" />
+
+@code {
+    [Parameter]
+    public string? ToolSlug { get; set; }
+}

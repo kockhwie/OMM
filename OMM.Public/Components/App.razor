@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OhMyMine v2 - Master Your Mines &amp; Burdens</title>
+    <meta name="description" content="OhMyMine is a personal wealth planning workspace that reframes your financial life as mines you own and burdens you owe, so you can see your freedom ratio at a glance." />
+    <meta name="theme-color" content="#0d0e13" />
+    <base href="/" />
+
+    <!-- Open Graph / Facebook / WhatsApp -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://omm-nsd0.onrender.com/" />
+    <meta property="og:title" content="OhMyMine - Master Your Mines &amp; Burdens" />
+    <meta property="og:description" content="A personal wealth planning workspace. Everything you own is a mine. Everything you owe is a burden." />
+    <meta property="og:image" content="https://omm-nsd0.onrender.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="OhMyMine - Master Your Mines &amp; Burdens" />
+    <meta name="twitter:description" content="A personal wealth planning workspace. Everything you own is a mine. Everything you owe is a burden." />
+    <meta name="twitter:image" content="https://omm-nsd0.onrender.com/og-image.png" />
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5.3 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" />
+
+    <!-- Tabler Icons Webfont -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@tabler/icons-webfont@3.46.0/dist/tabler-icons.min.css" />
+
+    <!-- App Styles -->
+    <link rel="stylesheet" href="app.css" />
+    <link rel="stylesheet" href="OMM.Public.styles.css" />
+
+    <!-- in <head>, after app.css -->
+    <link rel="stylesheet" href="home-animations.css" />
+
+    <HeadOutlet @rendermode="PageRenderMode" />
+</head>
+
+<body>
+    <Routes @rendermode="PageRenderMode" />
+    <ReconnectModal />
+    
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    
+    <!-- Dividend Calculator Charts -->
+    <script src="dividend-charts.js"></script>
+    <script src="_framework/blazor.web.js"></script>
+
+    <!-- custom js -->
+    <script src="home-animations.js"></script>
+</body>
+
+</html>
+
+@code {
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    private IComponentRenderMode? PageRenderMode =>
+        HttpContext.AcceptsInteractiveRouting() ? InteractiveServer : null;
+}
+

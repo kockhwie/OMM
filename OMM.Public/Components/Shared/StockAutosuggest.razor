@@ -1,0 +1,185 @@
+@namespace OMM.Public.Components.Shared
+@using OMM.Public.Models
+@using OMM.Public.Services
+@inject IKlseStockLookupService StockLookup
+
+<div class="row g-2">
+    <div class="col-5 position-relative">
+        <label class="form-label small fw-semibold text-muted mb-1" for="stk-code">Stock Code</label>
+        <input id="stk-code" type="text" class="form-control rounded-3" autocomplete="off"
+               placeholder="e.g. 1155"
+               value="@Code"
+               @oninput="@(e => OnInput("code", e.Value?.ToString()))"
+               @onfocus="@(() => OnFocus("code"))"
+               @onkeydown="OnKeyDown"
+               @onfocusout="OnFocusOut" />
+        @if (activeField == "code" && showSuggestions)
+        {
+            <div class="stk-suggest-panel">
+                @if (filtered.Count == 0)
+                {
+                    <div class="stk-suggest-empty">No matches</div>
+                }
+                else
+                {
+                    @for (int i = 0; i < filtered.Count; i++)
+                    {
+                        var idx = i;
+                        var s = filtered[idx];
+                        <button type="button" class="stk-suggest-item @(idx == highlightIndex ? "active" : "")"
+                                @onmousedown:preventDefault="true"
+                                @onmousedown="@(() => Select(s))">
+                            <span class="stk-suggest-code">@s.Code</span>
+                            <span class="stk-suggest-name">@s.Name</span>
+                        </button>
+                    }
+                }
+            </div>
+        }
+    </div>
+    <div class="col-7 position-relative">
+        <label class="form-label small fw-semibold text-muted mb-1" for="stk-name">Company Name</label>
+        <input id="stk-name" type="text" class="form-control rounded-3" autocomplete="off"
+               placeholder="e.g. Maybank"
+               value="@Name"
+               @oninput="@(e => OnInput("name", e.Value?.ToString()))"
+               @onfocus="@(() => OnFocus("name"))"
+               @onkeydown="OnKeyDown"
+               @onfocusout="OnFocusOut" />
+        @if (activeField == "name" && showSuggestions)
+        {
+            <div class="stk-suggest-panel">
+                @if (filtered.Count == 0)
+                {
+                    <div class="stk-suggest-empty">No matches</div>
+                }
+                else
+                {
+                    @for (int i = 0; i < filtered.Count; i++)
+                    {
+                        var idx = i;
+                        var s = filtered[idx];
+                        <button type="button" class="stk-suggest-item @(idx == highlightIndex ? "active" : "")"
+                                @onmousedown:preventDefault="true"
+                                @onmousedown="@(() => Select(s))">
+                            <span class="stk-suggest-code">@s.Code</span>
+                            <span class="stk-suggest-name">@s.Name</span>
+                        </button>
+                    }
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Code { get; set; } = "";
+    [Parameter] public EventCallback<string> CodeChanged { get; set; }
+
+    [Parameter] public string Name { get; set; } = "";
+    [Parameter] public EventCallback<string> NameChanged { get; set; }
+
+    /// <summary>Fires with the full matched record when the user picks a suggestion —
+    /// handy if the caller wants more than just Code/Name (e.g. sector, board).</summary>
+    [Parameter] public EventCallback<KlseStock> OnStockSelected { get; set; }
+
+    private List<KlseStock> allStocks = [];
+    private List<KlseStock> filtered = [];
+    private string activeField = "";
+    private bool showSuggestions;
+    private int highlightIndex = -1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        allStocks = (await StockLookup.GetAllAsync()).ToList();
+    }
+
+    private void OnFocus(string field)
+    {
+        activeField = field;
+        Refilter(field == "code" ? Code : Name);
+    }
+
+    private async Task OnInput(string field, string? value)
+    {
+        value ??= "";
+        activeField = field;
+
+        if (field == "code")
+        {
+            Code = value;
+            await CodeChanged.InvokeAsync(Code);
+        }
+        else
+        {
+            Name = value;
+            await NameChanged.InvokeAsync(Name);
+        }
+
+        Refilter(value);
+    }
+
+    private void Refilter(string query)
+    {
+        query = query.Trim();
+        highlightIndex = -1;
+
+        if (query.Length == 0)
+        {
+            filtered = [];
+            showSuggestions = false;
+            return;
+        }
+
+        filtered = allStocks
+            .Where(s => s.Code.Contains(query, StringComparison.OrdinalIgnoreCase)
+                     || s.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+            .Take(8)
+            .ToList();
+
+        showSuggestions = true;
+    }
+
+    private async Task Select(KlseStock stock)
+    {
+        Code = stock.Code;
+        Name = stock.Name;
+        await CodeChanged.InvokeAsync(Code);
+        await NameChanged.InvokeAsync(Name);
+        await OnStockSelected.InvokeAsync(stock);
+
+        showSuggestions = false;
+        filtered = [];
+    }
+
+    private void OnKeyDown(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs e)
+    {
+        if (!showSuggestions || filtered.Count == 0) return;
+
+        switch (e.Key)
+        {
+            case "ArrowDown":
+                highlightIndex = Math.Min(highlightIndex + 1, filtered.Count - 1);
+                break;
+            case "ArrowUp":
+                highlightIndex = Math.Max(highlightIndex - 1, 0);
+                break;
+            case "Enter" when highlightIndex >= 0:
+                _ = Select(filtered[highlightIndex]);
+                break;
+            case "Escape":
+                showSuggestions = false;
+                break;
+        }
+    }
+
+    private async Task OnFocusOut()
+    {
+        // A click on a suggestion fires @onmousedown (with preventDefault) before this
+        // focusout resolves, so the short delay lets Select() run first without the
+        // panel disappearing out from under the click.
+        await Task.Delay(120);
+        showSuggestions = false;
+        StateHasChanged();
+    }
+}

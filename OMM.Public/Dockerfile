@@ -2,12 +2,16 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-# Copy project file and restore dependencies first (better layer caching)
-COPY OMM.Public.csproj .
-RUN dotnet restore OMM.Public.csproj
+# The Render build context is the repository root so the public project can
+# reference OMM.Shared.
+COPY OMM.Public/OMM.Public.csproj OMM.Public/
+COPY OMM.Shared/OMM.Shared.csproj OMM.Shared/
+RUN dotnet restore OMM.Public/OMM.Public.csproj
 
 # Copy source code and publish
-COPY . .
+COPY OMM.Public OMM.Public
+COPY OMM.Shared OMM.Shared
+WORKDIR /src/OMM.Public
 RUN dotnet publish OMM.Public.csproj -c Release -o /app/publish
 
 # Runtime stage

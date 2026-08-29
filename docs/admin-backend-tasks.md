@@ -77,7 +77,11 @@ in.
 
 ---
 
-## Phase 2 — Roles & Superadmin Seed
+## Phase 2 — Public Roles & Superadmin Seed
+
+> This phase applies to `OMM.Public` only. The separate Admin Identity store is
+> bootstrapped by `docs/phase-2b-admin-identity-bootstrap.md`, which must be
+> completed before Phase 3.
 
 **Goal:** role-based auth exists, and a `superadmin` account exists to log into the
 admin backend and to attribute seed data to.
@@ -97,8 +101,7 @@ admin backend and to attribute seed data to.
 - A non-admin user hitting an `/admin/*` route gets redirected/denied, not a raw
   exception.
 
-**Depends on:** nothing. Should be done early since Phase 1's seed data references
-`superadmin`'s user ID.
+**Depends on:** Phase 1. It does not create or configure Admin Identity.
 
 ---
 

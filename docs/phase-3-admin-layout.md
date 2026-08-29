@@ -24,17 +24,19 @@
   account; cross-application single sign-on is intentionally not used.
 - Business data may be shared, but database access must be explicit and least
   privileged. The public app must not access the admin Identity store.
-- PostgreSQL on Neon is the current database platform. EF Core remains the single
-  migration owner for Identity and the relational model; Dapper is used for business
-  data access where appropriate.
+- PostgreSQL on Neon is the current database platform. EF Core owns migrations per
+  schema/store: `OMM.Public` owns shared business-data migrations and `OMM.Admin`
+  owns Admin Identity migrations. Dapper is used for business data access where
+  appropriate.
 - Stock lookup supports `Database` and `Json` providers through
   `StockLookup:Provider`. The database provider is the default. Results use a
   process-local `IMemoryCache` with `StockLookup:CacheDays` (default 30 days).
 - The stock cache is process-local. Admin-triggered refresh and cross-application
   invalidation are later work and must use a deliberate, secured mechanism; an
   `OMM.Admin` memory-cache clear cannot directly clear `OMM.Public` memory.
-- Only one project or controlled deployment step owns EF Core migrations. The public
-  and admin projects must not independently create or apply migrations to one database.
+- Each schema/store has exactly one migration owner. `OMM.Public` must not create
+  Admin Identity migrations, and `OMM.Admin` must not create migrations for the
+  Public-owned master-data tables.
 
 - `Components/Routes.razor` currently has this `NotAuthorized` handling:
 ```razor
@@ -63,7 +65,7 @@
   Every `.razor` page in that folder automatically gets `ManageLayout` and requires
   authentication, with zero per-page boilerplate. This phase does the same thing for
   a new `OMM.Admin/Components/Pages/Admin/` folder, using the `RequireAdminRole` policy from
-  Phase 2 instead of a bare `[Authorize]`.
+  Phase 2b instead of a bare `[Authorize]`.
 - `wwwroot/app.css` already has `.sidebar-link` / `.sidebar-link.active` styling used
   by `DashboardLayout`. Reusable for `AdminLayout`, but see the visual-distinction
   decision below — don't make the admin area look identical to the miner dashboard.
@@ -75,7 +77,7 @@ shell. It does not create CRUD, grids, reference-data editing, user management,
 maintenance controls, cache controls, or reporting.
 
 A `/admin/*` area exists, is visually unmistakable from the miner-facing app, is
-gated to the `RequireAdminRole` policy from Phase 2, and denies non-admins gracefully
+  gated to the `RequireAdminRole` policy from Phase 2b, and denies non-admins gracefully
 (no raw exception, no confusing redirect loop).
 
 ## Locked decisions
@@ -107,8 +109,9 @@ gated to the `RequireAdminRole` policy from Phase 2, and denies non-admins grace
 4. **Landing page (`/admin`) shows row counts for all 7 master data tables plus the
    admin user count**, nothing more elaborate for this phase (no charts, no recent-
    activity feed — that's future work if ever wanted). Query
-   `ApplicationDbContext` directly for the counts; no need for a dedicated service
-   layer for something this simple.
+     Admin's read-only `MasterDataDbContext` for the counts; no need for a dedicated
+     service layer for something this simple. The context maps shared contracts from
+     `OMM.Shared` to Public-owned tables and does not own their migrations.
 
 5. **Sidebar nav for this phase — links exist, most pages are stubs:**
    - **Dashboard** → `/admin` (real — the landing page from decision 4)
@@ -168,7 +171,8 @@ gated to the `RequireAdminRole` policy from Phase 2, and denies non-admins grace
    required by both applications. Keep the existing `omm` project working. Configure
    separate local ports and separate Identity connection/configuration for the two
    applications. Do not copy the public app's pages into `OMM.Admin` and do not create
-   a second, conflicting EF migration history.
+  a duplicate migration history for the Public-owned master-data tables. Admin's
+  own Identity migration history is required.
 
 1. **Fix the admin app's `Routes.razor` `NotAuthorized` template:**
 ```razor

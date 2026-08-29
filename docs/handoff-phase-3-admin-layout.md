@@ -12,19 +12,23 @@ criteria. Do not infer additional features from this handoff.
   still pending)
 - Shared project: `OMM.Shared`
 - Database: PostgreSQL on Neon, development branch only
-- Database access: EF Core remains the single migration owner; Dapper is used where
-  appropriate for business/reference-data access
+- Database access: EF Core owns migrations per schema/store. `OMM.Public` owns
+  shared master-data migrations; `OMM.Admin` owns its Admin Identity migrations.
+  Dapper is used where appropriate for business/reference-data access
 - Public stock lookup: supports `Database` and `Json` through
   `StockLookup:Provider`, with process-local `IMemoryCache` and configurable
   `StockLookup:CacheDays` (default 30)
 - Phase 1: completed and merged
 - Phase 2: completed and merged
+- Phase 2b: required prerequisite; Admin Identity bootstrap is not yet complete
 - Phase 3: next incomplete phase
 - Phase 4: must wait until Phase 3 is complete
 
 ## Task
 
-Execute `docs/phase-3-admin-layout.md` exactly as written. Build the separate admin
+Execute `docs/phase-2b-admin-identity-bootstrap.md` first if its acceptance criteria
+are not already verified. Then execute `docs/phase-3-admin-layout.md` exactly as
+written. Build the separate admin
 application shell, login boundary, authorization behavior, admin layout, dashboard,
 and four authenticated stub routes.
 

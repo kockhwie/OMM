@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using OMM.Public.Components;
 using OMM.Public.Components.Account;
 using OMM.Public.Data;
@@ -13,6 +14,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddScoped<IMineService, MockMineService>();
+builder.Services.AddMemoryCache();
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityRedirectManager>();
@@ -30,6 +32,11 @@ builder.Services.AddAuthorizationBuilder(); // Non-Admin
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
+builder.Services.AddSingleton(NpgsqlDataSource.Create(connectionString));
+builder.Services.AddOptions<StockLookupOptions>()
+    .Bind(builder.Configuration.GetSection("StockLookup"))
+    .Validate(options => options.CacheDays > 0, "StockLookup:CacheDays must be greater than zero.")
+    .ValidateOnStart();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddIdentityCore<ApplicationUser>(options =>

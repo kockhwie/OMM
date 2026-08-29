@@ -1,5 +1,8 @@
-using System.Text.Json;
+using Dapper;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using OMM.Public.Models;
+using System.Text.Json;
 
 namespace OMM.Public.Services;
 
@@ -9,56 +12,101 @@ public interface IKlseStockLookupService
     /// this gets called once per StockAutosuggest instance, and the list rarely changes
     /// within a session.</summary>
     Task<IReadOnlyList<KlseStock>> GetAllAsync();
+
+    /// <summary>Removes the cached list so the next lookup reloads the configured source.</summary>
+    Task RefreshAsync();
 }
 
 /// <summary>
-/// Default implementation: reads wwwroot/data/klse-stocks.json once and caches it in memory.
-///
-/// You already have a KLSE code/name list — the easiest path is to export it to that same
-/// JSON shape (an array of {"code": "...", "name": "..."}) and drop it in wwwroot/data/.
-/// If your list instead lives in a database or comes from an API, just write a different
-/// IKlseStockLookupService implementation and swap the registration in Program.cs —
-/// nothing else in the autosuggest component needs to change.
+/// Default implementation: reads the active stock lookup fields from PostgreSQL once
+/// and caches them in memory. The UI contract remains independent of the data provider.
 /// </summary>
-public sealed class KlseStockLookupService(IWebHostEnvironment env) : IKlseStockLookupService
+public sealed class KlseStockLookupService(
+    Npgsql.NpgsqlDataSource dataSource,
+    IWebHostEnvironment environment,
+    IMemoryCache cache,
+    IOptions<StockLookupOptions> options) : IKlseStockLookupService
 {
+    private const string CacheKey = "stock-lookup:active-stocks";
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true
     };
 
-    private List<KlseStock>? _cache;
     private readonly SemaphoreSlim _lock = new(1, 1);
 
     public async Task<IReadOnlyList<KlseStock>> GetAllAsync()
     {
-        if (_cache is not null)
+        if (cache.TryGetValue(CacheKey, out IReadOnlyList<KlseStock>? cachedStocks))
         {
-            return _cache;
+            return cachedStocks!;
         }
 
         await _lock.WaitAsync();
         try
         {
-            if (_cache is not null)
+            if (cache.TryGetValue(CacheKey, out cachedStocks))
             {
-                return _cache;
+                return cachedStocks!;
             }
 
-            var path = Path.Combine(env.WebRootPath, "data", "klse-stocks.json");
-            if (!File.Exists(path))
+            var provider = options.Value.Provider?.Trim();
+            var stocks = provider?.ToUpperInvariant() switch
             {
-                _cache = [];
-                return _cache;
-            }
+                null or "" or "DATABASE" => await LoadFromDatabaseAsync(),
+                "JSON" => await LoadFromJsonAsync(),
+                _ => throw new InvalidOperationException(
+                    "Invalid StockLookup:Provider. Use 'Database' or 'Json'.")
+            };
 
-            await using var stream = File.OpenRead(path);
-            _cache = await JsonSerializer.DeserializeAsync<List<KlseStock>>(stream, JsonOptions) ?? [];
-            return _cache;
+            cache.Set<IReadOnlyList<KlseStock>>(
+                CacheKey,
+                stocks,
+                new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(options.Value.CacheDays)
+                });
+
+            return stocks;
         }
         finally
         {
             _lock.Release();
         }
+    }
+
+    public Task RefreshAsync()
+    {
+        cache.Remove(CacheKey);
+        return Task.CompletedTask;
+    }
+
+    private async Task<List<KlseStock>> LoadFromDatabaseAsync()
+    {
+        const string sql = """
+            SELECT "Id",
+                   "StockCode" AS "Code",
+                   "ShortName_EN" AS "Name"
+            FROM "Stock"
+            WHERE "IsDeleted" = FALSE
+              AND "IsActive" = TRUE
+            ORDER BY "StockCode";
+            """;
+
+        await using var connection = await dataSource.OpenConnectionAsync();
+        var stocks = await connection.QueryAsync<KlseStock>(sql);
+        return stocks.ToList();
+    }
+
+    private async Task<List<KlseStock>> LoadFromJsonAsync()
+    {
+        var path = Path.Combine(environment.WebRootPath, "data", "klse-stocks.json");
+        if (!File.Exists(path))
+        {
+            return [];
+        }
+
+        await using var stream = File.OpenRead(path);
+        return await JsonSerializer.DeserializeAsync<List<KlseStock>>(stream, JsonOptions) ?? [];
     }
 }

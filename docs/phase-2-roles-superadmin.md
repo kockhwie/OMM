@@ -39,7 +39,7 @@ password change; account lockout is enabled app-wide.
 ## Locked decisions
 
 1. **No stored `DisplayName`.** Every admin user has `FirstName` and `LastName`
-   (`nvarchar(50)` each in SQL Server) on `ApplicationUser`. Anywhere a name needs to be displayed,
+   (length 50 each in the PostgreSQL Identity schema) on `ApplicationUser`. Anywhere a name needs to be displayed,
    compute `$"{FirstName} {LastName}"` — don't store a separate display string that
    could drift out of sync.
 2. **Roles: `Admin` and `SuperAdmin`.** Not job-title names (`DataEntry`, etc.) — the
@@ -168,7 +168,7 @@ password change; account lockout is enabled app-wide.
 
 ## Execution notes
 
-- The Phase 2 migration was applied to the local-only SQL Express database
+- The Phase 2 migration was applied to the Neon development branch only
   `omm_phase1_dev_20260827`; no shared or production database was used.
 - Initial passwords are configured through User Secrets keys
   `SeedData:SuperAdminInitialPassword` and `SeedData:AdminInitialPassword`; password

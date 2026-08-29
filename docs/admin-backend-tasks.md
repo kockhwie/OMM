@@ -10,6 +10,34 @@
 > Work strictly in phase order — each phase's acceptance criteria assume all prior
 > phases are done and merged.
 
+## Current architecture and execution status
+
+- The active solution is `OMMv2.slnx` with three projects: `OMM.Public`,
+  `OMM.Admin`, and `OMM.Shared`.
+- `OMM.Public` and `OMM.Admin` are separate ASP.NET Core applications in one
+  repository. They may run on the same host initially and be deployed as separate
+  services later.
+- PostgreSQL on Neon is the current database platform. The `development` branch is
+  the development database; never run migrations against a shared or production
+  database during development.
+- EF Core remains the migration owner and is retained for ASP.NET Identity and the
+  relational model. Dapper is used for the public stock-lookup read path. Do not
+  introduce a second competing migration history.
+- Public and admin Identity stores, cookies, secrets, and Data Protection keys remain
+  separate. Do not implement cross-application single sign-on.
+- Stock lookup supports both providers through `StockLookup:Provider`: `Database`
+  (default, Dapper/PostgreSQL) or `Json` (the existing
+  `wwwroot/data/klse-stocks.json`). The lookup is cached with `IMemoryCache`; the
+  default expiration is 30 days and is configured by `StockLookup:CacheDays`.
+- The cache is process-local. An admin refresh action cannot clear the public app's
+  cache merely by calling its own cache service. Cross-application invalidation must
+  be designed and secured when stock CRUD is implemented; it is not part of the
+  current admin shell work.
+- Phase 1 and Phase 2 have been completed and merged. Phase 3 is the next incomplete
+  phase. Phase 4 follows Phase 3. The stock lookup portion of Phase 7 was implemented
+  early, but Phase 7 remains incomplete until its Institution work and dependencies
+  are complete.
+
 ---
 
 ## Phase 1 — Schema & Migration
@@ -42,13 +70,10 @@ in.
 - Fresh DB migrates cleanly.
 - `SELECT COUNT(*) FROM Stock` matches the row count in `klse-stocks.json` (~900).
 - Soft-deleting a `Stock` row hides it from a normal query but the row still exists.
-- `CreatedByUserId` on every seeded row resolves to the `superadmin` user from Phase 2
-  (seed order: Phase 2's `superadmin` user must exist before this seed runs, or use a
-  placeholder well-known GUID and backfill).
+- `CreatedByUserId` is nullable in this phase and is `NULL` for every seeded row.
+  Do not create a placeholder `AspNetUsers` row.
 
-**Depends on:** nothing (can start immediately), except the `superadmin` user ID
-needed for seed `CreatedByUserId` — coordinate with Phase 2 or seed with a fixed known
-ID.
+**Depends on:** nothing (can start immediately).
 
 ---
 
@@ -79,8 +104,8 @@ admin backend and to attribute seed data to.
 
 ## Phase 3 — Admin Layout & Navigation
 
-**Goal:** a distinct `/admin/*` area, visually separate from the miner-facing
-`DashboardLayout`, gated to the `Admin` role.
+**Goal:** a distinct `/admin/*` area in `OMM.Admin`, visually separate from the
+miner-facing `DashboardLayout`, gated to the `Admin` role.
 
 **Tasks:**
 1. `AdminLayout.razor` — separate sidebar/nav from the miner-facing app; apply
@@ -176,19 +201,23 @@ area (Mines/FD/savings forms).
 
 ## Phase 7 — Wire Existing Features to the New Tables
 
-**Goal:** replace the static-JSON/free-text stopgaps now that real tables exist.
+**Goal:** replace the remaining static-JSON/free-text stopgaps now that real tables
+exist.
 
 **Tasks:**
-1. Replace `IKlseStockLookupService`'s JSON-file read with a DB-backed
-   implementation querying `Stock` (keep the interface unchanged so
-   `StockSearchPicker`/`StockAutosuggest` don't need to change).
+1. The stock lookup now has a DB-backed implementation querying `Stock`, while
+   retaining the JSON provider as an explicit fallback selected by
+   `StockLookup:Provider`. Keep the interface unchanged so
+   `StockSearchPicker`/`StockAutosuggest` don't need to change. This subtask is
+   already implemented early; verify it remains compatible with the completed Stock
+   CRUD work.
 2. Replace `Mine.Institution` (currently free text) with a dropdown backed by
    `Institution`, in `Mines.razor`'s add-mine modal (and anywhere else institution is
    entered as free text).
 
 **Acceptance criteria:**
 - The dividend calculator's stock search still works exactly as before, from the
-  user's point of view, but is now reading from the database.
+  user's point of view, and the default provider reads from the database.
 - Adding a new Mine offers a real Institution dropdown instead of a free-text box.
 
 **Depends on:** Phase 5 (Stock data must exist and be correct), Phase 6 (Institution
@@ -206,6 +235,10 @@ Not part of this round — listed so nobody accidentally starts on these early:
   `market-data-design.md` §4.7).
 - Internal calculation job (recomputes `PE`/`PB`/`DividendYield` from raw fields,
   updates `LastCalculatedAt`).
+- Cross-application stock-cache invalidation or a secure admin-triggered refresh
+  endpoint. The public cache is process-local, so this must be designed for the
+  separate `OMM.Admin` and `OMM.Public` processes rather than assuming a shared
+  in-memory cache.
 - Superadmin override mode for fundamentals fields (mentioned as "maybe one day" —
   not designed yet).
 - Phase 2 market expansion (US: `Country` = US, GICS-based `Sector` seed, Nasdaq/NYSE

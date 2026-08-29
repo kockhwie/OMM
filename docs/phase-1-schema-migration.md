@@ -7,10 +7,11 @@
 
 ## Project context
 
-- ASP.NET Core Blazor Server app (`omm.csproj`, `net10.0`), EF Core + SQL Server,
+- ASP.NET Core Blazor Server app (`OMM.Public/OMM.Public.csproj`, `net10.0`),
+  EF Core + PostgreSQL (Neon),
   ASP.NET Identity already scaffolded (`Data/ApplicationUser.cs`,
   `Data/ApplicationDbContext.cs`).
-- Existing stock data lives as static JSON at `wwwroot/data/klse-stocks.json`
+- Existing stock data lives as static JSON at `OMM.Public/wwwroot/data/klse-stocks.json`
   (1,058 rows at execution time, shape: `{ "name": "...", "code": "...", "price": "" }`), read at runtime
   by `Services/IKlseStockLookupService.cs`. **This phase does not touch that service**
   — it only gets the data into the database. Wiring the service to read from the DB
@@ -229,8 +230,11 @@ anyway).
 
 ## Execution notes
 
-- Executed on August 27, 2026 against the local-only SQL Express database
-  `omm_phase1_dev_20260827`; no shared or production database was used.
+- Executed on August 27, 2026 against the Neon `development` branch for project
+  `rough-forest-74734072`; no shared or production database was used.
+- The migration is PostgreSQL-specific and must not be applied with the SQL Server
+  provider. Runtime application connections use the pooled Neon URL; migration
+  operations use the direct/unpooled development URL.
 - Reference tables use `HasData(...)`.
 - Stocks use the separate `Data/StockDataSeeder.cs` startup seed method, which runs in
   Development after migrations and reads `wwwroot/data/klse-stocks.json`.
@@ -242,5 +246,6 @@ anyway).
 
 - Anything about roles, the `superadmin` account itself, or admin UI/pages — that's
   Phases 2–6.
-- Wiring `IKlseStockLookupService` to read from the DB — that's Phase 7.
+- Wiring `IKlseStockLookupService` to read from the DB — implemented later as an
+  early part of Phase 7, while retaining the JSON provider as a configured fallback.
 - Any scraper or calculation job for fundamentals — that's Phase 8, not scheduled.

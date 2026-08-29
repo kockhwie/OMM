@@ -10,10 +10,10 @@
   Render services.
 - Intended solution shape:
   ```text
-  OMM.slnx
-  ├── omm                  # public website and member dashboard
-  ├── ommadmin             # admin-only website/backend
-  └── Omm.Shared           # shared entities, DTOs, contracts, reusable services
+  OMMv2.slnx
+  ├── OMM.Public           # public website and member dashboard
+  ├── OMM.Admin            # admin-only website/backend
+  └── OMM.Shared           # shared entities, DTOs, contracts, reusable services
   ```
 - Both applications may initially run on the same machine or host as separate
   processes. The boundary exists so admin requests and future heavy work do not
@@ -24,6 +24,15 @@
   account; cross-application single sign-on is intentionally not used.
 - Business data may be shared, but database access must be explicit and least
   privileged. The public app must not access the admin Identity store.
+- PostgreSQL on Neon is the current database platform. EF Core remains the single
+  migration owner for Identity and the relational model; Dapper is used for business
+  data access where appropriate.
+- Stock lookup supports `Database` and `Json` providers through
+  `StockLookup:Provider`. The database provider is the default. Results use a
+  process-local `IMemoryCache` with `StockLookup:CacheDays` (default 30 days).
+- The stock cache is process-local. Admin-triggered refresh and cross-application
+  invalidation are later work and must use a deliberate, secured mechanism; an
+  `OMM.Admin` memory-cache clear cannot directly clear `OMM.Public` memory.
 - Only one project or controlled deployment step owns EF Core migrations. The public
   and admin projects must not independently create or apply migrations to one database.
 
@@ -53,7 +62,7 @@
 ```
   Every `.razor` page in that folder automatically gets `ManageLayout` and requires
   authentication, with zero per-page boilerplate. This phase does the same thing for
-  a new `ommadmin/Components/Pages/Admin/` folder, using the `RequireAdminRole` policy from
+  a new `OMM.Admin/Components/Pages/Admin/` folder, using the `RequireAdminRole` policy from
   Phase 2 instead of a bare `[Authorize]`.
 - `wwwroot/app.css` already has `.sidebar-link` / `.sidebar-link.active` styling used
   by `DashboardLayout`. Reusable for `AdminLayout`, but see the visual-distinction
@@ -61,7 +70,7 @@
 
 ## Goal
 
-This phase creates the independently hostable `ommadmin` application and its admin
+This phase creates the independently hostable `OMM.Admin` application and its admin
 shell. It does not create CRUD, grids, reference-data editing, user management,
 maintenance controls, cache controls, or reporting.
 
@@ -71,7 +80,7 @@ gated to the `RequireAdminRole` policy from Phase 2, and denies non-admins grace
 
 ## Locked decisions
 
-1. **New admin project and pages folder: `ommadmin/Components/Pages/Admin/`**, with a single
+1. **New admin project and pages folder: `OMM.Admin/Components/Pages/Admin/`**, with a single
    `_Imports.razor` in it applying `@layout AdminLayout` and
    `@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = "RequireAdminRole")]`
    — mirroring the existing `Manage/_Imports.razor` pattern exactly. Every admin page
@@ -115,8 +124,8 @@ gated to the `RequireAdminRole` policy from Phase 2, and denies non-admins grace
 
 6. **Separate admin login and Identity boundary.** Add the admin app's `/login` route;
    when hosted at the admin service this is reached through the separate
-   `ommadmin` host (for example `https://admin.example.com/login`). It uses the
-   `ommadmin` application's separate ASP.NET Identity store and
+   `OMM.Admin` host (for example `https://admin.example.com/login`). It uses the
+   `OMM.Admin` application's separate ASP.NET Identity store and
    authentication system, but accepts only users in the `Admin` or `SuperAdmin` role and redirects
    successful logins to `/admin`. The existing public `/Account/Login` flow and public
    Identity store remain separate. The hostname/path is not itself a security boundary;
@@ -129,9 +138,9 @@ gated to the `RequireAdminRole` policy from Phase 2, and denies non-admins grace
 
 ## Architecture and deployment notes
 
-- `ommadmin` is a separate ASP.NET Core project in the same solution and repository;
+- `OMM.Admin` is a separate ASP.NET Core project in the same solution and repository;
   it is not a folder of pages inside `omm`.
-- `Omm.Shared` is the intended home for genuinely shared entities, DTOs, contracts,
+- `OMM.Shared` is the intended home for genuinely shared entities, DTOs, contracts,
   and reusable services. Do not duplicate business rules or EF entities. Do not move
   unrelated code merely to create the project; keep the Phase 3 change focused.
 - The public and admin applications use separate Identity stores, cookies, secrets,
@@ -139,7 +148,7 @@ gated to the `RequireAdminRole` policy from Phase 2, and denies non-admins grace
 - The business-data database can be shared, but connection permissions must be least
   privileged. Public and admin apps must not use the same unrestricted database login.
 - Local development uses separate HTTPS processes/ports, for example
-  `https://localhost:5001` for `omm` and `https://localhost:5002` for `ommadmin`.
+  separate HTTPS ports configured by the two projects' launch profiles.
 - Production uses separate Render web services from this monorepo. The public service
   retains its existing Render URL; the admin service receives its own `onrender.com`
   URL and may later use `admin.<company-domain>`.
@@ -154,11 +163,11 @@ gated to the `RequireAdminRole` policy from Phase 2, and denies non-admins grace
 
 ## Tasks
 
-0. **Create the solution boundaries.** Add the `ommadmin` ASP.NET Core project to
-   `OMM.slnx` and add `Omm.Shared` only if shared entities/contracts/services are
+0. **Create the solution boundaries.** Confirm the `OMM.Admin` ASP.NET Core project is
+   present in `OMMv2.slnx` and add `OMM.Shared` only if shared entities/contracts/services are
    required by both applications. Keep the existing `omm` project working. Configure
    separate local ports and separate Identity connection/configuration for the two
-   applications. Do not copy the public app's pages into `ommadmin` and do not create
+   applications. Do not copy the public app's pages into `OMM.Admin` and do not create
    a second, conflicting EF migration history.
 
 1. **Fix the admin app's `Routes.razor` `NotAuthorized` template:**
@@ -174,7 +183,7 @@ gated to the `RequireAdminRole` policy from Phase 2, and denies non-admins grace
        }
    </NotAuthorized>
 ```
-   Create `ommadmin/Components/Account/Shared/RedirectToAccessDenied.razor`, mirroring the
+   Create `OMM.Admin/Components/Account/Shared/RedirectToAccessDenied.razor`, mirroring the
    existing `RedirectToLogin.razor` exactly, but navigating to
    `Account/AccessDenied` instead of `Account/Login`:
 ```razor
@@ -188,7 +197,7 @@ gated to the `RequireAdminRole` policy from Phase 2, and denies non-admins grace
    }
 ```
 
-   Add `ommadmin/Components/Pages/OmmAdminLogin.razor` at `/login` within the admin
+   Add `OMM.Admin/Components/Pages/OmmAdminLogin.razor` at `/login` within the admin
    application (the deployed app is reached through its admin hostname). It must reuse
    the existing Identity login capabilities and email-based login behavior, including
    passkey, two-factor, lockout, and forced-password-change handling. It must reject a
@@ -197,7 +206,7 @@ gated to the `RequireAdminRole` policy from Phase 2, and denies non-admins grace
    `omm`; the admin app uses its separate admin Identity
    store and cookie.
 
-2. **Create `ommadmin/Components/Layout/AdminLayout.razor`:**
+2. **Create `OMM.Admin/Components/Layout/AdminLayout.razor`:**
    - Sidebar with the 5 nav links from "Locked decisions" §5, using `<NavLink>`
      components the same way `DashboardLayout.razor` does (reuse `.sidebar-link` /
      `.sidebar-link.active` CSS classes for structural consistency).
@@ -208,13 +217,13 @@ gated to the `RequireAdminRole` policy from Phase 2, and denies non-admins grace
    - Does **not** inject `IMineService` — that's member-facing mock data, irrelevant
      here.
 
-3. **Create `ommadmin/Components/Pages/Admin/_Imports.razor`:**
+3. **Create `OMM.Admin/Components/Pages/Admin/_Imports.razor`:**
 ```razor
    @layout AdminLayout
    @attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = "RequireAdminRole")]
 ```
 
-4. **Create `ommadmin/Components/Pages/Admin/Index.razor`** (`@page "/admin"`):
+4. **Create `OMM.Admin/Components/Pages/Admin/Index.razor`** (`@page "/admin"`):
    - Inject `ApplicationDbContext`.
    - Query and display row counts: `Country`, `Exchange`, `Market`, `Sector`,
      `SubSector`, `Institution`, `Stock`, and total admin users (users with either
@@ -224,7 +233,7 @@ gated to the `RequireAdminRole` policy from Phase 2, and denies non-admins grace
    - Simple card/grid layout is fine — reuse `MetricCard.razor` from
      `Components/Shared/` if it fits cleanly, it's already generic.
 
-5. **Create the 4 stub pages** under `ommadmin/Components/Pages/Admin/`:
+5. **Create the 4 stub pages** under `OMM.Admin/Components/Pages/Admin/`:
    - `KlseStocks.razor` (`@page "/admin/klse-stocks"`)
    - `Institutions.razor` (`@page "/admin/institutions"`)
    - `ReferenceData.razor` (`@page "/admin/reference-data"`)
@@ -251,7 +260,7 @@ gated to the `RequireAdminRole` policy from Phase 2, and denies non-admins grace
       original, unaffected behavior for anonymous users).
 - [ ] The admin area is visually distinguishable from the miner dashboard at a      
       glance (confirms the CSS decision in §3 was actually implemented, not skipped).
-- [ ] `ommadmin` is a separate project from `omm`, uses its own Identity store and
+- [ ] `OMM.Admin` is a separate project from `OMM.Public`, uses its own Identity store and
       authentication cookie, and does not share Data Protection keys with `omm`.
 - [ ] The public and admin applications can run as separate local processes and the
       solution builds without either project independently applying shared-database

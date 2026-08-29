@@ -16,13 +16,32 @@
 | [`docs/phase-1-schema-migration.md`](docs/phase-1-schema-migration.md) | **Standalone, self-contained Phase 1 doc.** Everything needed to execute Phase 1 (schema + migration + seed) is inlined here — hand this single file to an agent and they shouldn't need to open the other two. |
 | [`docs/calculator-history-product-direction.md`](docs/calculator-history-product-direction.md) | **Future product direction.** Defines guest calculator history, registration handoff, and the explicit “Save as Mine” flow. |
 
+## Current architecture decisions
+
+- The active solution is `OMMv2.slnx` with `OMM.Public`, `OMM.Admin`, and
+  `OMM.Shared` projects in one repository. Public and admin applications are
+  independently hostable and use separate Identity stores, cookies, secrets, and
+  Data Protection keys.
+- PostgreSQL on Neon is the current database platform. Use the Neon `development`
+  branch for development and never run migrations against shared or production
+  databases during development.
+- EF Core remains the single migration owner and continues to handle ASP.NET
+  Identity. Dapper is used for business/reference-data access where appropriate;
+  this is a hybrid design, not an EF replacement.
+- Stock lookup supports `Database` and `Json` providers through
+  `StockLookup:Provider`. The database provider is the default, while the existing
+  JSON file remains available as a fallback. Lookup results use process-local
+  `IMemoryCache` with a configurable `StockLookup:CacheDays` value (default 30).
+- A future admin refresh action must account for separate app processes: clearing
+  `OMM.Admin` memory does not clear `OMM.Public` memory. Secure cross-application
+  invalidation is later work and must not be assumed to be provided by the current
+  in-memory cache.
+
 ## Handing this to another AI agent (e.g. Codex)
 
-Give the agent **`docs/phase-1-schema-migration.md` only**, not this whole repo's
-context. It's written to be fully self-contained for that one phase. Once Phase 1 is
-reviewed and merged, a similar standalone doc should exist for Phase 2 before handing
-that off — copy the pattern from `docs/admin-backend-tasks.md`'s Phase 2 section and
-expand it the same way `phase-1-schema-migration.md` expanded Phase 1's.
+Give the agent the relevant standalone phase document only, not this whole repo's
+context. Each standalone phase document must identify the current project names,
+database/provider decisions, scope boundaries, and exact acceptance criteria.
 
 **Recommended process per phase:**
 1. Work in a feature branch, not `main`.
@@ -42,8 +61,8 @@ expand it the same way `phase-1-schema-migration.md` expanded Phase 1's.
 - [x] Schema reconciled and locked (`docs/market-data-design.md`)
 - [x] Phase breakdown written (`docs/admin-backend-tasks.md`)
 - [x] Phase 1 standalone doc ready to hand off (`docs/phase-1-schema-migration.md`)
-- [ ] Phase 1 executed
-- [ ] Phase 2 executed
+- [x] Phase 1 executed and merged
+- [x] Phase 2 executed and merged
 - [ ] Phase 3 executed
 - [ ] Phase 4 executed
 - [ ] Phase 5 executed

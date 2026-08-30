@@ -1,30 +1,225 @@
 @page "/admin/reference-data"
+@rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
+@using OMM.Admin.Data
+@inject MasterDataDbContext DbContext
 
 <PageTitle>Markets & Sectors - OMM Admin</PageTitle>
 
 <div class="container-fluid p-0">
-    <div class="d-flex align-items-center justify-content-between mb-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
         <div>
-            <h1 class="h3 fw-bold text-dark mb-1">Markets & Sectors</h1>
-            <p class="text-muted mb-0">Reference data taxonomy including countries, exchanges, markets, sectors, and sub-sectors.</p>
+            <h1 class="h3 fw-bold text-dark mb-1">Markets & Sectors Taxonomy</h1>
+            <p class="text-muted mb-0">Browse Malaysian and global stock exchange reference data, sector groupings, and classifications.</p>
         </div>
         <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-2">
-            <i class="ti ti-lock me-1"></i> Read-Only Reference Data
+            <i class="ti ti-lock me-1"></i> Read-Only Master Reference
         </span>
     </div>
 
-    <div class="omm-card p-5 text-center">
-        <div class="stat-icon-wrapper bg-warning-subtle text-warning mx-auto mb-3" style="width: 64px; height: 64px; font-size: 2rem; border-radius: 16px;">
-            <i class="ti ti-world"></i>
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-pills gap-2 mb-3 bg-white p-2 rounded-3 shadow-sm border">
+        <li class="nav-item">
+            <button class="nav-link btn-sm @(_activeTab == "markets" ? "active bg-danger" : "text-dark")" @onclick="@(() => SwitchTab("markets"))">
+                <i class="ti ti-building-bank me-1"></i> Markets (@_markets.Count)
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link btn-sm @(_activeTab == "sectors" ? "active bg-danger" : "text-dark")" @onclick="@(() => SwitchTab("sectors"))">
+                <i class="ti ti-category me-1"></i> Sectors (@_sectors.Count)
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link btn-sm @(_activeTab == "subsectors" ? "active bg-danger" : "text-dark")" @onclick="@(() => SwitchTab("subsectors"))">
+                <i class="ti ti-subtask me-1"></i> Sub-Sectors (@_subSectors.Count)
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link btn-sm @(_activeTab == "exchanges" ? "active bg-danger" : "text-dark")" @onclick="@(() => SwitchTab("exchanges"))">
+                <i class="ti ti-building-skyscraper me-1"></i> Exchanges (@_exchanges.Count)
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link btn-sm @(_activeTab == "countries" ? "active bg-danger" : "text-dark")" @onclick="@(() => SwitchTab("countries"))">
+                <i class="ti ti-world me-1"></i> Countries (@_countries.Count)
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    @if (_isLoading)
+    {
+        <div class="card p-5 text-center border-0 shadow-sm rounded-3">
+            <div class="spinner-border text-danger mx-auto mb-2" role="status"></div>
+            <span class="text-muted small">Loading reference taxonomy...</span>
         </div>
-        <h2 class="h4 fw-bold mb-2">Reference Data Taxonomy</h2>
-        <p class="text-muted mx-auto mb-4" style="max-width: 480px;">
-            Countries, Exchanges, Markets, Sectors, and Sub-Sectors are seeded master taxonomy data. An interactive explorer will be delivered in a future update.
-        </p>
-        <div>
-            <a href="admin" class="btn btn-outline-secondary btn-sm">
-                <i class="ti ti-arrow-left me-1"></i> Back to Dashboard
-            </a>
-        </div>
-    </div>
+    }
+    else
+    {
+        @if (_activeTab == "markets")
+        {
+            <AdminDataGrid TItem="Market" Items="@_markets" PageSize="10">
+                <Columns>
+                    <GridColumn TItem="Market" Field="@(m => m.MarketCode)" Title="Code" Sortable="true">
+                        <Template Context="m">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle font-monospace fw-bold">
+                                @m.MarketCode
+                            </span>
+                        </Template>
+                    </GridColumn>
+                    <GridColumn TItem="Market" Field="@(m => m.MarketName_EN)" Title="Market Name (EN)" Sortable="true" />
+                    <GridColumn TItem="Market" Field="@(m => m.MarketName_ZH_TW)" Title="Traditional Chinese" Sortable="true" />
+                    <GridColumn TItem="Market" Title="Exchange" Sortable="true">
+                        <Template Context="m">
+                            <span class="fw-semibold">@(m.Exchange?.ExchangeName_EN ?? m.Exchange?.ExchangeCode ?? "-")</span>
+                        </Template>
+                    </GridColumn>
+                    <GridColumn TItem="Market" Field="@(m => m.IsActive)" Title="Status" Sortable="true">
+                        <Template Context="m">
+                            <span class="badge @(m.IsActive ? "bg-success-subtle text-success" : "bg-secondary-subtle text-secondary")">
+                                @(m.IsActive ? "Active" : "Inactive")
+                            </span>
+                        </Template>
+                    </GridColumn>
+                </Columns>
+            </AdminDataGrid>
+        }
+        else if (_activeTab == "sectors")
+        {
+            <AdminDataGrid TItem="Sector" Items="@_sectors" PageSize="15">
+                <Columns>
+                    <GridColumn TItem="Sector" Field="@(s => s.SectorCode)" Title="Code" Sortable="true">
+                        <Template Context="s">
+                            <span class="badge bg-light text-dark border font-monospace fw-bold">@s.SectorCode</span>
+                        </Template>
+                    </GridColumn>
+                    <GridColumn TItem="Sector" Field="@(s => s.SectorName_EN)" Title="Sector Name (EN)" Sortable="true" />
+                    <GridColumn TItem="Sector" Field="@(s => s.SectorName_ZH_TW)" Title="Chinese (Traditional)" Sortable="true" />
+                    <GridColumn TItem="Sector" Title="Country" Sortable="true">
+                        <Template Context="s">
+                            <span>@(s.Country?.CountryName_EN ?? s.Country?.CountryCode ?? "-")</span>
+                        </Template>
+                    </GridColumn>
+                    <GridColumn TItem="Sector" Field="@(s => s.IsActive)" Title="Status" Sortable="true">
+                        <Template Context="s">
+                            <span class="badge @(s.IsActive ? "bg-success-subtle text-success" : "bg-secondary-subtle text-secondary")">
+                                @(s.IsActive ? "Active" : "Inactive")
+                            </span>
+                        </Template>
+                    </GridColumn>
+                </Columns>
+            </AdminDataGrid>
+        }
+        else if (_activeTab == "subsectors")
+        {
+            <AdminDataGrid TItem="SubSector" Items="@_subSectors" PageSize="20">
+                <Columns>
+                    <GridColumn TItem="SubSector" Field="@(ss => ss.SubSectorCode)" Title="Code" Sortable="true">
+                        <Template Context="ss">
+                            <span class="badge bg-light text-dark border font-monospace fw-bold">@ss.SubSectorCode</span>
+                        </Template>
+                    </GridColumn>
+                    <GridColumn TItem="SubSector" Field="@(ss => ss.SubSectorName_EN)" Title="Sub-Sector Name" Sortable="true" />
+                    <GridColumn TItem="SubSector" Title="Parent Sector" Sortable="true">
+                        <Template Context="ss">
+                            <span class="badge bg-info-subtle text-info border border-info-subtle">
+                                @(ss.Sector?.SectorName_EN ?? "-")
+                            </span>
+                        </Template>
+                    </GridColumn>
+                    <GridColumn TItem="SubSector" Field="@(ss => ss.IsActive)" Title="Status" Sortable="true">
+                        <Template Context="ss">
+                            <span class="badge @(ss.IsActive ? "bg-success-subtle text-success" : "bg-secondary-subtle text-secondary")">
+                                @(ss.IsActive ? "Active" : "Inactive")
+                            </span>
+                        </Template>
+                    </GridColumn>
+                </Columns>
+            </AdminDataGrid>
+        }
+        else if (_activeTab == "exchanges")
+        {
+            <AdminDataGrid TItem="Exchange" Items="@_exchanges" PageSize="10">
+                <Columns>
+                    <GridColumn TItem="Exchange" Field="@(e => e.ExchangeCode)" Title="Code" Sortable="true">
+                        <Template Context="e">
+                            <span class="badge bg-dark text-white font-monospace">@e.ExchangeCode</span>
+                        </Template>
+                    </GridColumn>
+                    <GridColumn TItem="Exchange" Field="@(e => e.ExchangeName_EN)" Title="Exchange Name" Sortable="true" />
+                    <GridColumn TItem="Exchange" Title="Country" Sortable="true">
+                        <Template Context="e">
+                            <span>@(e.Country?.CountryName_EN ?? e.Country?.CountryCode ?? "-")</span>
+                        </Template>
+                    </GridColumn>
+                    <GridColumn TItem="Exchange" Field="@(e => e.IsActive)" Title="Status" Sortable="true">
+                        <Template Context="e">
+                            <span class="badge @(e.IsActive ? "bg-success-subtle text-success" : "bg-secondary-subtle text-secondary")">
+                                @(e.IsActive ? "Active" : "Inactive")
+                            </span>
+                        </Template>
+                    </GridColumn>
+                </Columns>
+            </AdminDataGrid>
+        }
+        else if (_activeTab == "countries")
+        {
+            <AdminDataGrid TItem="Country" Items="@_countries" PageSize="10">
+                <Columns>
+                    <GridColumn TItem="Country" Field="@(c => c.CountryCode)" Title="ISO Code" Sortable="true">
+                        <Template Context="c">
+                            <span class="badge bg-secondary font-monospace">@c.CountryCode</span>
+                        </Template>
+                    </GridColumn>
+                    <GridColumn TItem="Country" Field="@(c => c.CountryName_EN)" Title="Country Name (EN)" Sortable="true" />
+                    <GridColumn TItem="Country" Field="@(c => c.CountryName_ZH_TW)" Title="Traditional Chinese" Sortable="true" />
+                    <GridColumn TItem="Country" Field="@(c => c.IsActive)" Title="Status" Sortable="true">
+                        <Template Context="c">
+                            <span class="badge @(c.IsActive ? "bg-success-subtle text-success" : "bg-secondary-subtle text-secondary")">
+                                @(c.IsActive ? "Active" : "Inactive")
+                            </span>
+                        </Template>
+                    </GridColumn>
+                </Columns>
+            </AdminDataGrid>
+        }
+    }
 </div>
+
+@code {
+    private string _activeTab = "markets";
+    private bool _isLoading = true;
+
+    private List<Market> _markets = [];
+    private List<Sector> _sectors = [];
+    private List<SubSector> _subSectors = [];
+    private List<Exchange> _exchanges = [];
+    private List<Country> _countries = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTaxonomyData();
+    }
+
+    private async Task LoadTaxonomyData()
+    {
+        _isLoading = true;
+        try
+        {
+            _markets = await DbContext.Markets.AsNoTracking().Include(m => m.Exchange).ToListAsync();
+            _sectors = await DbContext.Sectors.AsNoTracking().Include(s => s.Country).ToListAsync();
+            _subSectors = await DbContext.SubSectors.AsNoTracking().Include(ss => ss.Sector).ToListAsync();
+            _exchanges = await DbContext.Exchanges.AsNoTracking().Include(e => e.Country).ToListAsync();
+            _countries = await DbContext.Countries.AsNoTracking().ToListAsync();
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void SwitchTab(string tab)
+    {
+        _activeTab = tab;
+    }
+}

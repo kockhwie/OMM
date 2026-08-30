@@ -1,0 +1,234 @@
+﻿@typeparam TItem
+
+<CascadingValue Value="this" IsFixed="true">
+    @Columns
+</CascadingValue>
+
+<div class="omm-datagrid-container">
+    <!-- Grid Toolbar -->
+    <div class="datagrid-toolbar d-flex flex-wrap align-items-center justify-content-between gap-3 p-3">
+        <div class="d-flex align-items-center gap-3 flex-grow-1 flex-md-grow-0">
+            @if (ShowSearch)
+            {
+                <div class="datagrid-search position-relative">
+                    <i class="ti ti-search search-icon"></i>
+                    <input type="text"
+                           class="form-control form-control-sm"
+                           placeholder="@SearchPlaceholder"
+                           value="@_searchTerm"
+                           @oninput="HandleSearchInput" />
+                    @if (!string.IsNullOrEmpty(_searchTerm))
+                    {
+                        <button type="button" class="btn-clear-search" @onclick="ClearSearch" title="Clear search">
+                            <i class="ti ti-x"></i>
+                        </button>
+                    }
+                </div>
+            }
+
+            @if (ShowPageSizeSelector)
+            {
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-muted small text-nowrap">Show:</span>
+                    <select class="form-select form-select-sm datagrid-pagesize-select" value="@PageSize" @onchange="HandlePageSizeChange">
+                        @foreach (var size in PageSizeOptions)
+                        {
+                            <option value="@size">@size</option>
+                        }
+                    </select>
+                </div>
+            }
+        </div>
+
+        <div class="d-flex align-items-center gap-2 ms-auto">
+            @if (ToolbarTemplate != null)
+            {
+                @ToolbarTemplate
+            }
+
+            <span class="badge datagrid-count-badge">
+                <i class="ti ti-database me-1"></i> @TotalItemCount.ToString("N0") items
+            </span>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive">
+        <table class="table omm-datagrid-table mb-0 align-middle">
+            <thead>
+                <tr>
+                    @foreach (var col in _columns)
+                    {
+                        var isSorted = _sortColumn == col.ColumnKey;
+                        <th class="@col.HeaderCssClass @(col.Sortable ? "sortable-header" : "") @(isSorted ? "sorted-header" : "")"
+                            @onclick="() => HandleHeaderClick(col)">
+                            <div class="d-flex align-items-center justify-content-between gap-2">
+                                <span>@col.HeaderTitle</span>
+                                @if (col.Sortable)
+                                {
+                                    <span class="sort-icon-wrapper">
+                                        @if (isSorted)
+                                        {
+                                            if (_sortDirection == SortDirection.Ascending)
+                                            {
+                                                <i class="ti ti-sort-ascending text-danger"></i>
+                                            }
+                                            else if (_sortDirection == SortDirection.Descending)
+                                            {
+                                                <i class="ti ti-sort-descending text-danger"></i>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <i class="ti ti-arrows-sort text-muted opacity-50"></i>
+                                        }
+                                    </span>
+                                }
+                            </div>
+                        </th>
+                    }
+                    @if (ActionColumn != null)
+                    {
+                        <th class="action-header text-end">@ActionColumnTitle</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @if (IsLoading)
+                {
+                    @if (LoadingTemplate != null)
+                    {
+                        @LoadingTemplate
+                    }
+                    else
+                    {
+                        @for (int r = 0; r < Math.Min(PageSize, 5); r++)
+                        {
+                            <tr class="skeleton-row">
+                                @for (int c = 0; c < _columns.Count; c++)
+                                {
+                                    <td>
+                                        <div class="skeleton-cell"></div>
+                                    </td>
+                                }
+                                @if (ActionColumn != null)
+                                {
+                                    <td>
+                                        <div class="skeleton-cell w-50 ms-auto"></div>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    }
+                }
+                else if (!ProcessedItems.Any())
+                {
+                    <tr>
+                        <td colspan="@TotalColumnCount" class="p-5 text-center">
+                            @if (EmptyTemplate != null)
+                            {
+                                @EmptyTemplate
+                            }
+                            else
+                            {
+                                <div class="datagrid-empty-state">
+                                    <div class="empty-icon-wrapper mb-2">
+                                        <i class="ti ti-search-off"></i>
+                                    </div>
+                                    <h6 class="fw-bold text-dark mb-1">No records found</h6>
+                                    <p class="text-muted small mb-0">
+                                        @(!string.IsNullOrEmpty(_searchTerm) ? "Try adjusting your search query." : "There is no data available to display.")
+                                    </p>
+                                </div>
+                            }
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var item in ProcessedItems)
+                    {
+                        <tr @key="item" class="@(OnRowClick.HasDelegate ? "clickable-row" : "")" @onclick="() => HandleRowClick(item)">
+                            @foreach (var col in _columns)
+                            {
+                                <td class="@col.CssClass">
+                                    @if (col.Template != null)
+                                    {
+                                        @col.Template(item)
+                                    }
+                                    else
+                                    {
+                                        @col.FormatValue(item)
+                                    }
+                                </td>
+                            }
+                            @if (ActionColumn != null)
+                            {
+                                <td class="text-end text-nowrap action-cell" @onclick:stopPropagation="true">
+                                    @ActionColumn(item)
+                                </td>
+                            }
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination Footer -->
+    @if (TotalPages > 1 || TotalItemCount > 0)
+    {
+        <div class="datagrid-footer d-flex flex-wrap align-items-center justify-content-between gap-3 p-3">
+            <div class="datagrid-info text-muted small">
+                Showing <strong>@ItemRangeStart</strong> to <strong>@ItemRangeEnd</strong> of <strong>@TotalItemCount.ToString("N0")</strong> entries
+            </div>
+
+            @if (TotalPages > 1)
+            {
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item @(CurrentPage <= 1 ? "disabled" : "")">
+                            <button class="page-link" @onclick="() => GoToPage(1)" title="First Page" disabled="@(CurrentPage <= 1)">
+                                <i class="ti ti-chevrons-left"></i>
+                            </button>
+                        </li>
+                        <li class="page-item @(CurrentPage <= 1 ? "disabled" : "")">
+                            <button class="page-link" @onclick="() => GoToPage(CurrentPage - 1)" title="Previous Page" disabled="@(CurrentPage <= 1)">
+                                <i class="ti ti-chevron-left"></i>
+                            </button>
+                        </li>
+
+                        @foreach (var pageNum in GetVisiblePageNumbers())
+                        {
+                            if (pageNum == -1)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link page-ellipsis">…</span>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="page-item @(pageNum == CurrentPage ? "active" : "")">
+                                    <button class="page-link" @onclick="() => GoToPage(pageNum)">
+                                        @pageNum
+                                    </button>
+                                </li>
+                            }
+                        }
+
+                        <li class="page-item @(CurrentPage >= TotalPages ? "disabled" : "")">
+                            <button class="page-link" @onclick="() => GoToPage(CurrentPage + 1)" title="Next Page" disabled="@(CurrentPage >= TotalPages)">
+                                <i class="ti ti-chevron-right"></i>
+                            </button>
+                        </li>
+                        <li class="page-item @(CurrentPage >= TotalPages ? "disabled" : "")">
+                            <button class="page-link" @onclick="() => GoToPage(TotalPages)" title="Last Page" disabled="@(CurrentPage >= TotalPages)">
+                                <i class="ti ti-chevrons-right"></i>
+                            </button>
+                        </li>
+                    </ul>
+                </nav>
+            }
+        </div>
+    }
+</div>

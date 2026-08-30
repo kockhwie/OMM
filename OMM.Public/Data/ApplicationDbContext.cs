@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using OMM.Public.Models.MasterData;
+using OMM.Shared.Models.MasterData;
 
 namespace OMM.Public.Data;
 

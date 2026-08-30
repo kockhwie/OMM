@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace OMM.Admin.Data;
 
@@ -8,6 +9,30 @@ public static class AdminIdentitySeedData
     {
         var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var dbContext = serviceProvider.GetRequiredService<ApplicationDbContext>();
+
+        // Clean up duplicate email accounts if any were created
+        var duplicateEmails = await dbContext.Users
+            .GroupBy(u => u.NormalizedEmail)
+            .Where(g => g.Key != null && g.Count() > 1)
+            .Select(g => g.Key)
+            .ToListAsync();
+
+        foreach (var normalizedEmail in duplicateEmails)
+        {
+            var duplicates = await dbContext.Users
+                .Where(u => u.NormalizedEmail == normalizedEmail)
+                .OrderBy(u => u.Id)
+                .ToListAsync();
+
+            var toKeep = duplicates.FirstOrDefault(u => u.UserName == "superadmin" || u.UserName == "kockhwie") ?? duplicates.First();
+            var toRemove = duplicates.Where(u => u.Id != toKeep.Id).ToList();
+
+            foreach (var user in toRemove)
+            {
+                await userManager.DeleteAsync(user);
+            }
+        }
 
         string[] roles = ["SuperAdmin", "Admin"];
         foreach (var role in roles)
@@ -23,7 +48,7 @@ public static class AdminIdentitySeedData
         }
 
         // 1. Seed SuperAdmin user
-        var superAdminUser = await userManager.FindByNameAsync("superadmin") ?? await userManager.FindByEmailAsync("kockhwie@msn.com");
+        var superAdminUser = await userManager.FindByNameAsync("superadmin");
         if (superAdminUser is null)
         {
             var initialPassword = configuration["SeedData:AdminApp:SuperAdminInitialPassword"];
@@ -59,7 +84,7 @@ public static class AdminIdentitySeedData
         }
 
         // 2. Seed Admin user
-        var adminUser = await userManager.FindByNameAsync("kockhwie") ?? await userManager.FindByEmailAsync("kockhwie@gmail.com");
+        var adminUser = await userManager.FindByNameAsync("kockhwie");
         if (adminUser is null)
         {
             var initialPassword = configuration["SeedData:AdminApp:AdminInitialPassword"];

@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
-using OMM.Public.Models.MasterData;
+using OMM.Shared.Models.MasterData;
 
 namespace OMM.Public.Data;
 

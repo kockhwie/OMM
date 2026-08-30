@@ -1,9 +1,8 @@
-@page "/"
 @inject NavigationManager NavigationManager
 
 @code {
     protected override void OnInitialized()
     {
-        NavigationManager.NavigateTo("admin", replace: true);
+        NavigationManager.NavigateTo("Account/AccessDenied", forceLoad: true);
     }
 }

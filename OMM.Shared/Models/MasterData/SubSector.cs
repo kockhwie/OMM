@@ -1,4 +1,4 @@
-namespace OMM.Public.Models.MasterData;
+namespace OMM.Shared.Models.MasterData;
 
 public class SubSector : AuditableEntity
 {

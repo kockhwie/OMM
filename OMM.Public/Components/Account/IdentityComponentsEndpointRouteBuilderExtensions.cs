@@ -44,10 +44,19 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
         accountGroup.MapPost("/Logout", async (
             ClaimsPrincipal user,
             [FromServices] SignInManager<ApplicationUser> signInManager,
-            [FromForm] string returnUrl) =>
+            [FromForm] string? returnUrl) =>
         {
             await signInManager.SignOutAsync();
-            return TypedResults.LocalRedirect($"~/{returnUrl}");
+            var destination = string.IsNullOrWhiteSpace(returnUrl) ? "/" : returnUrl;
+            if (destination.StartsWith("~/"))
+            {
+                return TypedResults.LocalRedirect(destination);
+            }
+            if (destination.StartsWith("/"))
+            {
+                return TypedResults.LocalRedirect(destination);
+            }
+            return TypedResults.LocalRedirect($"~/{destination}");
         });
 
         accountGroup.MapPost("/PasskeyCreationOptions", async (

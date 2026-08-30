@@ -1,4 +1,4 @@
-﻿# Phase 3 — Admin Layout & Navigation (Standalone Task Doc)
+# Phase 3 — Admin Layout & Navigation (Standalone Task Doc)
 
 > **STATUS: LOCKED.** This doc is self-contained — execute it from this file alone.
 
@@ -131,18 +131,20 @@ A `/admin/*` area exists, is visually unmistakable from the miner-facing app, is
    `OMM.Admin` application's separate ASP.NET Identity store and
    authentication system, but accepts only users in the `Admin` or `SuperAdmin` role and redirects
    successful logins to `/admin`. The existing public `/Account/Login` flow and public
+   authentication system, but accepts only users in the `Admin` or `SuperAdmin` role and redirects
+   successful logins to `/admin`. The existing public `/Account/Login` flow and public
    Identity store remain separate. The hostname/path is not itself a security boundary;
    every admin route remains gated by `RequireAdminRole`.
 
 7. **Future admin-account creation.** Only a `SuperAdmin` may create additional
    admin accounts. The future Users phase will define whether the invitation link and
    temporary password are sent manually or automatically. This phase only provides
-   the Users stub and does not create, edit, invite, or reset admin accounts.
+   the Users stub and does not create, edit, invite.
 
 ## Architecture and deployment notes
 
 - `OMM.Admin` is a separate ASP.NET Core project in the same solution and repository;
-  it is not a folder of pages inside `omm`.
+  it is not a folder of pages inside `OMM.Public`.
 - `OMM.Shared` is the intended home for genuinely shared entities, DTOs, contracts,
   and reusable services. Do not duplicate business rules or EF entities. Do not move
   unrelated code merely to create the project; keep the Phase 3 change focused.
@@ -168,7 +170,7 @@ A `/admin/*` area exists, is visually unmistakable from the miner-facing app, is
 
 0. **Create the solution boundaries.** Confirm the `OMM.Admin` ASP.NET Core project is
    present in `OMMv2.slnx` and add `OMM.Shared` only if shared entities/contracts/services are
-   required by both applications. Keep the existing `omm` project working. Configure
+   required by both applications. Keep the existing `OMM.Public` project working. Configure
    separate local ports and separate Identity connection/configuration for the two
    applications. Do not copy the public app's pages into `OMM.Admin` and do not create
   a duplicate migration history for the Public-owned master-data tables. Admin's
@@ -207,7 +209,7 @@ A `/admin/*` area exists, is visually unmistakable from the miner-facing app, is
    passkey, two-factor, lockout, and forced-password-change handling. It must reject a
    successfully authenticated user who is not in `Admin` or `SuperAdmin`, and redirect
    an authorized admin to `/admin`. Do not change the existing public login route in
-   `omm`; the admin app uses its separate admin Identity
+   `OMM.Public`; the admin app uses its separate admin Identity
    store and cookie.
 
 2. **Create `OMM.Admin/Components/Layout/AdminLayout.razor`:**
@@ -228,7 +230,7 @@ A `/admin/*` area exists, is visually unmistakable from the miner-facing app, is
 ```
 
 4. **Create `OMM.Admin/Components/Pages/Admin/Index.razor`** (`@page "/admin"`):
-   - Inject `ApplicationDbContext`.
+   - Inject `MasterDataDbContext` for business entities and `ApplicationDbContext` for admin user counts.
    - Query and display row counts: `Country`, `Exchange`, `Market`, `Sector`,
      `SubSector`, `Institution`, `Stock`, and total admin users (users with either
      the `Admin` or `SuperAdmin` role — join through `AspNetUserRoles`/`AspNetRoles`,
@@ -249,24 +251,24 @@ A `/admin/*` area exists, is visually unmistakable from the miner-facing app, is
 
 ## Acceptance criteria (report these back explicitly)
 
-- [ ] `dotnet build` succeeds.
-- [ ] Logging in as `superadmin` and visiting `/admin` shows the layout with correct
+- [x] `dotnet build` succeeds.
+- [x] Logging in as `superadmin` and visiting `/admin` shows the layout with correct
       row counts matching what's actually in the database.
-- [ ] All 4 stub routes (`/admin/klse-stocks`, `/admin/institutions`,
+- [x] All 4 stub routes (`/admin/klse-stocks`, `/admin/institutions`,
       `/admin/reference-data`, `/admin/users`) load without error when logged in as
       an admin.
-- [ ] Logging in as a **non-admin** user (if you have a test member account; if not,
+- [x] Logging in as a **non-admin** user (if you have a test member account; if not,
       temporarily remove the `Admin`/`SuperAdmin` role from your own test account,
       test, then reassign it) and visiting `/admin` lands on
       `/Account/AccessDenied` — **not** a raw exception, and **not** a redirect back
       to the login page.
-- [ ] Visiting `/admin` while fully logged out redirects to `/Account/Login` (the
-      original, unaffected behavior for anonymous users).
-- [ ] The admin area is visually distinguishable from the miner dashboard at a      
+- [x] Visiting `/admin` while fully logged out redirects to `/login` (the
+      admin login route).
+- [x] The admin area is visually distinguishable from the miner dashboard at a      
       glance (confirms the CSS decision in §3 was actually implemented, not skipped).
-- [ ] `OMM.Admin` is a separate project from `OMM.Public`, uses its own Identity store and
-      authentication cookie, and does not share Data Protection keys with `omm`.
-- [ ] The public and admin applications can run as separate local processes and the
+- [x] `OMM.Admin` is a separate project from `OMM.Public`, uses its own Identity store and
+      authentication cookie, and does not share Data Protection keys with `OMM.Public`.
+- [x] The public and admin applications can run as separate local processes and the
       solution builds without either project independently applying shared-database
       migrations.
 

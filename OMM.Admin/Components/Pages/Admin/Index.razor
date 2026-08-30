@@ -1,0 +1,287 @@
+@page "/admin"
+@using Microsoft.EntityFrameworkCore
+@using OMM.Admin.Data
+@using OMM.Shared.Models.MasterData
+@inject MasterDataDbContext MasterDbContext
+@inject ApplicationDbContext IdentityDbContext
+
+<PageTitle>Admin Dashboard - OMM</PageTitle>
+
+<div class="container-fluid p-0">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 fw-bold text-dark mb-1">System Overview</h1>
+            <p class="text-muted mb-0">Master data entities and administrative status across the OMM platform.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" @onclick="LoadCountsAsync">
+                <i class="ti ti-refresh @(isLoading ? "ti-spin" : "")"></i>
+                <span>Refresh</span>
+            </button>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-danger" role="status">
+                <span class="visually-hidden">Loading overview...</span>
+            </div>
+            <div class="text-muted mt-2">Loading system statistics...</div>
+        </div>
+    }
+    else
+    {
+        <!-- Admin Accounts Stat -->
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="omm-card metric-card border-danger-subtle bg-danger-subtle bg-opacity-10">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="stat-label text-danger">Admin Accounts</div>
+                            <div class="stat-value text-danger mt-1">@adminUserCount</div>
+                            <div class="text-muted small mt-1">SuperAdmin & Admin roles</div>
+                        </div>
+                        <div class="stat-icon-wrapper bg-danger text-white">
+                            <i class="ti ti-shield-check"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="omm-card metric-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="stat-label">KLSE Stocks</div>
+                            <div class="stat-value mt-1">@stockCount.ToString("N0")</div>
+                            <div class="text-muted small mt-1">Equities & listed securities</div>
+                        </div>
+                        <div class="stat-icon-wrapper bg-primary-subtle text-primary">
+                            <i class="ti ti-chart-candle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="omm-card metric-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="stat-label">Financial Institutions</div>
+                            <div class="stat-value mt-1">@institutionCount.ToString("N0")</div>
+                            <div class="text-muted small mt-1">Banks, brokers, providers</div>
+                        </div>
+                        <div class="stat-icon-wrapper bg-success-subtle text-success">
+                            <i class="ti ti-building-bank"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="omm-card metric-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="stat-label">Markets & Exchanges</div>
+                            <div class="stat-value mt-1">@(marketCount + exchangeCount)</div>
+                            <div class="text-muted small mt-1">@exchangeCount exchanges, @marketCount markets</div>
+                        </div>
+                        <div class="stat-icon-wrapper bg-warning-subtle text-warning">
+                            <i class="ti ti-world"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Master Data Tables Detail Section -->
+        <div class="row g-4">
+            <div class="col-12 col-lg-8">
+                <div class="omm-card p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h2 class="h5 fw-bold mb-0">Master Data Breakdown</h2>
+                        <span class="badge bg-secondary-subtle text-secondary">7 Tables</span>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Entity / Table</th>
+                                    <th>Schema</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Record Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ti ti-flag text-muted"></i>
+                                            <span class="fw-semibold">Countries</span>
+                                        </div>
+                                    </td>
+                                    <td><code>public.Country</code></td>
+                                    <td><span class="badge bg-success-subtle text-success">Active</span></td>
+                                    <td class="text-end fw-bold">@countryCount.ToString("N0")</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ti ti-building text-muted"></i>
+                                            <span class="fw-semibold">Exchanges</span>
+                                        </div>
+                                    </td>
+                                    <td><code>public.Exchange</code></td>
+                                    <td><span class="badge bg-success-subtle text-success">Active</span></td>
+                                    <td class="text-end fw-bold">@exchangeCount.ToString("N0")</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ti ti-building-store text-muted"></i>
+                                            <span class="fw-semibold">Markets</span>
+                                        </div>
+                                    </td>
+                                    <td><code>public.Market</code></td>
+                                    <td><span class="badge bg-success-subtle text-success">Active</span></td>
+                                    <td class="text-end fw-bold">@marketCount.ToString("N0")</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ti ti-category text-muted"></i>
+                                            <span class="fw-semibold">Sectors</span>
+                                        </div>
+                                    </td>
+                                    <td><code>public.Sector</code></td>
+                                    <td><span class="badge bg-success-subtle text-success">Active</span></td>
+                                    <td class="text-end fw-bold">@sectorCount.ToString("N0")</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ti ti-category-2 text-muted"></i>
+                                            <span class="fw-semibold">SubSectors</span>
+                                        </div>
+                                    </td>
+                                    <td><code>public.SubSector</code></td>
+                                    <td><span class="badge bg-success-subtle text-success">Active</span></td>
+                                    <td class="text-end fw-bold">@subSectorCount.ToString("N0")</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ti ti-building-bank text-muted"></i>
+                                            <span class="fw-semibold">Institutions</span>
+                                        </div>
+                                    </td>
+                                    <td><code>public.Institution</code></td>
+                                    <td><span class="badge bg-success-subtle text-success">Active</span></td>
+                                    <td class="text-end fw-bold">@institutionCount.ToString("N0")</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="ti ti-chart-candle text-muted"></i>
+                                            <span class="fw-semibold">Stocks</span>
+                                        </div>
+                                    </td>
+                                    <td><code>public.Stocks</code></td>
+                                    <td><span class="badge bg-success-subtle text-success">Active</span></td>
+                                    <td class="text-end fw-bold">@stockCount.ToString("N0")</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-4">
+                <div class="omm-card p-4 h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <h2 class="h5 fw-bold mb-3">System Information</h2>
+                        <ul class="list-group list-group-flush small">
+                            <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                                <span class="text-muted">Application</span>
+                                <span class="fw-semibold">OMM.Admin</span>
+                            </li>
+                            <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                                <span class="text-muted">Target Framework</span>
+                                <span class="badge bg-dark-subtle text-dark">.NET 10.0</span>
+                            </li>
+                            <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                                <span class="text-muted">Database Engine</span>
+                                <span class="badge bg-primary-subtle text-primary">PostgreSQL / Neon</span>
+                            </li>
+                            <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                                <span class="text-muted">Identity Schema</span>
+                                <code>admin.*</code>
+                            </li>
+                            <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                                <span class="text-muted">Master Data Schema</span>
+                                <code>public.*</code>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="mt-4 p-3 rounded-3 bg-light border">
+                        <div class="d-flex align-items-center gap-2 text-muted small">
+                            <i class="ti ti-info-circle fs-5"></i>
+                            <span>Admin access is restricted to users with <code>SuperAdmin</code> or <code>Admin</code> roles.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private int countryCount;
+    private int exchangeCount;
+    private int marketCount;
+    private int sectorCount;
+    private int subSectorCount;
+    private int institutionCount;
+    private int stockCount;
+    private int adminUserCount;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCountsAsync();
+    }
+
+    private async Task LoadCountsAsync()
+    {
+        isLoading = true;
+        try
+        {
+            countryCount = await MasterDbContext.Countries.CountAsync();
+            exchangeCount = await MasterDbContext.Exchanges.CountAsync();
+            marketCount = await MasterDbContext.Markets.CountAsync();
+            sectorCount = await MasterDbContext.Sectors.CountAsync();
+            subSectorCount = await MasterDbContext.SubSectors.CountAsync();
+            institutionCount = await MasterDbContext.Institutions.CountAsync();
+            stockCount = await MasterDbContext.Stocks.CountAsync();
+
+            var adminRoleIds = await IdentityDbContext.Roles
+                .Where(r => r.Name == "Admin" || r.Name == "SuperAdmin")
+                .Select(r => r.Id)
+                .ToListAsync();
+
+            adminUserCount = await IdentityDbContext.UserRoles
+                .Where(ur => adminRoleIds.Contains(ur.RoleId))
+                .Select(ur => ur.UserId)
+                .Distinct()
+                .CountAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error loading dashboard counts: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

@@ -1,0 +1,146 @@
+@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<div class="d-flex min-vh-100">
+    <!-- Desktop Sidebar -->
+    <aside class="d-none d-lg-flex flex-column position-fixed top-0 bottom-0 start-0 admin-sidebar" style="z-index: 1020;">
+        <div class="admin-brand">
+            <div class="d-flex align-items-center gap-2">
+                <span class="font-display fw-bold text-white fs-5 tracking-tight">OMM</span>
+                <span class="admin-badge">Admin</span>
+            </div>
+        </div>
+
+        <nav class="flex-grow-1 px-3 py-3 overflow-y-auto d-flex flex-column gap-1">
+            <NavLink class="sidebar-link" href="admin" Match="NavLinkMatch.All">
+                <i class="ti ti-layout-dashboard"></i>
+                <span>Dashboard</span>
+            </NavLink>
+            <NavLink class="sidebar-link" href="admin/klse-stocks">
+                <i class="ti ti-chart-candle"></i>
+                <span>KLSE Stocks</span>
+            </NavLink>
+            <NavLink class="sidebar-link" href="admin/institutions">
+                <i class="ti ti-building-bank"></i>
+                <span>Institutions</span>
+            </NavLink>
+            <NavLink class="sidebar-link" href="admin/reference-data">
+                <i class="ti ti-database"></i>
+                <span>Markets & Sectors</span>
+            </NavLink>
+            <NavLink class="sidebar-link" href="admin/users">
+                <i class="ti ti-users"></i>
+                <span>Users</span>
+            </NavLink>
+        </nav>
+
+        <div class="p-3 border-top" style="border-color: var(--omm-ink-800) !important;">
+            <div class="d-flex align-items-center justify-content-between text-muted small px-2">
+                <span>OMM Admin v2.0</span>
+                <span class="badge bg-secondary-subtle text-secondary" style="font-size: 0.65rem;">Neon PG</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Mobile Sidebar Offcanvas -->
+    @if (isMobileNavOpen)
+    {
+        <div class="position-fixed top-0 bottom-0 start-0 end-0 d-lg-none" style="z-index: 1040;">
+            <div class="position-absolute top-0 bottom-0 start-0 end-0 bg-dark opacity-50" @onclick="ToggleMobileNav"></div>
+            <div class="position-relative admin-sidebar h-100 d-flex flex-column" style="width: 280px;">
+                <div class="admin-brand">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="font-display fw-bold text-white fs-5 tracking-tight">OMM</span>
+                        <span class="admin-badge">Admin</span>
+                    </div>
+                    <button class="btn btn-sm text-white" @onclick="ToggleMobileNav" aria-label="Close menu">
+                        <i class="ti ti-x fs-4"></i>
+                    </button>
+                </div>
+                <nav class="flex-grow-1 px-3 py-3 overflow-y-auto d-flex flex-column gap-1">
+                    <NavLink class="sidebar-link" href="admin" Match="NavLinkMatch.All" @onclick="ToggleMobileNav">
+                        <i class="ti ti-layout-dashboard"></i>
+                        <span>Dashboard</span>
+                    </NavLink>
+                    <NavLink class="sidebar-link" href="admin/klse-stocks" @onclick="ToggleMobileNav">
+                        <i class="ti ti-chart-candle"></i>
+                        <span>KLSE Stocks</span>
+                    </NavLink>
+                    <NavLink class="sidebar-link" href="admin/institutions" @onclick="ToggleMobileNav">
+                        <i class="ti ti-building-bank"></i>
+                        <span>Institutions</span>
+                    </NavLink>
+                    <NavLink class="sidebar-link" href="admin/reference-data" @onclick="ToggleMobileNav">
+                        <i class="ti ti-database"></i>
+                        <span>Markets & Sectors</span>
+                    </NavLink>
+                    <NavLink class="sidebar-link" href="admin/users" @onclick="ToggleMobileNav">
+                        <i class="ti ti-users"></i>
+                        <span>Users</span>
+                    </NavLink>
+                </nav>
+            </div>
+        </div>
+    }
+
+    <!-- Main Content Area -->
+    <div class="flex-grow-1 d-flex flex-column admin-content-shell" style="min-width: 0; margin-left: 260px;">
+        <!-- Top Bar -->
+        <header class="sticky-top admin-topbar px-4 px-lg-5 d-flex align-items-center justify-content-between" style="z-index: 1010;">
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-sm d-lg-none p-1 text-dark border-0" @onclick="ToggleMobileNav" aria-label="Toggle navigation">
+                    <i class="ti ti-menu-2 fs-4"></i>
+                </button>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1" style="font-size: 0.75rem; font-weight: 600;">
+                        <i class="ti ti-shield-lock me-1"></i> ADMIN CONSOLE
+                    </span>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-3">
+                <AuthorizeView>
+                    <Authorized>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="text-end d-none d-sm-block" style="line-height: 1.2;">
+                                <div class="fw-semibold text-dark" style="font-size: 0.85rem;">@context.User.Identity?.Name</div>
+                                <div class="text-muted" style="font-size: 0.725rem;">Administrator</div>
+                            </div>
+                            <form action="Account/Logout" method="post" class="d-inline">
+                                <AntiforgeryToken />
+                                <input type="hidden" name="ReturnUrl" value="/login" />
+                                <button type="submit" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+                                    <i class="ti ti-logout"></i>
+                                    <span class="d-none d-sm-inline">Sign Out</span>
+                                </button>
+                            </form>
+                        </div>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a href="login" class="btn btn-sm btn-danger">Log In</a>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </div>
+        </header>
+
+        <!-- Main Body -->
+        <main class="flex-grow-1 px-4 px-lg-5 py-4 w-100" style="max-width: 1600px;">
+            @Body
+        </main>
+    </div>
+</div>
+
+<style>
+    @@media (max-width: 991.98px) {
+        .admin-content-shell {
+            margin-left: 0 !important;
+        }
+    }
+</style>
+
+@code {
+    private bool isMobileNavOpen = false;
+
+    private void ToggleMobileNav() => isMobileNavOpen = !isMobileNavOpen;
+}

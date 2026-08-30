@@ -1,4 +1,6 @@
-namespace OMM.Public.Models.MasterData;
+using System.Numerics;
+
+namespace OMM.Shared.Models.MasterData;
 
 public class Country : AuditableEntity
 {

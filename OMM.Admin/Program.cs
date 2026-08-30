@@ -50,11 +50,21 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
+// Override Identity cookie defaults so unauthorized requests redirect to our
+// custom /login page instead of the scaffolded /Account/Login endpoint.
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/login";
+    options.LogoutPath = "/Account/Logout";
+    options.AccessDeniedPath = "/Account/AccessDenied";
+});
+
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+// Run migrations and seed in all environments so the admin schema
+// and default accounts are created on Render (Production) on first deploy.
+await using (var scope = app.Services.CreateAsyncScope())
 {
-    await using var scope = app.Services.CreateAsyncScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     await dbContext.Database.MigrateAsync();
     await AdminIdentitySeedData.SeedAsync(scope.ServiceProvider, app.Configuration);

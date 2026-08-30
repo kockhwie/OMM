@@ -1,4 +1,4 @@
-# Admin Backend & KLSE Master Data — Task Breakdown
+﻿# Admin Backend & KLSE Master Data — Task Breakdown
 
 > Companion to `docs/market-data-design.md` (schema, locked) and replaces the task
 > list embedded in the original `implementation_plan.md`. Each phase below is written
@@ -33,106 +33,37 @@
   cache merely by calling its own cache service. Cross-application invalidation must
   be designed and secured when stock CRUD is implemented; it is not part of the
   current admin shell work.
-- Phase 1 and Phase 2 have been completed and merged. Phase 3 is the next incomplete
-  phase. Phase 4 follows Phase 3. The stock lookup portion of Phase 7 was implemented
-  early, but Phase 7 remains incomplete until its Institution work and dependencies
-  are complete.
+- Phase 1, Phase 2, Phase 2b, and Phase 3 have been completed and merged.
+- Phase 4 (`AdminDataGrid`) is the active phase.
 
 ---
 
-## Phase 1 — Schema & Migration
+## Phase 1 — Schema & Migration (Completed)
 
 **Goal:** get `Country`, `Exchange`, `Market`, `Sector`, `SubSector`, `Institution`,
 `Stock` into the database, seeded, with the existing `klse-stocks.json` data migrated
 in.
 
-**Tasks:**
-1. Create entity classes for all 7 tables per `docs/market-data-design.md` §4,
-   including the shared audit columns (§2) on each.
-2. Add `DbSet<T>` for each to `ApplicationDbContext`, with EF Core global query filters
-   so `IsDeleted == false` is applied automatically unless explicitly overridden.
-3. Configure FKs: `Exchange.CountryId`, `Market.ExchangeId`, `SubSector.SectorId`,
-   `Stock.MarketId` / `SectorId` / `SubSectorId`, `Institution.CountryId`, and all
-   `*ByUserId` columns → `AspNetUsers.Id`.
-4. Write an `HasData`/seed migration (or a one-time seed method run at startup in Dev)
-   for: `Country` (MY), `Exchange` (BURSA), `Market` (MAIN/ACE/LEAP), `Sector` +
-   `SubSector` (13 official Bursa sectors), `Institution` (Maybank, CIMB, Public Bank,
-   KWSP, Bursa Malaysia).
-5. Write a one-time data migration/seed script that reads
-   `wwwroot/data/klse-stocks.json` and inserts a `Stock` row per entry — `StockCode`
-   from `code`, `ShortName_EN` from `name`, `MarketId` defaulted to `MAIN`,
-   `SectorId`/`SubSectorId` left null (or an "Unclassified" placeholder row — pick one
-   and note it in the migration comment).
-6. `dotnet ef migrations add AddMasterDataSchema`, verify `dotnet build` and
-   `dotnet ef database update` succeed locally.
+---
 
-**Acceptance criteria:**
-- Fresh DB migrates cleanly.
-- `SELECT COUNT(*) FROM Stock` matches the row count in `klse-stocks.json` (~900).
-- Soft-deleting a `Stock` row hides it from a normal query but the row still exists.
-- `CreatedByUserId` is nullable in this phase and is `NULL` for every seeded row.
-  Do not create a placeholder `AspNetUsers` row.
+## Phase 2 / 2b — Public Roles & Admin Identity Bootstrap (Completed)
 
-**Depends on:** nothing (can start immediately).
+**Goal:** role-based auth exists in `OMM.Public` and dedicated `admin` schema Identity is bootstrapped in `OMM.Admin` with seeded SuperAdmin/Admin accounts.
 
 ---
 
-## Phase 2 — Public Roles & Superadmin Seed
-
-> This phase applies to `OMM.Public` only. The separate Admin Identity store is
-> bootstrapped by `docs/phase-2b-admin-identity-bootstrap.md`, which must be
-> completed before Phase 3.
-
-**Goal:** role-based auth exists, and a `superadmin` account exists to log into the
-admin backend and to attribute seed data to.
-
-**Tasks:**
-1. Add `DisplayName` (string) to `ApplicationUser`.
-2. Seed two Identity roles: `Admin`, `User`.
-3. Seed a user with username `superadmin`, assigned the `Admin` role. Since
-   `RequireConfirmedAccount = true` is already set in `Program.cs`, the seeded user
-   must be created with `EmailConfirmed = true` directly (not via the normal
-   registration flow) so it can log in immediately.
-4. Add an authorization policy (e.g. `RequireAdminRole`) usable via
-   `[Authorize(Policy = "RequireAdminRole")]` on admin pages/layout.
-
-**Acceptance criteria:**
-- Logging in as `superadmin` succeeds without needing email confirmation.
-- A non-admin user hitting an `/admin/*` route gets redirected/denied, not a raw
-  exception.
-
-**Depends on:** Phase 1. It does not create or configure Admin Identity.
-
----
-
-## Phase 3 — Admin Layout & Navigation
+## Phase 3 — Admin Layout & Navigation (Completed)
 
 **Goal:** a distinct `/admin/*` area in `OMM.Admin`, visually separate from the
-miner-facing `DashboardLayout`, gated to the `Admin` role.
-
-**Tasks:**
-1. `AdminLayout.razor` — separate sidebar/nav from the miner-facing app; apply
-   `[Authorize(Policy = "RequireAdminRole")]` at the layout or route-group level.
-2. Sidebar nav stub with placeholder links for: KLSE Stocks, Institutions, Markets/
-   Sectors (read-only browse — these are seeded, not typically hand-edited), Users
-   (future).
-3. Landing page at `/admin` — simple summary/counts page (row counts per table is
-   enough for now).
-
-**Acceptance criteria:**
-- `/admin` and `/admin/klse-stocks` (even as a stub page) route correctly and are
-  denied to non-admins.
-- Visually distinguishable from the public/miner UI so there's no confusion about
-  which surface you're in.
-
-**Depends on:** Phase 2 (needs the `Admin` role/policy to gate routes).
+miner-facing `DashboardLayout`, gated to the `Admin` / `SuperAdmin` role.
 
 ---
 
-## Phase 4 — Reusable `AdminDataGrid` Component
+## Phase 4 — Reusable `AdminDataGrid` Component (Active)
 
 **Goal:** one generic Blazor component for search + sort + pagination, reused by
 every future admin listing page (Stock, Institution, and whatever comes after).
+See `docs/phase-4-admin-datagrid.md` for full specification.
 
 **Tasks:**
 1. Generic `AdminDataGrid<TItem>` component: column definitions (label, value
@@ -225,6 +156,23 @@ exist.
 
 **Depends on:** Phase 5 (Stock data must exist and be correct), Phase 6 (Institution
 data must exist).
+
+---
+
+## Phase 7b — Admin User Management & Invitation Flow
+
+**Goal:** Allow SuperAdmins to manage admin accounts and invite new team members via a secure email link (see full spec in `docs/phase-7-admin-user-management.md`).
+
+**Tasks:**
+1. List view at `/admin/users` using `AdminDataGrid<ApplicationUser>`.
+2. "Invite Admin" modal (`AdminInviteModal.razor`) that creates an admin user in `admin.AspNetUsers`, sets `MustChangePassword = true`, and generates a secure password setup token (`GeneratePasswordResetTokenAsync`).
+3. Configure `IEmailSender<ApplicationUser>` (Resend/SendGrid) to deliver the activation link (`/Account/ResetPassword?userId=...&code=...`).
+4. Force password change flow for first-time invited admins.
+
+**Acceptance criteria:**
+- SuperAdmin can invite a new admin by email and assign `Admin` or `SuperAdmin` role.
+- Public self-registration remains disabled.
+- The invited admin receives an email, sets their password, and logs in securely.
 
 ---
 

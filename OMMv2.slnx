@@ -7,6 +7,7 @@
     <File Path="docs/phase-2-roles-superadmin.md" />
     <File Path="docs/phase-2b-admin-identity-bootstrap.md" />
     <File Path="docs/phase-3-admin-layout.md" />
+    <File Path="docs/phase-4-admin-datagrid.md" />
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".gitignore" />

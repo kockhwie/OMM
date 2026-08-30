@@ -1,4 +1,4 @@
-﻿# Phase 4 — AdminDataGrid Component
+# Phase 4 — AdminDataGrid Component
 
 > **Document Status:** Draft  
 > **Phase:** 4 of N  
@@ -296,4 +296,4 @@ private async Task HandleSearchChanged(string term)     { _searchTerm = term; _c
 |---|---|
 | **5** | Stock CRUD — add/edit modal (`StockEditModal.razor`), delete confirmation, integrated into `/admin/klse-stocks` |
 | **6** | Institution CRUD — same modal pattern for `/admin/institutions` |
-| **7** | Admin User Management — list admin accounts, assign roles, force password reset |
+| **7** | Admin User Management — list admin accounts via `AdminDataGrid`, invite new admins via email link (`AdminInviteModal`), assign roles, force password reset (see `docs/phase-7-admin-user-management.md`) |

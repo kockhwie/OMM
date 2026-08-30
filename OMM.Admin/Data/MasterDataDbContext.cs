@@ -63,7 +63,7 @@ public class MasterDataDbContext(DbContextOptions<MasterDataDbContext> options) 
 
         modelBuilder.Entity<Stock>(entity =>
         {
-            entity.ToTable("Stocks", "public");
+            entity.ToTable("Stock", "public");
             entity.HasQueryFilter(e => !e.IsDeleted);
         });
     }

@@ -257,11 +257,9 @@ public partial class AdminDataGrid<TItem> : ComponentBase, IDisposable
             {
                 await OnPageSizeChanged.InvokeAsync(PageSize);
             }
-
-            if (OnPageChanged.HasDelegate)
-            {
-                await OnPageChanged.InvokeAsync(CurrentPage);
-            }
+            // NOTE: OnPageChanged is intentionally NOT fired here.
+            // OnPageSizeChanged already implies "reset to page 1".
+            // Firing both would cause consumers to call LoadData() twice.
         }
     }
 

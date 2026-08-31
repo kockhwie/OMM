@@ -69,7 +69,8 @@
                     </GridColumn>
                     <GridColumn TItem="Market" Field="@(m => m.MarketName_EN)" Title="Market Name (EN)" Sortable="true" />
                     <GridColumn TItem="Market" Field="@(m => m.MarketName_ZH_TW)" Title="Traditional Chinese" Sortable="true" />
-                    <GridColumn TItem="Market" Title="Exchange" Sortable="true">
+                    <GridColumn TItem="Market" Title="Exchange" Sortable="true"
+                                Value="@(m => m.Exchange?.ExchangeName_EN ?? m.Exchange?.ExchangeCode)">
                         <Template Context="m">
                             <span class="fw-semibold">@(m.Exchange?.ExchangeName_EN ?? m.Exchange?.ExchangeCode ?? "-")</span>
                         </Template>
@@ -95,7 +96,8 @@
                     </GridColumn>
                     <GridColumn TItem="Sector" Field="@(s => s.SectorName_EN)" Title="Sector Name (EN)" Sortable="true" />
                     <GridColumn TItem="Sector" Field="@(s => s.SectorName_ZH_TW)" Title="Chinese (Traditional)" Sortable="true" />
-                    <GridColumn TItem="Sector" Title="Country" Sortable="true">
+                    <GridColumn TItem="Sector" Title="Country" Sortable="true"
+                                Value="@(s => s.Country?.CountryName_EN ?? s.Country?.CountryCode)">
                         <Template Context="s">
                             <span>@(s.Country?.CountryName_EN ?? s.Country?.CountryCode ?? "-")</span>
                         </Template>
@@ -120,7 +122,8 @@
                         </Template>
                     </GridColumn>
                     <GridColumn TItem="SubSector" Field="@(ss => ss.SubSectorName_EN)" Title="Sub-Sector Name" Sortable="true" />
-                    <GridColumn TItem="SubSector" Title="Parent Sector" Sortable="true">
+                    <GridColumn TItem="SubSector" Title="Parent Sector" Sortable="true"
+                                Value="@(ss => ss.Sector?.SectorName_EN)">
                         <Template Context="ss">
                             <span class="badge bg-info-subtle text-info border border-info-subtle">
                                 @(ss.Sector?.SectorName_EN ?? "-")
@@ -147,7 +150,8 @@
                         </Template>
                     </GridColumn>
                     <GridColumn TItem="Exchange" Field="@(e => e.ExchangeName_EN)" Title="Exchange Name" Sortable="true" />
-                    <GridColumn TItem="Exchange" Title="Country" Sortable="true">
+                    <GridColumn TItem="Exchange" Title="Country" Sortable="true"
+                                Value="@(e => e.Country?.CountryName_EN ?? e.Country?.CountryCode)">
                         <Template Context="e">
                             <span>@(e.Country?.CountryName_EN ?? e.Country?.CountryCode ?? "-")</span>
                         </Template>

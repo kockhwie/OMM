@@ -109,14 +109,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.Property(e => e.DividendYield).HasPrecision(18, 4);
         });
 
-        ConfigureAudit(modelBuilder.Entity<Country>());
-        ConfigureAudit(modelBuilder.Entity<Exchange>());
-        ConfigureAudit(modelBuilder.Entity<Market>());
-        ConfigureAudit(modelBuilder.Entity<Sector>());
-        ConfigureAudit(modelBuilder.Entity<SubSector>());
-        ConfigureAudit(modelBuilder.Entity<Institution>());
-        ConfigureAudit(modelBuilder.Entity<Stock>());
-
         modelBuilder.Entity<Country>().HasData(
             new Country { Id = 1, CountryCode = "MY", CountryName_EN = "Malaysia", CountryName_ZH_TW = "Malaysia", CountryName_ZH_CN = "Malaysia", DefaultCurrencyCode = "MYR", IsActive = true, CreatedAt = SeedDate });
 
@@ -155,14 +147,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     }
 
     private static readonly DateTimeOffset SeedDate = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
-
-    private static void ConfigureAudit<TEntity>(EntityTypeBuilder<TEntity> entity)
-        where TEntity : AuditableEntity
-    {
-        entity.HasOne<ApplicationUser>().WithMany().HasForeignKey(e => e.CreatedByUserId).OnDelete(DeleteBehavior.NoAction);
-        entity.HasOne<ApplicationUser>().WithMany().HasForeignKey(e => e.ModifiedByUserId).OnDelete(DeleteBehavior.NoAction);
-        entity.HasOne<ApplicationUser>().WithMany().HasForeignKey(e => e.DeletedByUserId).OnDelete(DeleteBehavior.NoAction);
-    }
 
     private static SubSector[] SeedSubSectors() =>
     [

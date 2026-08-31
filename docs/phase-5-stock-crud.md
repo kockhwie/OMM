@@ -66,6 +66,15 @@ Per `docs/market-data-design.md` §4.7 and `docs/admin-backend-tasks.md`:
 
 ## 4. Soft Delete & Auditing Specification
 
+### 4.0 Master-data identity boundary
+
+Admin identity records live in the `admin` PostgreSQL schema, while shared master
+data lives in `public`. Master-data audit user IDs are therefore stored as nullable
+text values and must not be foreign keys to either application's `AspNetUsers` table.
+When correcting an existing database, use a migration with PostgreSQL
+`DROP CONSTRAINT IF EXISTS` and `DROP INDEX IF EXISTS`, because environments may
+already have some of the legacy audit constraints removed. See [`../AGENTS.md`](../AGENTS.md).
+
 ### 4.1 Soft Delete Contract
 
 When an administrator clicks "Delete" on a stock:
@@ -123,4 +132,4 @@ When an administrator clicks "Delete" on a stock:
 
 ## 7. Next Steps
 
-Proceed to **Phase 6: Institution CRUD Management** (`docs/phase-6-institution-crud.md`), applying the identical modal, cascading, and soft-delete architecture to the `/admin/institutions` portal.
+Proceed to **Phase 6: Institution CRUD Management** (`docs/phase-6-institution-crud.md`), applying the same modal, server-side grid, audit, and soft-delete patterns to the `/admin/institutions` portal. Institution CRUD does not require the stock page's cascading taxonomy behavior.

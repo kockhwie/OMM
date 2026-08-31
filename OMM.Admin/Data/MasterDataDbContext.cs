@@ -59,6 +59,13 @@ public class MasterDataDbContext(DbContextOptions<MasterDataDbContext> options) 
         {
             entity.ToTable("Institution", "public");
             entity.HasQueryFilter(e => !e.IsDeleted);
+
+            // Admin identity is stored in the 'admin' schema. Audit user IDs
+            // are plain strings because public master data cannot reference
+            // either application's identity table safely.
+            entity.Property(e => e.CreatedByUserId).HasColumnType("text");
+            entity.Property(e => e.ModifiedByUserId).HasColumnType("text");
+            entity.Property(e => e.DeletedByUserId).HasColumnType("text");
         });
 
         modelBuilder.Entity<Stock>(entity =>

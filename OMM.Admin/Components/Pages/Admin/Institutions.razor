@@ -1,30 +1,85 @@
 @page "/admin/institutions"
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.EntityFrameworkCore
+@using OMM.Admin.Data
+@inject IDbContextFactory<MasterDataDbContext> DbContextFactory
+@inject AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>Financial Institutions - OMM Admin</PageTitle>
 
 <div class="container-fluid p-0">
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <div>
-            <h1 class="h3 fw-bold text-dark mb-1">Financial Institutions</h1>
-            <p class="text-muted mb-0">Configure banking partners, brokers, EPF/KWSP, and gold providers.</p>
-        </div>
-        <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-2">
-            <i class="ti ti-clock me-1"></i> Coming in Phase 6
-        </span>
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div><h1 class="h3 fw-bold text-dark mb-1 font-display">Financial Institutions</h1><p class="text-muted mb-0">Manage banking partners, brokers, EPF/KWSP, insurance, and gold providers.</p></div>
+        <div class="d-flex align-items-center gap-2"><button class="btn btn-sm btn-outline-secondary" @onclick="RefreshData" disabled="@_isLoading"><i class="ti ti-refresh @(_isLoading ? "ti-spin" : "")"></i> Refresh</button><button class="btn btn-sm btn-success fw-semibold" @onclick="OpenAddModal"><i class="ti ti-plus"></i> Add Institution</button></div>
     </div>
-
-    <div class="omm-card p-5 text-center">
-        <div class="stat-icon-wrapper bg-success-subtle text-success mx-auto mb-3" style="width: 64px; height: 64px; font-size: 2rem; border-radius: 16px;">
-            <i class="ti ti-building-bank"></i>
-        </div>
-        <h2 class="h4 fw-bold mb-2">Institutions Master</h2>
-        <p class="text-muted mx-auto mb-4" style="max-width: 480px;">
-            Financial institution catalog, category management (Banks, Brokers, EPF/KWSP, Insurance), and institution-specific settings will be available in Phase 6.
-        </p>
-        <div>
-            <a href="admin" class="btn btn-outline-secondary btn-sm">
-                <i class="ti ti-arrow-left me-1"></i> Back to Dashboard
-            </a>
-        </div>
+    @if (!string.IsNullOrEmpty(_statusMessage)) { <div class="alert alert-@_statusMessageClass alert-dismissible fade show d-flex align-items-center gap-2 rounded-3 mb-4" role="alert"><i class="ti @(_statusMessageClass == "success" ? "ti-circle-check" : "ti-alert-circle") fs-5"></i><div>@_statusMessage</div><button type="button" class="btn-close ms-auto" @onclick="() => _statusMessage = null" aria-label="Close"></button></div> }
+    <div class="row g-3 mb-4">
+        <div class="col-md-4"><div class="card border-0 bg-white shadow-sm p-3 rounded-4"><div class="text-muted small">Total Institutions</div><div class="h5 fw-bold mb-0 text-dark">@_totalCount.ToString("N0")</div></div></div>
+        <div class="col-md-4"><div class="card border-0 bg-white shadow-sm p-3 rounded-4"><div class="text-muted small">Active Institutions</div><div class="h5 fw-bold mb-0 text-dark">@_activeCount.ToString("N0")</div></div></div>
+        <div class="col-md-4"><div class="card border-0 bg-white shadow-sm p-3 rounded-4"><div class="text-muted small">Categories in Use</div><div class="h5 fw-bold mb-0 text-dark">@_categoryCount</div></div></div>
     </div>
+    <div class="card border-0 bg-white shadow-sm rounded-4 p-3 mb-3"><div class="row g-2 align-items-end">
+        <div class="col-lg-3 col-md-6"><label class="form-label small fw-semibold text-muted mb-1">Category</label><select class="form-select form-select-sm rounded-3" value="@_filterCategory" @onchange="HandleCategoryFilterChange"><option value="">All Categories</option>@foreach (var category in Enum.GetValues<InstitutionCategory>()) { <option value="@category">@GetCategoryName(category)</option> }</select></div>
+        <div class="col-lg-3 col-md-6"><label class="form-label small fw-semibold text-muted mb-1">Country</label><select class="form-select form-select-sm rounded-3" value="@_filterCountryId" @onchange="HandleCountryFilterChange"><option value="0">All Countries</option>@foreach (var country in _countries) { <option value="@country.Id">@country.CountryName_EN</option> }</select></div>
+        <div class="col-lg-3 col-md-6"><label class="form-label small fw-semibold text-muted mb-1">Status</label><select class="form-select form-select-sm rounded-3" value="@_filterActive" @onchange="HandleActiveFilterChange"><option value="">All Statuses</option><option value="active">Active Only</option><option value="inactive">Inactive Only</option></select></div>
+        <div class="col-lg-3 col-md-6">@if (HasActiveFilters) { <button class="btn btn-sm btn-outline-secondary w-100 rounded-3" @onclick="ClearFilters"><i class="ti ti-filter-off me-1"></i> Clear Filters</button> }</div>
+    </div></div>
+    <AdminDataGrid TItem="Institution" Items="@_institutions" TotalCount="@_totalCount" @bind-PageSize="@_pageSize" @bind-CurrentPage="@_currentPage" IsLoading="@_isLoading" ServerSide="true" SearchPlaceholder="Search code or institution name..." OnSearchChanged="HandleSearchChanged" OnSortChanged="HandleSortChanged" OnPageChanged="HandlePageChanged" OnPageSizeChanged="HandlePageSizeChanged">
+        <Columns>
+            <GridColumn TItem="Institution" Field="@(i => i.InstitutionCode)" Title="Code" Sortable="true"><Template Context="institution"><span class="badge bg-light text-dark font-monospace fw-bold border">@institution.InstitutionCode</span></Template></GridColumn>
+            <GridColumn TItem="Institution" Field="@(i => i.InstitutionName_EN)" Title="Institution" Sortable="true"><Template Context="institution"><div class="d-flex flex-column"><span class="fw-bold text-dark">@institution.InstitutionName_EN</span><span class="text-muted small">@institution.InstitutionName_ZH_TW</span></div></Template></GridColumn>
+            <GridColumn TItem="Institution" Field="@(i => i.InstitutionCategory)" Title="Category" Sortable="true"><Template Context="institution"><span class="badge bg-primary-subtle text-primary">@GetCategoryName(institution.InstitutionCategory)</span></Template></GridColumn>
+            <GridColumn TItem="Institution" Title="Country" SortKey="Country" Sortable="true"><Template Context="institution"><span class="text-muted small">@(institution.Country?.CountryName_EN ?? "-")</span></Template></GridColumn>
+            <GridColumn TItem="Institution" Field="@(i => i.IsActive)" Title="Status" Sortable="true"><Template Context="institution"><button class="btn btn-link p-0 text-decoration-none" @onclick="@(() => ToggleActiveStatus(institution))"><span class="badge @(institution.IsActive ? "bg-success-subtle text-success" : "bg-secondary-subtle text-secondary")">@(institution.IsActive ? "Active" : "Inactive")</span></button></Template></GridColumn>
+        </Columns>
+        <ActionColumn Context="institution"><div class="btn-group btn-group-sm"><button class="btn btn-outline-secondary" title="Edit Institution" @onclick="@(() => OpenEditModal(institution))"><i class="ti ti-edit"></i></button><button class="btn btn-outline-danger" title="Soft Delete Institution" @onclick="@(() => OpenDeleteModal(institution))"><i class="ti ti-trash"></i></button></div></ActionColumn>
+        <EmptyTemplate><div class="text-center py-5"><i class="ti ti-building-bank fs-1 text-muted"></i><h5 class="fw-bold mb-1">No institutions found</h5><p class="text-muted small mb-0">Try adjusting your search or filters.</p></div></EmptyTemplate>
+    </AdminDataGrid>
 </div>
+<InstitutionEditModal IsOpen="@_isEditModalOpen" OriginalInstitution="@_selectedInstitution" OnSave="HandleSaveInstitutionAsync" OnClose="CloseEditModal" />
+<DeleteInstitutionModal IsOpen="@_isDeleteModalOpen" Institution="@_selectedInstitution" OnConfirm="HandleDeleteInstitutionAsync" OnClose="CloseDeleteModal" />
+
+@code {
+    private List<Institution> _institutions = [];
+    private List<Country> _countries = [];
+    private int _totalCount, _activeCount, _categoryCount, _pageSize = 20, _currentPage = 1, _filterCountryId;
+    private bool _isLoading = true, _isEditModalOpen, _isDeleteModalOpen;
+    private string _searchTerm = string.Empty, _sortColumn = "InstitutionCode", _filterCategory = string.Empty, _filterActive = string.Empty;
+    private SortDirection _sortDirection = SortDirection.Ascending;
+    private Institution? _selectedInstitution;
+    private string? _statusMessage;
+    private string _statusMessageClass = "success";
+    private bool HasActiveFilters => !string.IsNullOrEmpty(_filterCategory) || _filterCountryId > 0 || !string.IsNullOrEmpty(_filterActive);
+
+    protected override async Task OnInitializedAsync() { await LoadOptions(); await LoadSummaryCounts(); await LoadData(); }
+    private async Task LoadOptions() { await using var db = await DbContextFactory.CreateDbContextAsync(); _countries = await db.Countries.AsNoTracking().Where(c => c.IsActive).OrderBy(c => c.CountryName_EN).ToListAsync(); }
+    private async Task LoadSummaryCounts() { await using var db = await DbContextFactory.CreateDbContextAsync(); _activeCount = await db.Institutions.CountAsync(i => i.IsActive); _categoryCount = await db.Institutions.Select(i => i.InstitutionCategory).Distinct().CountAsync(); }
+    private async Task LoadData()
+    {
+        _isLoading = true; StateHasChanged();
+        try { await using var db = await DbContextFactory.CreateDbContextAsync(); var query = db.Institutions.AsNoTracking().Include(i => i.Country).AsQueryable(); if (!string.IsNullOrWhiteSpace(_searchTerm)) { var term = _searchTerm.Trim().ToLower(); query = query.Where(i => i.InstitutionCode.ToLower().Contains(term) || i.InstitutionName_EN.ToLower().Contains(term) || i.InstitutionName_ZH_TW.ToLower().Contains(term) || i.InstitutionName_ZH_CN.ToLower().Contains(term)); } if (!string.IsNullOrEmpty(_filterCategory) && Enum.TryParse<InstitutionCategory>(_filterCategory, out var category)) query = query.Where(i => i.InstitutionCategory == category); if (_filterCountryId > 0) query = query.Where(i => i.CountryId == _filterCountryId); if (_filterActive == "active") query = query.Where(i => i.IsActive); else if (_filterActive == "inactive") query = query.Where(i => !i.IsActive); _totalCount = await query.CountAsync(); query = (_sortColumn, _sortDirection) switch { ("InstitutionCode", SortDirection.Descending) => query.OrderByDescending(i => i.InstitutionCode), ("InstitutionName_EN", SortDirection.Ascending) => query.OrderBy(i => i.InstitutionName_EN), ("InstitutionName_EN", SortDirection.Descending) => query.OrderByDescending(i => i.InstitutionName_EN), ("InstitutionCategory", SortDirection.Ascending) => query.OrderBy(i => i.InstitutionCategory), ("InstitutionCategory", SortDirection.Descending) => query.OrderByDescending(i => i.InstitutionCategory), ("Country", SortDirection.Ascending) => query.OrderBy(i => i.Country != null ? i.Country.CountryName_EN : string.Empty), ("Country", SortDirection.Descending) => query.OrderByDescending(i => i.Country != null ? i.Country.CountryName_EN : string.Empty), ("IsActive", SortDirection.Ascending) => query.OrderBy(i => i.IsActive), ("IsActive", SortDirection.Descending) => query.OrderByDescending(i => i.IsActive), _ => query.OrderBy(i => i.InstitutionCode) }; _institutions = await query.Skip((_currentPage - 1) * _pageSize).Take(_pageSize).ToListAsync(); }
+        finally { _isLoading = false; StateHasChanged(); }
+    }
+    private static string GetCategoryName(InstitutionCategory category) => category switch { InstitutionCategory.EpfKwsp => "EPF / KWSP", InstitutionCategory.GoldProvider => "Gold Provider", _ => category.ToString() };
+    private async Task RefreshData() { await LoadOptions(); await LoadSummaryCounts(); await LoadData(); }
+    private async Task HandleSearchChanged(string term) { _searchTerm = term; _currentPage = 1; await LoadData(); }
+    private async Task HandleSortChanged(SortChangedArgs args) { _sortColumn = string.IsNullOrEmpty(args.ColumnKey) ? "InstitutionCode" : args.ColumnKey; _sortDirection = args.Direction; _currentPage = 1; await LoadData(); }
+    private async Task HandlePageChanged(int page) { _currentPage = page; await LoadData(); }
+    private async Task HandlePageSizeChanged(int pageSize) { _pageSize = pageSize; _currentPage = 1; await LoadData(); }
+    private async Task HandleCategoryFilterChange(ChangeEventArgs e) { _filterCategory = e.Value?.ToString() ?? string.Empty; _currentPage = 1; await LoadData(); }
+    private async Task HandleCountryFilterChange(ChangeEventArgs e) { if (int.TryParse(e.Value?.ToString(), out var id)) _filterCountryId = id; _currentPage = 1; await LoadData(); }
+    private async Task HandleActiveFilterChange(ChangeEventArgs e) { _filterActive = e.Value?.ToString() ?? string.Empty; _currentPage = 1; await LoadData(); }
+    private async Task ClearFilters() { _filterCategory = string.Empty; _filterCountryId = 0; _filterActive = string.Empty; _currentPage = 1; await LoadData(); }
+    private void OpenAddModal() { _selectedInstitution = new Institution { InstitutionCode = string.Empty, InstitutionName_EN = string.Empty, InstitutionName_ZH_TW = string.Empty, InstitutionName_ZH_CN = string.Empty, IsActive = true }; _isEditModalOpen = true; }
+    private async Task OpenEditModal(Institution institution) { await using var db = await DbContextFactory.CreateDbContextAsync(); _selectedInstitution = await db.Institutions.AsNoTracking().Include(i => i.Country).FirstOrDefaultAsync(i => i.Id == institution.Id); _isEditModalOpen = true; }
+    private void CloseEditModal() { _isEditModalOpen = false; _selectedInstitution = null; }
+    private void OpenDeleteModal(Institution institution) { _selectedInstitution = institution; _isDeleteModalOpen = true; }
+    private void CloseDeleteModal() { _isDeleteModalOpen = false; _selectedInstitution = null; }
+    private async Task HandleSaveInstitutionAsync(InstitutionEditModal.InstitutionFormModel model)
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync(); var userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value; var code = model.InstitutionCode.Trim(); await using var db = await DbContextFactory.CreateDbContextAsync(); if (await db.Institutions.AnyAsync(i => i.InstitutionCode.ToLower() == code.ToLower() && i.Id != model.Id)) throw new InvalidOperationException($"An institution with code '{code}' already exists in the master database."); if (model.Id == 0) { db.Institutions.Add(new Institution { InstitutionCode = code, InstitutionName_EN = model.InstitutionName_EN.Trim(), InstitutionName_ZH_TW = model.InstitutionName_ZH_TW.Trim(), InstitutionName_ZH_CN = model.InstitutionName_ZH_CN.Trim(), InstitutionCategory = model.InstitutionCategory, CountryId = model.CountryId, IsActive = model.IsActive, CreatedAt = DateTimeOffset.UtcNow, CreatedByUserId = userId }); _statusMessage = $"Successfully created institution: {code}."; } else { var entity = await db.Institutions.FindAsync(model.Id) ?? throw new InvalidOperationException("The institution you are trying to edit could not be found."); entity.InstitutionCode = code; entity.InstitutionName_EN = model.InstitutionName_EN.Trim(); entity.InstitutionName_ZH_TW = model.InstitutionName_ZH_TW.Trim(); entity.InstitutionName_ZH_CN = model.InstitutionName_ZH_CN.Trim(); entity.InstitutionCategory = model.InstitutionCategory; entity.CountryId = model.CountryId; entity.IsActive = model.IsActive; entity.ModifiedAt = DateTimeOffset.UtcNow; entity.ModifiedByUserId = userId; _statusMessage = $"Successfully updated institution: {code}."; } await db.SaveChangesAsync(); _statusMessageClass = "success"; CloseEditModal(); await LoadSummaryCounts(); await LoadData();
+    }
+    private async Task HandleDeleteInstitutionAsync(Institution institution) { var authState = await AuthStateProvider.GetAuthenticationStateAsync(); var userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value; await using var db = await DbContextFactory.CreateDbContextAsync(); var entity = await db.Institutions.FindAsync(institution.Id); if (entity != null) { entity.IsDeleted = true; entity.IsActive = false; entity.DeletedAt = DateTimeOffset.UtcNow; entity.DeletedByUserId = userId; await db.SaveChangesAsync(); _statusMessage = $"Institution '{institution.InstitutionCode}' has been soft-deleted."; _statusMessageClass = "warning"; } CloseDeleteModal(); await LoadSummaryCounts(); await LoadData(); }
+    private async Task ToggleActiveStatus(Institution institution) { var authState = await AuthStateProvider.GetAuthenticationStateAsync(); var userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value; await using var db = await DbContextFactory.CreateDbContextAsync(); var entity = await db.Institutions.FindAsync(institution.Id); if (entity != null) { entity.IsActive = !entity.IsActive; entity.ModifiedAt = DateTimeOffset.UtcNow; entity.ModifiedByUserId = userId; await db.SaveChangesAsync(); _statusMessage = $"Status for '{institution.InstitutionCode}' changed to {(entity.IsActive ? "Active" : "Inactive")}."; _statusMessageClass = "info"; await LoadSummaryCounts(); await LoadData(); } }
+}

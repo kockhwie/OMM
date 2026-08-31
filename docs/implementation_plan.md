@@ -67,9 +67,9 @@ database/provider decisions, scope boundaries, and exact acceptance criteria.
 - [x] Phase 1 standalone doc ready to hand off (`docs/phase-1-schema-migration.md`)
 - [x] Phase 1 executed and merged
 - [x] Phase 2 executed and merged
-- [ ] Phase 2b Admin Identity bootstrap executed and merged
-- [ ] Phase 3 executed
-- [ ] Phase 4 executed
-- [ ] Phase 5 executed
-- [ ] Phase 6 executed
+- [x] Phase 2b Admin Identity bootstrap executed and merged
+- [x] Phase 3 executed
+- [x] Phase 4 executed
+- [x] Phase 5 executed
+- [x] Phase 6 executed
 - [ ] Phase 7 executed

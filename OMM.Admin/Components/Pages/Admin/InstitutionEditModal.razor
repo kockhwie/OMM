@@ -1,0 +1,228 @@
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.EntityFrameworkCore
+@using OMM.Admin.Data
+@using OMM.Shared.Models.MasterData
+@inject IDbContextFactory<MasterDataDbContext> DbContextFactory
+
+@if (IsOpen)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.6); z-index: 1050;" role="dialog" aria-modal="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header bg-dark text-white px-4 py-3 border-0 d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="stat-icon-wrapper bg-success text-white p-2 rounded-3" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
+                            <i class="ti @(IsNew ? "ti-plus" : "ti-edit") fs-5"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-bold font-display mb-0">@(IsNew ? "Add Institution" : $"Edit Institution: {Model.InstitutionCode}")</h5>
+                            <span class="text-muted small">@(IsNew ? "Create a financial institution master record" : "Update institution details and classification")</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" @onclick="HandleClose" aria-label="Close" disabled="@_isSaving"></button>
+                </div>
+
+                <div class="modal-body p-4 bg-light-subtle">
+                    @if (!string.IsNullOrEmpty(_errorMessage))
+                    {
+                        <div class="alert alert-danger d-flex align-items-center gap-2 rounded-3 mb-3 py-2" role="alert">
+                            <i class="ti ti-alert-circle fs-5"></i>
+                            <div>@_errorMessage</div>
+                        </div>
+                    }
+
+                    <EditForm Model="@Model" OnValidSubmit="HandleValidSubmit">
+                        <DataAnnotationsValidator />
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold text-dark">Institution Code <span class="text-danger">*</span></label>
+                                <InputText class="form-control rounded-3 font-monospace fw-bold" placeholder="e.g. MAYBANK" @bind-Value="Model.InstitutionCode" />
+                                <ValidationMessage For="@(() => Model.InstitutionCode)" class="text-danger small mt-1" />
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label small fw-semibold text-dark">Category <span class="text-danger">*</span></label>
+                                <InputSelect class="form-select rounded-3" @bind-Value="Model.InstitutionCategory">
+                                    @foreach (var category in Enum.GetValues<InstitutionCategory>())
+                                    {
+                                        <option value="@category">@GetCategoryName(category)</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label small fw-semibold text-dark">Institution Name (English) <span class="text-danger">*</span></label>
+                                <InputText class="form-control rounded-3" placeholder="e.g. Malayan Banking Berhad" @bind-Value="Model.InstitutionName_EN" />
+                                <ValidationMessage For="@(() => Model.InstitutionName_EN)" class="text-danger small mt-1" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-dark">Institution Name (ZH-TW) <span class="text-danger">*</span></label>
+                                <InputText class="form-control rounded-3" @bind-Value="Model.InstitutionName_ZH_TW" />
+                                <ValidationMessage For="@(() => Model.InstitutionName_ZH_TW)" class="text-danger small mt-1" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-dark">Institution Name (ZH-CN) <span class="text-danger">*</span></label>
+                                <InputText class="form-control rounded-3" @bind-Value="Model.InstitutionName_ZH_CN" />
+                                <ValidationMessage For="@(() => Model.InstitutionName_ZH_CN)" class="text-danger small mt-1" />
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label small fw-semibold text-dark">Country</label>
+                                <InputSelect class="form-select rounded-3" @bind-Value="Model.CountryId">
+                                    <option value="">Select a country</option>
+                                    @foreach (var country in _countries)
+                                    {
+                                        <option value="@country.Id">@country.CountryCode - @country.CountryName_EN</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <div class="form-check form-switch pb-2">
+                                    <InputCheckbox class="form-check-input" @bind-Value="Model.IsActive" />
+                                    <label class="form-check-label fw-semibold">Active institution</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer px-0 pb-0 mt-4 border-0 d-flex align-items-center justify-content-between">
+                            <button type="button" class="btn btn-outline-secondary rounded-3 px-3" @onclick="HandleClose" disabled="@_isSaving">Cancel</button>
+                            <button type="submit" class="btn btn-success rounded-3 px-4 fw-semibold d-flex align-items-center gap-2" disabled="@_isSaving">
+                                @if (_isSaving)
+                                {
+                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                    <span>Saving...</span>
+                                }
+                                else
+                                {
+                                    <i class="ti ti-device-floppy"></i>
+                                    <span>Save Institution</span>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public Institution? OriginalInstitution { get; set; }
+    [Parameter] public EventCallback<InstitutionFormModel> OnSave { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private InstitutionFormModel Model { get; set; } = new();
+    private List<Country> _countries = [];
+    private string? _errorMessage;
+    private bool _isSaving;
+    private bool IsNew => OriginalInstitution == null || OriginalInstitution.Id == 0;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!IsOpen)
+        {
+            return;
+        }
+
+        _errorMessage = null;
+        await LoadCountriesAsync();
+        PopulateModel();
+    }
+
+    private async Task LoadCountriesAsync()
+    {
+        try
+        {
+            await using var db = await DbContextFactory.CreateDbContextAsync();
+            _countries = await db.Countries.AsNoTracking()
+                .Where(c => c.IsActive)
+                .OrderBy(c => c.CountryName_EN)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Failed to load countries: {ex.Message}";
+        }
+    }
+
+    private void PopulateModel()
+    {
+        if (!IsNew && OriginalInstitution != null)
+        {
+            Model = new InstitutionFormModel
+            {
+                Id = OriginalInstitution.Id,
+                InstitutionCode = OriginalInstitution.InstitutionCode,
+                InstitutionName_EN = OriginalInstitution.InstitutionName_EN,
+                InstitutionName_ZH_TW = OriginalInstitution.InstitutionName_ZH_TW,
+                InstitutionName_ZH_CN = OriginalInstitution.InstitutionName_ZH_CN,
+                InstitutionCategory = OriginalInstitution.InstitutionCategory,
+                CountryId = OriginalInstitution.CountryId,
+                IsActive = OriginalInstitution.IsActive
+            };
+        }
+        else
+        {
+            Model = new InstitutionFormModel { IsActive = true };
+        }
+    }
+
+    private static string GetCategoryName(InstitutionCategory category) => category switch
+    {
+        InstitutionCategory.EpfKwsp => "EPF / KWSP",
+        InstitutionCategory.GoldProvider => "Gold Provider",
+        _ => category.ToString()
+    };
+
+    private async Task HandleValidSubmit()
+    {
+        _isSaving = true;
+        _errorMessage = null;
+        try
+        {
+            if (OnSave.HasDelegate)
+            {
+                await OnSave.InvokeAsync(Model);
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private async Task HandleClose()
+    {
+        if (OnClose.HasDelegate)
+        {
+            await OnClose.InvokeAsync();
+        }
+    }
+
+    public class InstitutionFormModel
+    {
+        public int Id { get; set; }
+
+        [Required(ErrorMessage = "Institution Code is required.")]
+        [StringLength(50, ErrorMessage = "Institution Code cannot exceed 50 characters.")]
+        public string InstitutionCode { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "English Institution Name is required.")]
+        [StringLength(200, ErrorMessage = "English Institution Name cannot exceed 200 characters.")]
+        public string InstitutionName_EN { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "ZH-TW Institution Name is required.")]
+        [StringLength(200, ErrorMessage = "ZH-TW Institution Name cannot exceed 200 characters.")]
+        public string InstitutionName_ZH_TW { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "ZH-CN Institution Name is required.")]
+        [StringLength(200, ErrorMessage = "ZH-CN Institution Name cannot exceed 200 characters.")]
+        public string InstitutionName_ZH_CN { get; set; } = string.Empty;
+
+        public InstitutionCategory InstitutionCategory { get; set; }
+        public int? CountryId { get; set; }
+        public bool IsActive { get; set; }
+    }
+}

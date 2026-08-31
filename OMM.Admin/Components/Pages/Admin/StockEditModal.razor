@@ -1,0 +1,600 @@
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.EntityFrameworkCore
+@using OMM.Admin.Data
+@using OMM.Shared.Models.MasterData
+@inject IDbContextFactory<MasterDataDbContext> DbContextFactory
+
+@if (IsOpen)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.6); z-index: 1050;" role="dialog" aria-modal="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <!-- Modal Header -->
+                <div class="modal-header bg-dark text-white px-4 py-3 border-0 d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="stat-icon-wrapper bg-danger text-white p-2 rounded-3" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
+                            <i class="ti @(IsNew ? "ti-plus" : "ti-edit") fs-5"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-bold font-display mb-0">
+                                @(IsNew ? "Add New KLSE Stock" : $"Edit Stock: {Model.StockCode} - {Model.ShortName_EN}")
+                            </h5>
+                            <span class="text-muted small">
+                                @(IsNew ? "Create a new Malaysian equity security record in Master Data" : "Update security details, taxonomy, and listing attributes")
+                            </span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" @onclick="HandleClose" aria-label="Close" disabled="@_isSaving"></button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body p-4 bg-light-subtle">
+                    @if (!string.IsNullOrEmpty(_errorMessage))
+                    {
+                        <div class="alert alert-danger d-flex align-items-center gap-2 rounded-3 mb-3 py-2" role="alert">
+                            <i class="ti ti-alert-circle fs-5"></i>
+                            <div>@_errorMessage</div>
+                        </div>
+                    }
+
+                    <EditForm Model="@Model" OnValidSubmit="HandleValidSubmit">
+                        <DataAnnotationsValidator />
+
+                        <!-- Nav Tabs for Organizing Information -->
+                        <ul class="nav nav-tabs border-bottom mb-4">
+                            <li class="nav-item">
+                                <button type="button" class="nav-link @(_activeTab == "general" ? "active fw-bold text-danger border-bottom-0" : "text-dark")" @onclick="@(() => _activeTab = "general")">
+                                    <i class="ti ti-info-circle me-1"></i> General & Security Info
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button type="button" class="nav-link @(_activeTab == "taxonomy" ? "active fw-bold text-danger border-bottom-0" : "text-dark")" @onclick="@(() => _activeTab = "taxonomy")">
+                                    <i class="ti ti-category me-1"></i> Market & Classification
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button type="button" class="nav-link @(_activeTab == "multilingual" ? "active fw-bold text-danger border-bottom-0" : "text-dark")" @onclick="@(() => _activeTab = "multilingual")">
+                                    <i class="ti ti-language me-1"></i> Multilingual Names
+                                </button>
+                            </li>
+                            @if (!IsNew && OriginalStock != null)
+                            {
+                                <li class="nav-item">
+                                    <button type="button" class="nav-link @(_activeTab == "fundamentals" ? "active fw-bold text-danger border-bottom-0" : "text-dark")" @onclick="@(() => _activeTab = "fundamentals")">
+                                        <i class="ti ti-chart-line me-1"></i> Fundamentals & Metrics
+                                    </button>
+                                </li>
+                            }
+                        </ul>
+
+                        <!-- Tab 1: General & Identifiers -->
+                        @if (_activeTab == "general")
+                        {
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold text-dark">
+                                        Stock Code (Bursa Code) <span class="text-danger">*</span>
+                                    </label>
+                                    <InputText class="form-control rounded-3 font-monospace fw-bold" placeholder="e.g. 1155 or 5183" @bind-Value="Model.StockCode" />
+                                    <ValidationMessage For="@(() => Model.StockCode)" class="text-danger small mt-1" />
+                                    <div class="form-text small">Unique KLSE numeric or alphanumeric ticker code.</div>
+                                </div>
+
+                                <div class="col-md-8">
+                                    <label class="form-label small fw-semibold text-dark">
+                                        Short Name (English) <span class="text-danger">*</span>
+                                    </label>
+                                    <InputText class="form-control rounded-3 fw-semibold" placeholder="e.g. MAYBANK or PETRONAS CHEMICALS" @bind-Value="Model.ShortName_EN" />
+                                    <ValidationMessage For="@(() => Model.ShortName_EN)" class="text-danger small mt-1" />
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label small fw-semibold text-dark">Legal / Full Name (English)</label>
+                                    <InputText class="form-control rounded-3" placeholder="e.g. Malayan Banking Berhad" @bind-Value="Model.LegalName_EN" />
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold text-dark">RIC Code</label>
+                                    <InputText class="form-control rounded-3 font-monospace" placeholder="e.g. MBBM.KL" @bind-Value="Model.RicCode" />
+                                    <div class="form-text small">Reuters Instrument Code</div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold text-dark">Yahoo Finance Symbol</label>
+                                    <InputText class="form-control rounded-3 font-monospace" placeholder="e.g. 1155.KL" @bind-Value="Model.YahooSymbol" />
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold text-dark">ISIN Code</label>
+                                    <InputText class="form-control rounded-3 font-monospace" placeholder="e.g. MYL1155OO000" @bind-Value="Model.IsinCode" />
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold text-dark">Currency <span class="text-danger">*</span></label>
+                                    <InputText class="form-control rounded-3 font-monospace" @bind-Value="Model.Currency" />
+                                    <ValidationMessage For="@(() => Model.Currency)" class="text-danger small mt-1" />
+                                </div>
+
+                                <div class="col-md-4 d-flex align-items-center">
+                                    <div class="form-check form-switch mt-3">
+                                        <InputCheckbox class="form-check-input" id="isActiveCheck" @bind-Value="Model.IsActive" />
+                                        <label class="form-check-label fw-semibold text-dark" for="isActiveCheck">
+                                            Active Listing
+                                        </label>
+                                        <div class="form-text small">Inactive securities are hidden from default searches.</div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 d-flex align-items-center">
+                                    <div class="form-check form-switch mt-3">
+                                        <InputCheckbox class="form-check-input" id="isShariahCheck" @bind-Value="Model.ShariahCompliant" />
+                                        <label class="form-check-label fw-semibold text-dark" for="isShariahCheck">
+                                            <i class="ti ti-moon text-warning me-1"></i> Shariah Compliant
+                                        </label>
+                                        <div class="form-text small">Securities Commission Malaysia Shariah status.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Tab 2: Market & Classification -->
+                        @if (_activeTab == "taxonomy")
+                        {
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold text-dark">
+                                        Market Board <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select rounded-3" value="@Model.MarketId" @onchange="HandleMarketChanged">
+                                        <option value="0">-- Select Market Board --</option>
+                                        @foreach (var m in _markets)
+                                        {
+                                            <option value="@m.Id">@m.MarketCode - @m.MarketName_EN</option>
+                                        }
+                                    </select>
+                                    <ValidationMessage For="@(() => Model.MarketId)" class="text-danger small mt-1" />
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold text-dark">Sector</label>
+                                    <select class="form-select rounded-3" value="@(Model.SectorId ?? 0)" @onchange="HandleSectorChanged">
+                                        <option value="0">-- Unclassified / No Sector --</option>
+                                        @foreach (var s in _sectors)
+                                        {
+                                            <option value="@s.Id">@s.SectorName_EN</option>
+                                        }
+                                    </select>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold text-dark">Sub-Sector</label>
+                                    <select class="form-select rounded-3" value="@(Model.SubSectorId ?? 0)" @onchange="HandleSubSectorChanged" disabled="@(Model.SectorId == null || Model.SectorId == 0 || !_filteredSubSectors.Any())">
+                                        <option value="0">-- Unclassified / No Sub-Sector --</option>
+                                        @foreach (var ss in _filteredSubSectors)
+                                        {
+                                            <option value="@ss.Id">@ss.SubSectorName_EN</option>
+                                        }
+                                    </select>
+                                    @if (Model.SectorId != null && Model.SectorId > 0 && !_filteredSubSectors.Any())
+                                    {
+                                        <div class="form-text text-muted small">No sub-sectors registered under this sector.</div>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Tab 3: Multilingual Names -->
+                        @if (_activeTab == "multilingual")
+                        {
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="card border rounded-3 p-3 bg-white">
+                                        <h6 class="fw-bold text-dark mb-3"><i class="ti ti-letter-case me-1 text-primary"></i> Traditional Chinese (繁體中文)</h6>
+                                        <div class="mb-3">
+                                            <label class="form-label small fw-semibold text-dark">Short Name (ZH-TW)</label>
+                                            <InputText class="form-control rounded-3" placeholder="e.g. 馬來亞銀行" @bind-Value="Model.ShortName_ZH_TW" />
+                                        </div>
+                                        <div>
+                                            <label class="form-label small fw-semibold text-dark">Legal Name (ZH-TW)</label>
+                                            <InputText class="form-control rounded-3" placeholder="e.g. 馬來亞銀行有限公司" @bind-Value="Model.LegalName_ZH_TW" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="card border rounded-3 p-3 bg-white">
+                                        <h6 class="fw-bold text-dark mb-3"><i class="ti ti-letter-case me-1 text-primary"></i> Simplified Chinese (简体中文)</h6>
+                                        <div class="mb-3">
+                                            <label class="form-label small fw-semibold text-dark">Short Name (ZH-CN)</label>
+                                            <InputText class="form-control rounded-3" placeholder="e.g. 马来亚银行" @bind-Value="Model.ShortName_ZH_CN" />
+                                        </div>
+                                        <div>
+                                            <label class="form-label small fw-semibold text-dark">Legal Name (ZH-CN)</label>
+                                            <InputText class="form-control rounded-3" placeholder="e.g. 马来亚银行有限公司" @bind-Value="Model.LegalName_ZH_CN" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Tab 4: Fundamentals & Metrics (Read-Only) -->
+                        @if (_activeTab == "fundamentals" && !IsNew && OriginalStock != null)
+                        {
+                            <div class="alert alert-info d-flex align-items-center gap-2 rounded-3 mb-3 py-2">
+                                <i class="ti ti-lock fs-5"></i>
+                                <div class="small">
+                                    <strong>Read-Only Market Fundamentals:</strong> These metrics are managed exclusively by scheduled market data scraping and dividend calculation jobs.
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-3 col-6">
+                                    <div class="p-3 bg-white rounded-3 border shadow-xs">
+                                        <div class="text-muted small">Current Price</div>
+                                        <div class="h5 fw-bold text-dark font-monospace mb-0">
+                                            @(OriginalStock.CurrentPrice.HasValue ? $"RM {OriginalStock.CurrentPrice.Value:N3}" : "-")
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="p-3 bg-white rounded-3 border shadow-xs">
+                                        <div class="text-muted small">Market Cap</div>
+                                        <div class="h5 fw-bold text-dark font-monospace mb-0">
+                                            @(OriginalStock.MarketCap.HasValue ? $"RM {OriginalStock.MarketCap.Value:N0}" : "-")
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="p-3 bg-white rounded-3 border shadow-xs">
+                                        <div class="text-muted small">P/E Ratio</div>
+                                        <div class="h5 fw-bold text-dark font-monospace mb-0">
+                                            @(OriginalStock.PE.HasValue ? OriginalStock.PE.Value.ToString("N2") : "-")
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="p-3 bg-white rounded-3 border shadow-xs">
+                                        <div class="text-muted small">Dividend Yield</div>
+                                        <div class="h5 fw-bold text-success font-monospace mb-0">
+                                            @(OriginalStock.DividendYield.HasValue ? $"{OriginalStock.DividendYield.Value:P2}" : "-")
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="p-3 bg-white rounded-3 border shadow-xs">
+                                        <div class="text-muted small">EPS (Earnings Per Share)</div>
+                                        <div class="h5 fw-bold text-dark font-monospace mb-0">
+                                            @(OriginalStock.EPS.HasValue ? OriginalStock.EPS.Value.ToString("N4") : "-")
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="p-3 bg-white rounded-3 border shadow-xs">
+                                        <div class="text-muted small">DPS (Dividend Per Share)</div>
+                                        <div class="h5 fw-bold text-dark font-monospace mb-0">
+                                            @(OriginalStock.DPS.HasValue ? OriginalStock.DPS.Value.ToString("N4") : "-")
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="p-3 bg-white rounded-3 border shadow-xs">
+                                        <div class="text-muted small">NTA (Net Tangible Assets)</div>
+                                        <div class="h5 fw-bold text-dark font-monospace mb-0">
+                                            @(OriginalStock.NTA.HasValue ? OriginalStock.NTA.Value.ToString("N4") : "-")
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="p-3 bg-white rounded-3 border shadow-xs">
+                                        <div class="text-muted small">P/B Ratio</div>
+                                        <div class="h5 fw-bold text-dark font-monospace mb-0">
+                                            @(OriginalStock.PB.HasValue ? OriginalStock.PB.Value.ToString("N2") : "-")
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="p-3 bg-white rounded-3 border shadow-xs">
+                                        <div class="text-muted small">ROE</div>
+                                        <div class="h5 fw-bold text-dark font-monospace mb-0">
+                                            @(OriginalStock.ROE.HasValue ? $"{OriginalStock.ROE.Value:P2}" : "-")
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="p-3 bg-white rounded-3 border shadow-xs">
+                                        <div class="text-muted small">ROA</div>
+                                        <div class="h5 fw-bold text-dark font-monospace mb-0">
+                                            @(OriginalStock.ROA.HasValue ? $"{OriginalStock.ROA.Value:P2}" : "-")
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="p-3 bg-white rounded-3 border shadow-xs">
+                                        <div class="text-muted small">Debt to Equity</div>
+                                        <div class="h5 fw-bold text-dark font-monospace mb-0">
+                                            @(OriginalStock.DebtToEquity.HasValue ? OriginalStock.DebtToEquity.Value.ToString("N2") : "-")
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="p-3 bg-white rounded-3 border shadow-xs">
+                                        <div class="text-muted small">Current Ratio</div>
+                                        <div class="h5 fw-bold text-dark font-monospace mb-0">
+                                            @(OriginalStock.CurrentRatio.HasValue ? OriginalStock.CurrentRatio.Value.ToString("N2") : "-")
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-12">
+                                    <div class="p-3 bg-white rounded-3 border shadow-xs">
+                                        <div class="text-muted small">Last Scraped Timestamp</div>
+                                        <div class="fw-semibold text-dark small mb-0">
+                                            @(OriginalStock.LastScrapedAt.HasValue ? OriginalStock.LastScrapedAt.Value.ToLocalTime().ToString("dd MMM yyyy HH:mm:ss") : "Never")
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-12">
+                                    <div class="p-3 bg-white rounded-3 border shadow-xs">
+                                        <div class="text-muted small">Last Calculated Timestamp</div>
+                                        <div class="fw-semibold text-dark small mb-0">
+                                            @(OriginalStock.LastCalculatedAt.HasValue ? OriginalStock.LastCalculatedAt.Value.ToLocalTime().ToString("dd MMM yyyy HH:mm:ss") : "Never")
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Modal Footer -->
+                        <div class="modal-footer bg-white px-0 pb-0 pt-4 mt-4 border-top d-flex align-items-center justify-content-between">
+                            <button type="button" class="btn btn-outline-secondary rounded-3 px-3" @onclick="HandleClose" disabled="@_isSaving">
+                                Cancel
+                            </button>
+                            <div class="d-flex align-items-center gap-2">
+                                <button type="submit" class="btn btn-danger rounded-3 px-4 fw-semibold d-flex align-items-center gap-2" disabled="@_isSaving">
+                                    @if (_isSaving)
+                                    {
+                                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                        <span>Saving...</span>
+                                    }
+                                    else
+                                    {
+                                        <i class="ti ti-check"></i>
+                                        <span>@(IsNew ? "Create Stock" : "Save Changes")</span>
+                                    }
+                                </button>
+                            </div>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    [Parameter]
+    public Stock? OriginalStock { get; set; }
+
+    [Parameter]
+    public EventCallback<StockFormModel> OnSave { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    public bool IsNew => OriginalStock == null || OriginalStock.Id == 0;
+
+    public StockFormModel Model { get; set; } = new();
+
+    private List<Market> _markets = [];
+    private List<Sector> _sectors = [];
+    private List<SubSector> _subSectors = [];
+    private List<SubSector> _filteredSubSectors = [];
+    private string _activeTab = "general";
+    private string? _errorMessage;
+    private bool _isSaving = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (IsOpen)
+        {
+            _errorMessage = null;
+            _activeTab = "general";
+            await LoadTaxonomiesAsync();
+            PopulateModel();
+        }
+    }
+
+    private async Task LoadTaxonomiesAsync()
+    {
+        try
+        {
+            await using var db = await DbContextFactory.CreateDbContextAsync();
+            _markets = await db.Markets.AsNoTracking().Where(m => !m.IsDeleted).OrderBy(m => m.MarketCode).ToListAsync();
+            _sectors = await db.Sectors.AsNoTracking().Where(s => !s.IsDeleted).OrderBy(s => s.SectorName_EN).ToListAsync();
+            _subSectors = await db.SubSectors.AsNoTracking().Where(ss => !ss.IsDeleted).OrderBy(ss => ss.SubSectorName_EN).ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Failed to load markets and sectors: {ex.Message}";
+        }
+    }
+
+    private void PopulateModel()
+    {
+        if (OriginalStock != null && OriginalStock.Id > 0)
+        {
+            Model = new StockFormModel
+            {
+                Id = OriginalStock.Id,
+                StockCode = OriginalStock.StockCode,
+                ShortName_EN = OriginalStock.ShortName_EN,
+                ShortName_ZH_TW = OriginalStock.ShortName_ZH_TW,
+                ShortName_ZH_CN = OriginalStock.ShortName_ZH_CN,
+                LegalName_EN = OriginalStock.LegalName_EN,
+                LegalName_ZH_TW = OriginalStock.LegalName_ZH_TW,
+                LegalName_ZH_CN = OriginalStock.LegalName_ZH_CN,
+                RicCode = OriginalStock.RicCode,
+                YahooSymbol = OriginalStock.YahooSymbol,
+                IsinCode = OriginalStock.IsinCode,
+                MarketId = OriginalStock.MarketId,
+                SectorId = OriginalStock.SectorId,
+                SubSectorId = OriginalStock.SubSectorId,
+                ShariahCompliant = OriginalStock.ShariahCompliant,
+                Currency = OriginalStock.Currency ?? "MYR",
+                IsActive = OriginalStock.IsActive
+            };
+        }
+        else
+        {
+            var defaultMarket = _markets.FirstOrDefault(m => m.MarketCode == "MAIN") ?? _markets.FirstOrDefault();
+            Model = new StockFormModel
+            {
+                Id = 0,
+                StockCode = string.Empty,
+                ShortName_EN = string.Empty,
+                Currency = "MYR",
+                IsActive = true,
+                ShariahCompliant = false,
+                MarketId = defaultMarket?.Id ?? 0
+            };
+        }
+
+        FilterSubSectors();
+    }
+
+    private void HandleMarketChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var marketId))
+        {
+            Model.MarketId = marketId;
+        }
+    }
+
+    private void HandleSectorChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var sectorId) && sectorId > 0)
+        {
+            Model.SectorId = sectorId;
+        }
+        else
+        {
+            Model.SectorId = null;
+        }
+
+        FilterSubSectors();
+
+        // Reset SubSectorId if no longer valid under new sector
+        if (Model.SubSectorId.HasValue && !_filteredSubSectors.Any(ss => ss.Id == Model.SubSectorId.Value))
+        {
+            Model.SubSectorId = null;
+        }
+    }
+
+    private void HandleSubSectorChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var subSectorId) && subSectorId > 0)
+        {
+            Model.SubSectorId = subSectorId;
+        }
+        else
+        {
+            Model.SubSectorId = null;
+        }
+    }
+
+    private void FilterSubSectors()
+    {
+        if (Model.SectorId.HasValue && Model.SectorId.Value > 0)
+        {
+            _filteredSubSectors = _subSectors.Where(ss => ss.SectorId == Model.SectorId.Value).ToList();
+        }
+        else
+        {
+            _filteredSubSectors = [];
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        _isSaving = true;
+        _errorMessage = null;
+
+        try
+        {
+            if (OnSave.HasDelegate)
+            {
+                await OnSave.InvokeAsync(Model);
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private async Task HandleClose()
+    {
+        if (OnClose.HasDelegate)
+        {
+            await OnClose.InvokeAsync();
+        }
+    }
+
+    public class StockFormModel
+    {
+        public int Id { get; set; }
+
+        [Required(ErrorMessage = "Stock Code is required.")]
+        [StringLength(20, ErrorMessage = "Stock Code cannot exceed 20 characters.")]
+        public string StockCode { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "English Short Name is required.")]
+        [StringLength(100, ErrorMessage = "Short Name cannot exceed 100 characters.")]
+        public string ShortName_EN { get; set; } = string.Empty;
+
+        [StringLength(100, ErrorMessage = "ZH-TW Short Name cannot exceed 100 characters.")]
+        public string? ShortName_ZH_TW { get; set; }
+
+        [StringLength(100, ErrorMessage = "ZH-CN Short Name cannot exceed 100 characters.")]
+        public string? ShortName_ZH_CN { get; set; }
+
+        [StringLength(200, ErrorMessage = "English Legal Name cannot exceed 200 characters.")]
+        public string? LegalName_EN { get; set; }
+
+        [StringLength(200, ErrorMessage = "ZH-TW Legal Name cannot exceed 200 characters.")]
+        public string? LegalName_ZH_TW { get; set; }
+
+        [StringLength(200, ErrorMessage = "ZH-CN Legal Name cannot exceed 200 characters.")]
+        public string? LegalName_ZH_CN { get; set; }
+
+        [StringLength(30, ErrorMessage = "RIC Code cannot exceed 30 characters.")]
+        public string? RicCode { get; set; }
+
+        [StringLength(30, ErrorMessage = "Yahoo Symbol cannot exceed 30 characters.")]
+        public string? YahooSymbol { get; set; }
+
+        [StringLength(30, ErrorMessage = "ISIN Code cannot exceed 30 characters.")]
+        public string? IsinCode { get; set; }
+
+        [Required(ErrorMessage = "Please select a Market Board.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Please select a valid Market Board.")]
+        public int MarketId { get; set; }
+
+        public int? SectorId { get; set; }
+        public int? SubSectorId { get; set; }
+
+        public bool ShariahCompliant { get; set; }
+
+        [Required(ErrorMessage = "Currency is required.")]
+        [StringLength(10, ErrorMessage = "Currency cannot exceed 10 characters.")]
+        public string Currency { get; set; } = "MYR";
+
+        public bool IsActive { get; set; } = true;
+    }
+}

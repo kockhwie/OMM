@@ -33,7 +33,9 @@ builder.Services.AddAuthorization(options =>
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
-builder.Services.AddDbContext<MasterDataDbContext>(options =>
+// Use a factory so Blazor components can create short-lived, non-competing
+// DbContext instances per operation (avoids "second operation" concurrency crash).
+builder.Services.AddDbContextFactory<MasterDataDbContext>(options =>
     options.UseNpgsql(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 

@@ -65,6 +65,13 @@ public class MasterDataDbContext(DbContextOptions<MasterDataDbContext> options) 
         {
             entity.ToTable("Stock", "public");
             entity.HasQueryFilter(e => !e.IsDeleted);
+
+            // Audit userId columns are plain strings — no FK to AspNetUsers.
+            // Identity lives in the 'admin' schema (ApplicationDbContext) and
+            // MasterDataDbContext must not generate a cross-schema FK constraint.
+            entity.Property(e => e.CreatedByUserId).HasColumnType("text");
+            entity.Property(e => e.ModifiedByUserId).HasColumnType("text");
+            entity.Property(e => e.DeletedByUserId).HasColumnType("text");
         });
     }
 }

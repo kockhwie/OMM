@@ -1,0 +1,104 @@
+@using OMM.Shared.Models.MasterData
+
+@if (IsOpen && Stock != null)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.6); z-index: 1050;" role="dialog" aria-modal="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <!-- Modal Header -->
+                <div class="modal-header bg-danger text-white px-4 py-3 border-0 d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="ti ti-trash fs-4"></i>
+                        <h5 class="modal-title fw-bold font-display mb-0">Soft Delete Stock</h5>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" @onclick="HandleClose" aria-label="Close" disabled="@_isDeleting"></button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body p-4 bg-white">
+                    <p class="text-dark mb-3">
+                        Are you sure you want to delete this security from the master database?
+                    </p>
+
+                    <div class="p-3 bg-light rounded-3 border mb-3">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span class="badge bg-secondary font-monospace">@Stock.StockCode</span>
+                            <span class="fw-bold text-dark">@Stock.ShortName_EN</span>
+                        </div>
+                        <div class="text-muted small">
+                            Market: @(Stock.Market?.MarketCode ?? "-") | Sector: @(Stock.Sector?.SectorName_EN ?? "Unclassified")
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning d-flex align-items-start gap-2 rounded-3 mb-0 py-2" role="alert">
+                        <i class="ti ti-alert-triangle fs-5 text-warning flex-shrink-0 mt-1"></i>
+                        <div class="small">
+                            <strong>Soft Delete Action:</strong> This security will be marked as deleted (<code>IsDeleted = true</code>) and removed from public and admin listings. Historical portfolio records referencing this security will remain intact.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer bg-light px-4 py-3 border-0 d-flex align-items-center justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary rounded-3 px-3" @onclick="HandleClose" disabled="@_isDeleting">
+                        Cancel
+                    </button>
+                    <button type="button" class="btn btn-danger rounded-3 px-4 fw-semibold d-flex align-items-center gap-2" @onclick="HandleConfirm" disabled="@_isDeleting">
+                        @if (_isDeleting)
+                        {
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            <span>Deleting...</span>
+                        }
+                        else
+                        {
+                            <i class="ti ti-trash"></i>
+                            <span>Confirm Soft Delete</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    [Parameter]
+    public Stock? Stock { get; set; }
+
+    [Parameter]
+    public EventCallback<Stock> OnConfirm { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    private bool _isDeleting = false;
+
+    private async Task HandleConfirm()
+    {
+        if (Stock == null) return;
+        _isDeleting = true;
+
+        try
+        {
+            if (OnConfirm.HasDelegate)
+            {
+                await OnConfirm.InvokeAsync(Stock);
+            }
+        }
+        finally
+        {
+            _isDeleting = false;
+        }
+    }
+
+    private async Task HandleClose()
+    {
+        if (OnClose.HasDelegate)
+        {
+            await OnClose.InvokeAsync();
+        }
+    }
+}

@@ -1,4 +1,12 @@
 @page "/admin/users"
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using OMM.Admin.Services.Admin
+@attribute [Authorize(Policy = "RequireAdminRole")]
+
+@inject IUserManagementService UserManagementService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>User Management - OMM Admin</PageTitle>
 
@@ -13,18 +21,68 @@
         </span>
     </div>
 
-    <div class="omm-card p-5 text-center">
-        <div class="stat-icon-wrapper bg-danger-subtle text-danger mx-auto mb-3" style="width: 64px; height: 64px; font-size: 2rem; border-radius: 16px;">
-            <i class="ti ti-users"></i>
-        </div>
-        <h2 class="h4 fw-bold mb-2">Administrative User Management</h2>
-        <p class="text-muted mx-auto mb-4" style="max-width: 480px;">
-            Admin account invitation, role management (SuperAdmin vs Admin), temporary passwords, and account security controls will be available in Phase 7.
-        </p>
-        <div>
-            <a href="admin" class="btn btn-outline-secondary btn-sm">
-                <i class="ti ti-arrow-left me-1"></i> Back to Dashboard
-            </a>
-        </div>
-    </div>
+    @if (!string.IsNullOrWhiteSpace(_statusMessage))
+    {
+        <div class="alert alert-@_statusClass">@_statusMessage</div>
+    }
+
+    <AdminDataGrid TItem="UserListDto" Items="@_users" TotalCount="@_users.Count" IsLoading="@_isLoading" SearchPlaceholder="Search username, email or name..." OnSearchChanged="LoadUsersAsync">
+        <ToolbarTemplate><AdminInviteModal /></ToolbarTemplate>
+        <Columns>
+            <GridColumn TItem="UserListDto" Field="@(user => user.UserName)" Title="Username" Sortable="true" />
+            <GridColumn TItem="UserListDto" Field="@(user => user.Email)" Title="Email" Sortable="true" />
+            <GridColumn TItem="UserListDto" Field="@(user => user.Roles)" Title="Role(s)">
+                <Template Context="user">@string.Join(", ", user.Roles)</Template>
+            </GridColumn>
+            <GridColumn TItem="UserListDto" Field="@(user => user.EmailConfirmed)" Title="Email" />
+            <GridColumn TItem="UserListDto" Field="@(user => user.MustChangePassword)" Title="Password" />
+            <GridColumn TItem="UserListDto" Field="@(user => user.LockoutEnd)" Title="Lockout" />
+        </Columns>
+        <ActionColumn Context="user">
+            <div class="btn-group btn-group-sm">
+                <button class="btn btn-outline-secondary" title="Resend invite" @onclick="@(() => ResendInviteAsync(user.Id))">Invite</button>
+                <button class="btn btn-outline-warning" title="Force password reset" @onclick="@(() => ForceResetAsync(user.Id))">Reset</button>
+                <button class="btn btn-outline-danger" title="Lock account" @onclick="@(() => ToggleLockAsync(user))">@(user.LockoutEnd is null ? "Lock" : "Unlock")</button>
+            </div>
+        </ActionColumn>
+    </AdminDataGrid>
 </div>
+
+@code {
+    private List<UserListDto> _users = [];
+    private bool _isLoading;
+    private string? _statusMessage;
+    private string _statusClass = "success";
+    private string _currentUserId = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _currentUserId = state.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+        await LoadUsersAsync();
+    }
+
+    private async Task LoadUsersAsync(string? searchTerm = null)
+    {
+        _isLoading = true;
+        _users = (await UserManagementService.ListAsync(searchTerm)).ToList();
+        _isLoading = false;
+    }
+
+    private Task ResendInviteAsync(string userId) => ExecuteAsync(() => UserManagementService.ResendInviteAsync(userId), "Invitation sent.");
+
+    private Task ForceResetAsync(string userId) => ExecuteAsync(() => UserManagementService.ForcePasswordResetAsync(userId), "Password reset required.");
+
+    private Task ToggleLockAsync(UserListDto user) => ExecuteAsync(
+        () => UserManagementService.SetLockoutAsync(_currentUserId, user.Id, user.LockoutEnd is null),
+        user.LockoutEnd is null ? "Account locked." : "Account unlocked.");
+
+    private async Task ExecuteAsync(Func<Task<Microsoft.AspNetCore.Identity.IdentityResult>> operation, string successMessage)
+    {
+        var result = await operation();
+        _statusClass = result.Succeeded ? "success" : "danger";
+        _statusMessage = result.Succeeded ? successMessage : string.Join(" ", result.Errors.Select(error => error.Description));
+        if (result.Succeeded)
+            await LoadUsersAsync();
+    }
+}

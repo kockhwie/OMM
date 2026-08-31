@@ -1,8 +1,11 @@
 @page "/mines"
 @layout DashboardLayout
 @attribute [Authorize]
+@using Microsoft.EntityFrameworkCore
+@using OMM.Public.Data
 @inject IMineService MineService
 @inject NavigationManager Navigation
+@inject ApplicationDbContext DbContext
 
 <PageTitle>My Mines - OhMyMine</PageTitle>
 
@@ -164,7 +167,13 @@ else
                         </div>
                         <div class="col-12 col-md-6">
                             <label class="form-label small fw-semibold text-dark">Institution / Issuer</label>
-                            <input type="text" class="form-control rounded-3" placeholder="e.g. KWSP, Bursa Malaysia, CIMB" @bind="newMine.Institution" />
+                            <select class="form-select rounded-3" @bind="newMine.Institution">
+                                <option value="">Select an institution</option>
+                                @foreach (var institution in institutions)
+                                {
+                                    <option value="@institution.InstitutionName_EN">@institution.InstitutionCode - @institution.InstitutionName_EN</option>
+                                }
+                            </select>
                         </div>
                         <div class="col-12 col-md-6">
                             <label class="form-label small fw-semibold text-dark">Category *</label>
@@ -213,6 +222,7 @@ else
 
 @code {
     private List<Mine> allMines = [];
+    private List<OMM.Shared.Models.MasterData.Institution> institutions = [];
     private string searchQuery = string.Empty;
     private MineCategory? selectedCategory;
     private bool showAddModal = false;
@@ -220,7 +230,17 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadInstitutions();
         await LoadMines();
+    }
+
+    private async Task LoadInstitutions()
+    {
+        institutions = await DbContext.Institutions
+            .AsNoTracking()
+            .Where(i => i.IsActive)
+            .OrderBy(i => i.InstitutionName_EN)
+            .ToListAsync();
     }
 
     private async Task LoadMines()

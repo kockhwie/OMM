@@ -72,4 +72,4 @@ database/provider decisions, scope boundaries, and exact acceptance criteria.
 - [x] Phase 4 executed
 - [x] Phase 5 executed
 - [x] Phase 6 executed
-- [ ] Phase 7 executed
+- [x] Phase 7 executed (master-data wiring and admin user-management implementation; see [`phase-7-admin-user-management.md`](phase-7-admin-user-management.md))

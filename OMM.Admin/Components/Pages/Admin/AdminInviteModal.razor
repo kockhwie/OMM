@@ -1,0 +1,74 @@
+@using OMM.Admin.Services.Admin
+@using System.ComponentModel.DataAnnotations
+@inject IUserManagementService UserManagementService
+
+<div class="invite-modal card border-0 shadow-sm p-3">
+    <h3>Invite Admin</h3>
+    @if (!string.IsNullOrWhiteSpace(statusMessage))
+    {
+        <div class="alert alert-@statusClass">@statusMessage</div>
+    }
+    <EditForm Model="inviteModel" OnValidSubmit="HandleInvite">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <div>
+            <label>Username</label>
+            <InputText @bind-Value="inviteModel.Username" />
+        </div>
+        <div>
+            <label>Email</label>
+            <InputText @bind-Value="inviteModel.Email" />
+        </div>
+        <div>
+            <label>Display Name</label>
+            <InputText @bind-Value="inviteModel.DisplayName" />
+        </div>
+        <div>
+            <label>Role</label>
+            <InputSelect @bind-Value="inviteModel.Role">
+                <option value="Admin">Admin</option>
+                <option value="SuperAdmin">SuperAdmin</option>
+            </InputSelect>
+        </div>
+        <button type="submit">Invite</button>
+    </EditForm>
+</div>
+
+@code {
+    private InviteModel inviteModel = new InviteModel();
+
+    private class InviteModel
+    {
+        [Required, StringLength(50)]
+        public string Username { get; set; } = string.Empty;
+
+        [Required, EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        [Required, StringLength(100)]
+        public string DisplayName { get; set; } = string.Empty;
+
+        [Required]
+        public string Role { get; set; } = "Admin";
+    }
+
+    private string? statusMessage;
+    private string statusClass = "success";
+
+    private async Task HandleInvite()
+    {
+        var dto = new InviteDto(inviteModel.Username, inviteModel.Email, inviteModel.DisplayName, inviteModel.Role);
+        var result = await UserManagementService.InviteAsync(dto);
+        if (result.Succeeded)
+        {
+            statusClass = "success";
+            statusMessage = "Invitation sent.";
+            inviteModel = new InviteModel();
+        }
+        else
+        {
+            statusClass = "danger";
+            statusMessage = string.Join(" ", result.Errors.Select(e => e.Description));
+        }
+    }
+}

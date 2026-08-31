@@ -1,0 +1,30 @@
+name: Phase 7 - Admin User Management Task
+about: Create a task for Phase 7 implementation
+labels: enhancement
+
+---
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This issue tracks a Phase 7 task for Admin & User Management.
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: Select priority
+      options:
+        - High
+        - Medium
+        - Low
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria
+      description: Describe the acceptance criteria for this task.
+  - type: textarea
+    id: implementation_notes
+    attributes:
+      label: Implementation Notes
+      description: File targets, hints, and references

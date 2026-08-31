@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OMM.Admin.Components;
 using OMM.Admin.Components.Account;
+using OMM.Admin.Services.Admin;
 using OMM.Admin.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -50,7 +51,13 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
+builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+    options.TokenLifespan = TimeSpan.FromHours(24));
+
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+
+// User management service (invite, resend, lockout, deactivate)
+builder.Services.AddScoped<IUserManagementService, UserManagementService>();
 
 // Override Identity cookie defaults so unauthorized requests redirect to our
 // custom /login page instead of the scaffolded /Account/Login endpoint.

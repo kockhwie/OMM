@@ -1,0 +1,97 @@
+@page "/admin/email-test"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Policy = "RequireSuperAdminRole")]
+@using System.ComponentModel.DataAnnotations
+@using OMM.Admin.Components.Account
+@inject ResendEmailSender EmailSender
+
+<PageTitle>Send Test Email - OMM Admin</PageTitle>
+
+<div class="container-fluid p-0">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 fw-bold text-dark mb-1">Send Test Email</h1>
+            <p class="text-muted mb-0">Send a manual email to verify delivery when troubleshooting user reports.</p>
+        </div>
+        <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-2">
+            <i class="ti ti-mail-check me-1"></i> SuperAdmin Only
+        </span>
+    </div>
+
+    <div class="card border-0 bg-white shadow-sm rounded-4 p-4" style="max-width: 760px;">
+        @if (!string.IsNullOrWhiteSpace(_statusMessage))
+        {
+            <div class="alert alert-@_statusClass">@_statusMessage</div>
+        }
+
+        <EditForm Model="_model" OnValidSubmit="SendEmailAsync">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold" for="email-to">To</label>
+                <InputText id="email-to" class="form-control" @bind-Value="_model.To" type="email" />
+                <ValidationMessage For="@(() => _model.To)" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold" for="email-subject">Subject</label>
+                <InputText id="email-subject" class="form-control" @bind-Value="_model.Subject" />
+                <ValidationMessage For="@(() => _model.Subject)" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold" for="email-content">Email content</label>
+                <InputTextArea id="email-content" class="form-control" rows="10" @bind-Value="_model.Content" />
+                <ValidationMessage For="@(() => _model.Content)" />
+                <div class="form-text">Content is sent as HTML. Use plain text unless formatting is required.</div>
+            </div>
+
+            <button class="btn btn-primary" type="submit" disabled="@_isSending">
+                <i class="ti ti-send me-1"></i>@(_isSending ? "Sending..." : "Send test email")
+            </button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private readonly EmailModel _model = new();
+    private bool _isSending;
+    private string? _statusMessage;
+    private string _statusClass = "success";
+
+    private async Task SendEmailAsync()
+    {
+        _isSending = true;
+        _statusMessage = null;
+
+        try
+        {
+            await EmailSender.SendEmailAsync(_model.To, _model.Subject, _model.Content);
+            _statusClass = "success";
+            _statusMessage = "Email sent successfully. Check the recipient inbox and spam folder.";
+        }
+        catch (Exception exception)
+        {
+            _statusClass = "danger";
+            _statusMessage = $"Email could not be sent: {exception.Message}";
+        }
+        finally
+        {
+            _isSending = false;
+        }
+    }
+
+    private sealed class EmailModel
+    {
+        [Required, EmailAddress]
+        public string To { get; set; } = string.Empty;
+
+        [Required, StringLength(200)]
+        public string Subject { get; set; } = string.Empty;
+
+        [Required, StringLength(10000)]
+        public string Content { get; set; } = string.Empty;
+    }
+}

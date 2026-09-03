@@ -54,7 +54,9 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
     options.TokenLifespan = TimeSpan.FromHours(24));
 
-builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+builder.Services.AddHttpClient<ResendEmailSender>();
+builder.Services.AddSingleton<IEmailSender<ApplicationUser>>(serviceProvider =>
+    serviceProvider.GetRequiredService<ResendEmailSender>());
 
 // User management service (invite, resend, lockout, deactivate)
 builder.Services.AddScoped<IUserManagementService, UserManagementService>();

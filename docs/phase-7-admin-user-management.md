@@ -133,7 +133,8 @@ Phase 7 also completed the remaining wiring from shared master data into the pub
 - Implemented `IUserManagementService` and `UserManagementService` in `OMM.Admin/Services/Admin`.
 - `/admin/users` is an interactive Blazor Server page authorized by `RequireAdminRole` and uses `AdminDataGrid<UserListDto>`.
 - SuperAdmin-only mutations should be enforced by the surrounding admin navigation and action authorization before production release; the service enforces account safety invariants.
-- The existing `IdentityNoOpEmailSender` remains registered. Configure a real provider before production; the current service returns an error if delivery fails.
+- `ResendEmailSender` is registered through `IEmailSender<ApplicationUser>` and sends through the configurable Resend HTTPS API.
+- The Resend API key is read from `Resend_EmailOnboardingApi`; sender and endpoint settings are configuration-driven.
 - No migration was added because the implementation reuses `FirstName`, `LastName`, `MustChangePassword`, `EmailConfirmed`, and Identity lockout fields already present in the admin schema.
 - No audit-log persistence or test project exists in the current solution; these remain explicit follow-up tasks.
 

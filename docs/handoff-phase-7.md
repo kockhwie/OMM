@@ -12,12 +12,14 @@
 - Added `IUserManagementService` and `UserManagementService` for invitations, password resets, role updates, lockout, and reactivation.
 - Added protections against self-lockout, self-deactivation, self-demotion, and removal of the last active SuperAdmin.
 - Configured Identity token lifetime to 24 hours.
+- Added the SuperAdmin-only `/admin/email-test` page for manually testing email delivery with To, Subject, and Content fields.
 - Registered the user-management service in `OMM.Admin/Program.cs`.
 - Verified the solution builds successfully.
 
 ## Important Current State
 
-- `IdentityNoOpEmailSender` is still registered. A real provider such as Resend must be integrated before production use.
+- `ResendEmailSender` is now registered and uses the Resend HTTPS API.
+- The API key is never stored in source control; it is read from `Resend_EmailOnboardingApi`.
 - Deactivation currently uses Identity lockout because `ApplicationUser` has no separate soft-delete flag.
 - The existing profile fields are used as follows: invitation `DisplayName` is stored in `FirstName`; `LastName` remains available for future profile editing.
 - No persistent audit-log store exists yet.
@@ -25,8 +27,8 @@
 
 ## Next Implementation Work
 
-1. Integrate Resend behind `IEmailSender<ApplicationUser>`.
-   - Configure `RESEND_API_KEY`, `EMAIL_FROM`, and `AdminBaseUrl` as Render environment variables.
+1. Configure and verify production email delivery.
+   - Configure `Resend_EmailOnboardingApi`, `Email__FromAddress`, `Email__FromName`, and `AdminBaseUrl` as Render environment variables.
    - Verify the sending domain through Cloudflare DNS.
    - Keep credentials out of source control.
 2. Add persistent audit logging for invite, role, lockout, reset, and reactivation actions.

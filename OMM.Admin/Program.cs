@@ -58,6 +58,9 @@ builder.Services.AddHttpClient<ResendEmailSender>();
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>>(serviceProvider =>
     serviceProvider.GetRequiredService<ResendEmailSender>());
 
+// Audit logging service
+builder.Services.AddScoped<IAuditLogger, AuditLogger>();
+
 // User management service (invite, resend, lockout, deactivate)
 builder.Services.AddScoped<IUserManagementService, UserManagementService>();
 

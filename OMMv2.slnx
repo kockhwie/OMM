@@ -4,6 +4,11 @@
     <File Path="docs/calculator-history-product-direction.md" />
     <File Path="docs/handoff-phase-3-admin-layout.md" />
     <File Path="docs/handoff-phase-3.md" />
+    <File Path="docs/handoff-phase-4.md" />
+    <File Path="docs/handoff-phase-5.md" />
+    <File Path="docs/handoff-phase-6.md" />
+    <File Path="docs/handoff-phase-7.md" />
+    <File Path="docs/implementation_plan V2.md" />
     <File Path="docs/implementation_plan.md" />
     <File Path="docs/market-data-design.md" />
     <File Path="docs/phase-1-schema-migration.md" />
@@ -11,6 +16,8 @@
     <File Path="docs/phase-2b-admin-identity-bootstrap.md" />
     <File Path="docs/phase-3-admin-layout.md" />
     <File Path="docs/phase-4-admin-datagrid.md" />
+    <File Path="docs/phase-5-stock-crud.md" />
+    <File Path="docs/phase-6-institution-crud.md" />
     <File Path="docs/phase-7-admin-user-management.md" />
   </Folder>
   <Folder Name="/Solution Items/">

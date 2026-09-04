@@ -11,12 +11,12 @@ namespace OMM.Admin.Services.Admin
     public interface IUserManagementService
     {
         Task<IReadOnlyList<UserListDto>> ListAsync(string? searchTerm = null);
-        Task<IdentityResult> InviteAsync(InviteDto dto);
-        Task<IdentityResult> ResendInviteAsync(string userId);
-        Task<IdentityResult> ForcePasswordResetAsync(string userId);
+        Task<IdentityResult> InviteAsync(InviteDto dto, string? actorUserId = null);
+        Task<IdentityResult> ResendInviteAsync(string userId, string? actorUserId = null);
+        Task<IdentityResult> ForcePasswordResetAsync(string userId, string? actorUserId = null);
         Task<IdentityResult> SetLockoutAsync(string actorUserId, string userId, bool locked);
         Task<IdentityResult> DeactivateAsync(string actorUserId, string userId);
-        Task<IdentityResult> ReactivateAsync(string userId);
+        Task<IdentityResult> ReactivateAsync(string userId, string? actorUserId = null);
         Task<IdentityResult> UpdateRoleAsync(string actorUserId, string userId, string role);
     }
 }

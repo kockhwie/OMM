@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using OMM.Admin.Data;
@@ -16,19 +18,32 @@ namespace OMM.Admin.Services.Admin
         private readonly IEmailSender<ApplicationUser> _emailSender;
         private readonly IConfiguration _configuration;
         private readonly ILogger<UserManagementService> _logger;
+        private readonly IAuditLogger _auditLogger;
 
         public UserManagementService(
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
             IEmailSender<ApplicationUser> emailSender,
             IConfiguration configuration,
-            ILogger<UserManagementService> logger)
+            ILogger<UserManagementService> logger,
+            IAuditLogger auditLogger)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _emailSender = emailSender;
             _configuration = configuration;
             _logger = logger;
+            _auditLogger = auditLogger;
+        }
+
+        private async Task<(string id, string name)> ResolveActorAsync(string? actorUserId)
+        {
+            if (string.IsNullOrWhiteSpace(actorUserId))
+                return ("System", "System");
+
+            var actor = await _userManager.FindByIdAsync(actorUserId);
+            var name = actor?.UserName ?? actor?.Email ?? actorUserId;
+            return (actorUserId, name);
         }
 
         public async Task<IReadOnlyList<UserListDto>> ListAsync(string? searchTerm = null)
@@ -60,7 +75,7 @@ namespace OMM.Admin.Services.Admin
             return result;
         }
 
-        public async Task<IdentityResult> InviteAsync(InviteDto dto)
+        public async Task<IdentityResult> InviteAsync(InviteDto dto, string? actorUserId = null)
         {
             // basic uniqueness checks
             if (await _userManager.FindByEmailAsync(dto.Email) != null)
@@ -100,42 +115,52 @@ namespace OMM.Admin.Services.Admin
                 return updateResult;
             }
 
-            // Generate password reset token (to be used for account setup)
+            // Generate password reset token (to be used for account setup).
+            // Must be Base64Url-encoded to match the decoding in ResetPassword.razor.
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var encoded = System.Web.HttpUtility.UrlEncode(token);
+            var encoded = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
 
             var baseUrl = _configuration["AdminBaseUrl"] ?? "https://localhost:5001";
-            var activationUrl = $"{baseUrl.TrimEnd('/')}/Account/ResetPassword?email={Uri.EscapeDataString(user.Email)}&code={encoded}";
+            var userEmail = user.Email ?? string.Empty;
+            var activationUrl = $"{baseUrl.TrimEnd('/')}/Account/ResetPassword?email={Uri.EscapeDataString(userEmail)}&code={encoded}";
 
             try
             {
-                await _emailSender.SendPasswordResetLinkAsync(user, user.Email, activationUrl);
+                await _emailSender.SendPasswordResetLinkAsync(user, userEmail, activationUrl);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to send invite email to {Email}", user.Email);
+                _logger.LogError(ex, "Failed to send invite email to {Email}", userEmail);
                 await _userManager.DeleteAsync(user);
                 return IdentityResult.Failed(new IdentityError { Code = "EmailDeliveryFailed", Description = "The invitation could not be sent." });
             }
 
+            var (actorId, actorName) = await ResolveActorAsync(actorUserId);
+            await _auditLogger.LogAsync(actorId, actorName, "Invite", user.Id, $"Invited username '{dto.Username}', email '{dto.Email}', role '{dto.Role}'");
+
             return IdentityResult.Success;
         }
 
-        public async Task<IdentityResult> ResendInviteAsync(string userId)
+        public async Task<IdentityResult> ResendInviteAsync(string userId, string? actorUserId = null)
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
                 return IdentityResult.Failed(new IdentityError { Code = "NotFound", Description = "User not found." });
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var encoded = System.Web.HttpUtility.UrlEncode(token);
+            var encoded = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
             var baseUrl = _configuration["AdminBaseUrl"] ?? "https://localhost:5001";
-            var activationUrl = $"{baseUrl.TrimEnd('/')}/Account/ResetPassword?email={Uri.EscapeDataString(user.Email)}&code={encoded}";
-            await _emailSender.SendPasswordResetLinkAsync(user, user.Email, activationUrl);
+            var userEmail = user.Email ?? string.Empty;
+            var activationUrl = $"{baseUrl.TrimEnd('/')}/Account/ResetPassword?email={Uri.EscapeDataString(userEmail)}&code={encoded}";
+            await _emailSender.SendPasswordResetLinkAsync(user, userEmail, activationUrl);
+
+            var (actorId, actorName) = await ResolveActorAsync(actorUserId);
+            await _auditLogger.LogAsync(actorId, actorName, "ResendInvite", user.Id, $"Resent invitation to '{userEmail}'");
+
             return IdentityResult.Success;
         }
 
-        public async Task<IdentityResult> ForcePasswordResetAsync(string userId)
+        public async Task<IdentityResult> ForcePasswordResetAsync(string userId, string? actorUserId = null)
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
@@ -143,6 +168,10 @@ namespace OMM.Admin.Services.Admin
 
             user.MustChangePassword = true;
             await _userManager.UpdateAsync(user);
+
+            var (actorId, actorName) = await ResolveActorAsync(actorUserId);
+            await _auditLogger.LogAsync(actorId, actorName, "ForcePasswordReset", user.Id, $"Required password reset for user '{user.UserName}'");
+
             return IdentityResult.Success;
         }
 
@@ -164,6 +193,10 @@ namespace OMM.Admin.Services.Admin
                 await _userManager.SetLockoutEndDateAsync(user, null);
             }
 
+            var (actorId, actorName) = await ResolveActorAsync(actorUserId);
+            await _auditLogger.LogAsync(actorId, actorName, locked ? "LockAccount" : "UnlockAccount", user.Id,
+                $"{(locked ? "Locked" : "Unlocked")} user '{user.UserName}'");
+
             return IdentityResult.Success;
         }
 
@@ -176,16 +209,26 @@ namespace OMM.Admin.Services.Admin
             if (actorUserId == userId)
                 return IdentityResult.Failed(new IdentityError { Code = "SelfDeactivation", Description = "You cannot deactivate your own active account." });
 
-            return await SetLockoutAsync(actorUserId, userId, true);
+            var result = await SetLockoutAsync(actorUserId, userId, true);
+            if (result.Succeeded)
+            {
+                var (actorId, actorName) = await ResolveActorAsync(actorUserId);
+                await _auditLogger.LogAsync(actorId, actorName, "DeactivateAccount", user.Id, $"Deactivated user '{user.UserName}'");
+            }
+            return result;
         }
 
-        public async Task<IdentityResult> ReactivateAsync(string userId)
+        public async Task<IdentityResult> ReactivateAsync(string userId, string? actorUserId = null)
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
                 return IdentityResult.Failed(new IdentityError { Code = "NotFound", Description = "User not found." });
 
             await _userManager.SetLockoutEndDateAsync(user, null);
+
+            var (actorId, actorName) = await ResolveActorAsync(actorUserId);
+            await _auditLogger.LogAsync(actorId, actorName, "ReactivateAccount", user.Id, $"Reactivated user '{user.UserName}'");
+
             return IdentityResult.Success;
         }
 
@@ -213,7 +256,15 @@ namespace OMM.Admin.Services.Admin
             if (!removeResult.Succeeded)
                 return removeResult;
 
-            return await _userManager.AddToRoleAsync(user, role);
+            var addResult = await _userManager.AddToRoleAsync(user, role);
+            if (addResult.Succeeded)
+            {
+                var (actorId, actorName) = await ResolveActorAsync(actorUserId);
+                await _auditLogger.LogAsync(actorId, actorName, "UpdateRole", user.Id,
+                    $"Changed role for '{user.UserName}' from '{string.Join(", ", currentRoles)}' to '{role}'");
+            }
+
+            return addResult;
         }
     }
 }

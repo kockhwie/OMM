@@ -1,6 +1,7 @@
 @inherits LayoutComponentBase
 @inject IMineService MineService
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JS
 
 <div class="d-flex min-vh-100" style="background-color: #f3f8fe;">
     <!-- Desktop Sidebar -->
@@ -127,12 +128,21 @@
                 </div>
             </div>
 
-            <div class="d-flex align-items-center gap-3 position-relative">
+            <div class="d-flex align-items-center gap-2 position-relative">
+                <!-- Stealth Mode Toggle -->
+                <button class="btn btn-sm btn-light p-2 rounded-circle border-0 btn-stealth-toggle @(isStealthMode ? "active" : "")" 
+                        @onclick="ToggleStealthMode" 
+                        title="@(isStealthMode ? "Stealth Mode active: click to unhide amounts" : "Enable Stealth Mode (hide amounts in public)")" 
+                        aria-label="Toggle Stealth Mode"
+                        style="background-color: var(--omm-ink-100); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+                    <i class="ti @(isStealthMode ? "ti-eye-off text-warning" : "ti-eye text-dark") fs-5"></i>
+                </button>
+
                 <!-- Notification Bell -->
                 <div class="position-relative">
                     <button class="btn btn-sm btn-light position-relative p-2 rounded-circle border-0" 
                             @onclick="ToggleNotifDropdown" 
-                            style="background-color: var(--omm-ink-100);" aria-label="Notifications">
+                            style="background-color: var(--omm-ink-100); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;" aria-label="Notifications">
                         <i class="ti ti-bell fs-5 text-dark"></i>
                         @if (unreadNotifCount > 0)
                         {
@@ -201,12 +211,41 @@
     private List<Notification>? notifications;
     private bool isMobileNavOpen = false;
     private bool isNotifOpen = false;
+    private bool isStealthMode = false;
     private int unreadNotifCount => notifications?.Count(n => !n.Read) ?? 0;
 
     protected override async Task OnInitializedAsync()
     {
         profile = await MineService.GetMinerProfileAsync();
         notifications = await MineService.GetNotificationsAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                isStealthMode = await JS.InvokeAsync<bool>("ommStealth.init");
+                StateHasChanged();
+            }
+            catch
+            {
+                // Non-fatal if JS not ready
+            }
+        }
+    }
+
+    private async Task ToggleStealthMode()
+    {
+        try
+        {
+            isStealthMode = await JS.InvokeAsync<bool>("ommStealth.toggle");
+        }
+        catch
+        {
+            isStealthMode = !isStealthMode;
+        }
     }
 
     private void ToggleMobileNav() => isMobileNavOpen = !isMobileNavOpen;

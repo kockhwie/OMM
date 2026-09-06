@@ -1105,3 +1105,97 @@ i.ti {
     .search-input-group .btn-clear {
         flex-shrink: 0;
     }
+
+/* =========================================================
+   Stealth / Privacy "Cafe" Mode
+   ========================================================= */
+body.omm-stealth-mode .metric-card-value,
+body.omm-stealth-mode .omm-currency,
+body.omm-stealth-mode [data-stealth-blur],
+body.omm-stealth-mode .stealth-target {
+    filter: blur(8px) !important;
+    user-select: none !important;
+    transition: filter 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+body.omm-stealth-mode .metric-card-value:hover,
+body.omm-stealth-mode .omm-currency:hover,
+body.omm-stealth-mode [data-stealth-blur]:hover,
+body.omm-stealth-mode .stealth-target:hover {
+    filter: blur(0px) !important;
+}
+
+.btn-stealth-toggle {
+    transition: all 0.2s ease;
+}
+
+.btn-stealth-toggle.active {
+    background-color: var(--omm-clay-100) !important;
+    color: var(--omm-clay-600) !important;
+    box-shadow: 0 0 0 2px var(--omm-clay-500);
+}
+
+/* =========================================================
+   Freedom Speedometer Arc Gauge Styles
+   ========================================================= */
+.freedom-gauge-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.freedom-gauge-svg {
+    width: 100%;
+    max-width: 280px;
+    height: auto;
+    overflow: visible;
+}
+
+.gauge-track {
+    stroke: var(--omm-ink-100);
+    stroke-linecap: round;
+}
+
+.gauge-fill {
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.freedom-stage-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.775rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+/* =========================================================
+   Wealth Breakdown Donut Chart
+   ========================================================= */
+.wealth-donut-container {
+    position: relative;
+    width: 100%;
+    height: 220px;
+}
+
+.wealth-donut-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
+}
+
+.wealth-category-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+

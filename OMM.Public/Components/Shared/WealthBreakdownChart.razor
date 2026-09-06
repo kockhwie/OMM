@@ -1,0 +1,154 @@
+@namespace OMM.Public.Components.Shared
+@using OMM.Public.Models
+@using OMM.Public.Services
+@inject IJSRuntime JS
+
+<div class="omm-card p-4 h-100 d-flex flex-column justify-content-between">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <span class="text-muted text-uppercase fw-bold d-block" style="font-size: 0.75rem; letter-spacing: 0.05em;">Asset Allocation</span>
+            <h4 class="h6 font-display fw-bold text-dark mb-0 mt-1">Portfolio &amp; Burden Breakdown</h4>
+        </div>
+        <span class="badge bg-light text-dark border px-2 py-1" style="font-size: 0.75rem;">
+            @categories.Count Active Categories
+        </span>
+    </div>
+
+    <!-- Main Content: Donut + Legend -->
+    <div class="row align-items-center g-3 my-auto">
+        <!-- Donut Canvas Column -->
+        <div class="col-sm-5 text-center position-relative">
+            <div class="wealth-donut-container mx-auto" style="max-width: 200px; height: 180px;">
+                <canvas id="@canvasId"></canvas>
+                <div class="wealth-donut-center">
+                    <span class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 0.05em;">Total Mines</span>
+                    <strong class="font-display fw-bold text-dark metric-card-value" style="font-size: 1.15rem;">
+                        @FormatHelper.FormatCurrencyCompact(TotalMines)
+                    </strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Breakdown List -->
+        <div class="col-sm-7">
+            <div class="d-flex flex-column gap-2">
+                @foreach (var cat in categories)
+                {
+                    var pct = TotalMines > 0 ? (cat.Amount / TotalMines) * 100 : 0;
+                    <div class="d-flex align-items-center justify-content-between p-2 rounded-2" style="background-color: var(--omm-ink-50); font-size: 0.8rem;">
+                        <div class="d-flex align-items-center gap-2 overflow-hidden me-2">
+                            <span class="wealth-category-dot" style="background-color: @cat.Color;"></span>
+                            <span class="fw-semibold text-dark text-truncate">@cat.Name</span>
+                        </div>
+                        <div class="text-end flex-shrink-0">
+                            <strong class="text-dark metric-card-value">@FormatHelper.FormatCurrency(cat.Amount)</strong>
+                            <span class="text-muted ms-1" style="font-size: 0.725rem;">(@pct.ToString("F0")%)</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Debt-to-Asset Burden Load Bar -->
+    <div class="mt-3 pt-3 border-top border-light-subtle">
+        <div class="d-flex justify-content-between align-items-center mb-1" style="font-size: 0.775rem;">
+            <span class="text-muted d-flex align-items-center gap-1">
+                <i class="ti ti-scale text-danger"></i>
+                <span>Burden-to-Asset Ratio:</span>
+                <strong class="text-dark">@DebtRatio.ToString("F0")%</strong>
+            </span>
+            <span class="text-muted">
+                Burdens: <strong class="text-danger metric-card-value">@FormatHelper.FormatCurrency(TotalBurdens)</strong>
+            </span>
+        </div>
+        <div class="progress rounded-pill" style="height: 8px; background-color: var(--omm-ink-100);">
+            <div class="progress-bar bg-danger" 
+                 role="progressbar" 
+                 style="width: @(Math.Min(100, DebtRatio))%; transition: width 0.8s ease;" 
+                 aria-valuenow="@DebtRatio" 
+                 aria-valuemin="0" 
+                 aria-valuemax="100">
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<Mine>? Mines { get; set; }
+    [Parameter] public decimal TotalMines { get; set; } = 0;
+    [Parameter] public decimal TotalBurdens { get; set; } = 0;
+
+    private string canvasId = "wealthDonut_" + Guid.NewGuid().ToString("N")[..8];
+    private List<CategoryItem> categories = new();
+    private decimal DebtRatio => TotalMines > 0 ? (TotalBurdens / TotalMines) * 100 : 0;
+
+    private class CategoryItem
+    {
+        public string Name { get; set; } = string.Empty;
+        public decimal Amount { get; set; }
+        public string Color { get; set; } = "#6b7280";
+    }
+
+    protected override void OnParametersSet()
+    {
+        ComputeCategories();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (categories.Count > 0)
+        {
+            try
+            {
+                var labels = categories.Select(c => c.Name).ToArray();
+                var values = categories.Select(c => (double)c.Amount).ToArray();
+                var colors = categories.Select(c => c.Color).ToArray();
+
+                await JS.InvokeVoidAsync("ommCharts.renderWealthDonut", canvasId, labels, values, colors);
+            }
+            catch
+            {
+                // Non-fatal if canvas not ready
+            }
+        }
+    }
+
+    private void ComputeCategories()
+    {
+        categories.Clear();
+        if (Mines == null || Mines.Count == 0) return;
+
+        var grouped = Mines
+            .GroupBy(m => m.Category)
+            .Select(g => new
+            {
+                Category = g.Key,
+                Amount = g.Sum(m => m.CurrentValue)
+            })
+            .Where(g => g.Amount > 0)
+            .OrderByDescending(g => g.Amount)
+            .ToList();
+
+        foreach (var item in grouped)
+        {
+            categories.Add(new CategoryItem
+            {
+                Name = FormatHelper.CategoryLabel(item.Category),
+                Amount = item.Amount,
+                Color = GetCategoryColor(item.Category)
+            });
+        }
+    }
+
+    private string GetCategoryColor(MineCategory cat) => cat switch
+    {
+        MineCategory.Retirement => "#10b981",     // Emerald / Mine Green (EPF)
+        MineCategory.Investments => "#3b82f6",    // Blue (Bursa Stocks)
+        MineCategory.Property => "#8b5cf6",       // Violet (Real Estate)
+        MineCategory.CashAndDeposits => "#f59e0b",// Amber (FDs / Cash)
+        MineCategory.PreciousMetals => "#c5843a", // Clay / Gold
+        _ => "#6b7280"                            // Slate / Other
+    };
+}

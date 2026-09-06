@@ -1,0 +1,177 @@
+@namespace OMM.Public.Components.Shared
+@using OMM.Public.Services
+
+<div class="omm-card p-4 h-100 d-flex flex-column justify-content-between position-relative overflow-hidden">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-start mb-2">
+        <div>
+            <span class="text-muted text-uppercase fw-bold d-block" style="font-size: 0.75rem; letter-spacing: 0.05em;">Freedom Speedometer</span>
+            <h3 class="h6 font-display fw-bold text-dark mb-0 mt-1">Passive Coverage</h3>
+        </div>
+        <span class="freedom-stage-badge @StageBadgeClass">
+            <i class="ti @StageIcon"></i>
+            <span>@StageName</span>
+        </span>
+    </div>
+
+    <!-- SVG Gauge Visual -->
+    <div class="freedom-gauge-container my-auto py-2">
+        <svg class="freedom-gauge-svg" viewBox="0 0 260 145" preserveAspectRatio="xMidYMid meet">
+            <defs>
+                <!-- Gradient for active gauge arc -->
+                <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#c5843a" />
+                    <stop offset="40%" stop-color="#f59e0b" />
+                    <stop offset="80%" stop-color="#10b981" />
+                    <stop offset="100%" stop-color="#059669" />
+                </linearGradient>
+
+                <!-- Soft glow filter -->
+                <filter id="gaugeGlow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="3" result="blur" />
+                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+            </defs>
+
+            <!-- Background Track -->
+            <path class="gauge-track"
+                  d="M 30 135 A 100 100 0 0 1 230 135"
+                  fill="none"
+                  stroke-width="18" />
+
+            <!-- Milestone tick markers at 25%, 50%, 75% -->
+            <!-- 25% tick (approx 45 deg from left): x=59, y=64 -->
+            <circle cx="59" cy="64" r="2.5" fill="#9ca3af" opacity="0.6" />
+            <!-- 50% tick (top center): x=130, y=35 -->
+            <circle cx="130" cy="35" r="2.5" fill="#9ca3af" opacity="0.6" />
+            <!-- 75% tick (approx 45 deg from right): x=201, y=64 -->
+            <circle cx="201" cy="64" r="2.5" fill="#9ca3af" opacity="0.6" />
+
+            <!-- Animated Filled Arc -->
+            <path class="gauge-fill"
+                  d="M 30 135 A 100 100 0 0 1 230 135"
+                  fill="none"
+                  stroke="url(#gaugeGradient)"
+                  stroke-width="18"
+                  filter="url(#gaugeGlow)"
+                  stroke-dasharray="314.16"
+                  stroke-dashoffset="@DashOffset" />
+
+            <!-- Center readout inside arc -->
+            <text x="130" y="110" text-anchor="middle" class="font-display fw-bold text-dark metric-card-value" style="font-size: 2.2rem; font-weight: 800; fill: var(--omm-ink-900);">
+                @($"{ClampedPercentage:F0}%")
+            </text>
+            <text x="130" y="130" text-anchor="middle" class="text-muted" style="font-size: 0.725rem; font-weight: 600; fill: var(--omm-ink-500); letter-spacing: 0.04em;">
+                OF LIVING EXPENSES
+            </text>
+        </svg>
+    </div>
+
+    <!-- Milestone Roadmap Stages -->
+    <div class="mt-2 pt-2 border-top border-light-subtle">
+        <div class="d-flex justify-content-between align-items-center mb-2" style="font-size: 0.75rem;">
+            <span class="text-muted">Current: <strong class="text-dark metric-card-value">@FormatHelper.FormatCurrency(PassiveMonthly)/mo</strong></span>
+            <span class="text-muted">Target: <strong class="text-dark metric-card-value">@FormatHelper.FormatCurrency(RecurringMonthly)/mo</strong></span>
+        </div>
+
+        <!-- 4-step Milestone Breadcrumb -->
+        <div class="d-flex gap-1 justify-content-between">
+            <div class="flex-grow-1 p-1 rounded text-center @(ClampedPercentage >= 0 ? "bg-success-subtle text-success fw-bold" : "bg-light text-muted")" style="font-size: 0.675rem;">
+                <i class="ti ti-shield fs-7"></i>
+                <span class="d-none d-sm-inline"> 0-25%</span>
+            </div>
+            <div class="flex-grow-1 p-1 rounded text-center @(ClampedPercentage >= 25 ? "bg-success-subtle text-success fw-bold" : (ClampedPercentage >= 0 ? "bg-warning-subtle text-warning-emphasis fw-bold" : "bg-light text-muted"))" style="font-size: 0.675rem;">
+                <i class="ti ti-plane-departure fs-7"></i>
+                <span class="d-none d-sm-inline"> 25-50%</span>
+            </div>
+            <div class="flex-grow-1 p-1 rounded text-center @(ClampedPercentage >= 50 ? "bg-success-subtle text-success fw-bold" : "bg-light text-muted")" style="font-size: 0.675rem;">
+                <i class="ti ti-sailboat fs-7"></i>
+                <span class="d-none d-sm-inline"> 50-75%</span>
+            </div>
+            <div class="flex-grow-1 p-1 rounded text-center @(ClampedPercentage >= 100 ? "bg-success-subtle text-success fw-bold" : "bg-light text-muted")" style="font-size: 0.675rem;">
+                <i class="ti ti-crown fs-7"></i>
+                <span class="d-none d-sm-inline"> 100%</span>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(NextTierMessage))
+        {
+            <div class="text-center text-muted mt-2 small" style="font-size: 0.725rem;">
+                <i class="ti ti-sparkles text-warning me-1"></i>
+                @NextTierMessage
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public decimal Percentage { get; set; } = 0;
+    [Parameter] public decimal PassiveMonthly { get; set; } = 0;
+    [Parameter] public decimal RecurringMonthly { get; set; } = 0;
+
+    private decimal ClampedPercentage => Math.Min(150, Math.Max(0, Percentage));
+
+    // Semi-circle perimeter for radius 100 = pi * 100 = 314.16
+    private double DashOffset
+    {
+        get
+        {
+            var p = (double)Math.Min(100, Math.Max(0, ClampedPercentage));
+            return 314.16 * (1.0 - (p / 100.0));
+        }
+    }
+
+    private string StageName => Percentage switch
+    {
+        < 25 => "Survival Buffer",
+        < 50 => "Runway Builder",
+        < 75 => "Coast FIRE",
+        < 100 => "Near Sovereign",
+        _ => "Sovereign Freedom"
+    };
+
+    private string StageIcon => Percentage switch
+    {
+        < 25 => "ti-shield",
+        < 50 => "ti-plane-departure",
+        < 75 => "ti-sailboat",
+        < 100 => "ti-sun",
+        _ => "ti-crown"
+    };
+
+    private string StageBadgeClass => Percentage switch
+    {
+        < 25 => "bg-light text-dark border",
+        < 50 => "bg-warning-subtle text-warning-emphasis border border-warning-subtle",
+        < 75 => "bg-primary-subtle text-primary border border-primary-subtle",
+        < 100 => "bg-info-subtle text-info-emphasis border border-info-subtle",
+        _ => "bg-success-subtle text-success border border-success-subtle"
+    };
+
+    private string NextTierMessage
+    {
+        get
+        {
+            if (RecurringMonthly <= 0) return string.Empty;
+
+            if (Percentage < 25)
+            {
+                var target = RecurringMonthly * 0.25m;
+                var gap = Math.Max(0, target - PassiveMonthly);
+                return $"Add {FormatHelper.FormatCurrency(gap)}/mo passive to unlock Runway Builder (25%)";
+            }
+            if (Percentage < 50)
+            {
+                var target = RecurringMonthly * 0.50m;
+                var gap = Math.Max(0, target - PassiveMonthly);
+                return $"Add {FormatHelper.FormatCurrency(gap)}/mo passive to reach Coast FIRE (50%)";
+            }
+            if (Percentage < 100)
+            {
+                var gap = Math.Max(0, RecurringMonthly - PassiveMonthly);
+                return $"{FormatHelper.FormatCurrency(gap)}/mo more to achieve Sovereign Freedom (100%)";
+            }
+            return "Congratulations! Your mines completely fund your recurring living expenses.";
+        }
+    }
+}

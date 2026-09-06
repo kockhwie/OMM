@@ -2,6 +2,7 @@
 @layout DashboardLayout
 @attribute [Authorize]
 @inject IMineService MineService
+@inject IJSRuntime JS
 @namespace OMM.Public.Components.Pages
 
 <PageTitle>Mine Board Overview - OhMyMine</PageTitle>
@@ -28,26 +29,30 @@ else
         <div class="col-sm-6 col-xl-3">
             <MetricCard Title="Net Wealth"
                         Value="@FormatHelper.FormatCurrency(summary.NetWealth)"
+                        NumericTarget="@summary.NetWealth"
+                        CounterPrefix="RM "
                         Icon="ti-sparkles"
                         Variant="gold"
                         Subtitle="@($"{FormatHelper.FormatCurrency(summary.TotalMines)} mines − {FormatHelper.FormatCurrency(summary.TotalBurdens)} burdens")" />
         </div>
 
-        <!-- Freedom Ratio -->
+        <!-- Total Mines -->
         <div class="col-sm-6 col-xl-3">
-            <MetricCard Title="Freedom Ratio"
-                        Value="@($"{summary.FreedomRatio:F0}%")"
-                        Icon="ti-sun"
-                        Variant="freedom"
-                        Subtitle="@GetFreedomLabel(summary.FreedomRatio)">
-                <ProgressBar Percentage="@summary.FreedomRatio" Variant="mine" Height="6px" />
-            </MetricCard>
+            <MetricCard Title="Total Mines"
+                        Value="@FormatHelper.FormatCurrency(summary.TotalMines)"
+                        NumericTarget="@summary.TotalMines"
+                        CounterPrefix="RM "
+                        Icon="ti-shovel"
+                        Variant="mine"
+                        Subtitle="@($"{allMines?.Count ?? 0} active wealth mines")" />
         </div>
 
         <!-- Passive Income -->
         <div class="col-sm-6 col-xl-3">
             <MetricCard Title="Passive / month"
                         Value="@FormatHelper.FormatCurrency(summary.PassiveIncomeMonthly)"
+                        NumericTarget="@summary.PassiveIncomeMonthly"
+                        CounterPrefix="RM "
                         Icon="ti-trending-up"
                         Variant="mine"
                         Subtitle="@($"vs {FormatHelper.FormatCurrency(summary.RecurringExpensesMonthly)} recurring exp.")" />
@@ -57,11 +62,30 @@ else
         <div class="col-sm-6 col-xl-3">
             <MetricCard Title="Total Growth"
                         Value="@FormatHelper.FormatCurrency(summary.TotalGrowth)"
+                        NumericTarget="@summary.TotalGrowth"
+                        CounterPrefix="RM "
                         Icon="@(summary.TotalGrowth >= 0 ? "ti-trending-up" : "ti-trending-down")"
                         Variant="@(summary.TotalGrowth >= 0 ? "mine" : "burden")"
                         Trend="@FormatHelper.FormatPercent(summary.TotalGrowthPct)"
                         TrendPositive="@(summary.TotalGrowth >= 0)"
                         Subtitle="across all active mines" />
+        </div>
+    </div>
+
+    <!-- Visual Command Center: Freedom Speedometer + Asset Breakdown Donut -->
+    <div class="row g-4 mb-4">
+        <!-- Freedom Speedometer Gauge -->
+        <div class="col-12 col-lg-5 col-xl-4">
+            <FreedomGauge Percentage="@summary.FreedomRatio" 
+                          PassiveMonthly="@summary.PassiveIncomeMonthly" 
+                          RecurringMonthly="@summary.RecurringExpensesMonthly" />
+        </div>
+
+        <!-- Asset Allocation & Burden Breakdown Donut -->
+        <div class="col-12 col-lg-7 col-xl-8">
+            <WealthBreakdownChart Mines="@allMines" 
+                                  TotalMines="@summary.TotalMines" 
+                                  TotalBurdens="@summary.TotalBurdens" />
         </div>
     </div>
 
@@ -237,6 +261,7 @@ else
 @code {
     private DashboardSummary? summary;
     private MinerProfile? profile;
+    private List<Mine>? allMines;
     private List<Mine>? topMines;
     private List<Burden>? burdens;
     private List<Goal>? goals;
@@ -247,7 +272,7 @@ else
     {
         summary = await MineService.GetDashboardSummaryAsync();
         profile = await MineService.GetMinerProfileAsync();
-        var allMines = await MineService.GetMinesAsync();
+        allMines = await MineService.GetMinesAsync();
         topMines = allMines.OrderByDescending(m => m.CurrentValue).Take(4).ToList();
         burdens = await MineService.GetBurdensAsync();
         goals = await MineService.GetGoalsAsync();
@@ -259,6 +284,21 @@ else
             .OrderBy(x => x.SubMine.MaturityDate)
             .Take(3)
             .ToList();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                await JS.InvokeVoidAsync("ommCounters.animateDashboard", ".dashboard-content-wrapper");
+            }
+            catch
+            {
+                // Non-fatal if script not yet available
+            }
+        }
     }
 
     private string GetFreedomLabel(decimal ratio)

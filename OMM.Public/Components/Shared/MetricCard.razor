@@ -5,7 +5,18 @@
         <div class="flex-grow-1 min-w-0">
             <span class="text-muted text-uppercase fw-bold d-block text-truncate" style="font-size: 0.75rem; letter-spacing: 0.05em;">@Title</span>
             <div class="d-flex align-items-baseline flex-wrap gap-2 mt-1">
-                <h2 class="mb-0 font-display fw-bold text-dark metric-card-value">@Value</h2>
+                @if (NumericTarget.HasValue)
+                {
+                    <h2 class="mb-0 font-display fw-bold text-dark metric-card-value"
+                        data-counter-target="@NumericTarget.Value"
+                        data-counter-prefix="@(CounterPrefix ?? "")"
+                        data-counter-suffix="@(CounterSuffix ?? "")"
+                        data-counter-decimals="@CounterDecimals">@Value</h2>
+                }
+                else
+                {
+                    <h2 class="mb-0 font-display fw-bold text-dark metric-card-value">@Value</h2>
+                }
                 @if (!string.IsNullOrEmpty(Trend))
                 {
                     <span class="@TrendClass fw-bold d-inline-flex align-items-center gap-1 flex-shrink-0" style="font-size: 0.8rem;">
@@ -43,6 +54,10 @@
     [Parameter] public string? Trend { get; set; }
     [Parameter] public bool TrendPositive { get; set; } = true;
     [Parameter] public string? Subtitle { get; set; }
+    [Parameter] public decimal? NumericTarget { get; set; }
+    [Parameter] public string? CounterPrefix { get; set; }
+    [Parameter] public string? CounterSuffix { get; set; }
+    [Parameter] public int CounterDecimals { get; set; } = 0;
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public string? CardClass { get; set; }
 

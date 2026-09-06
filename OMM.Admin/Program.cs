@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -5,6 +6,7 @@ using OMM.Admin.Components;
 using OMM.Admin.Components.Account;
 using OMM.Admin.Services.Admin;
 using OMM.Admin.Data;
+using OMM.Shared.Database;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,13 +25,13 @@ builder.Services.AddAuthentication(options =>
     })
     .AddIdentityCookies();
 
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("RequireAdminRole", policy =>
-        policy.RequireRole("Admin", "SuperAdmin"));
-    options.AddPolicy("RequireSuperAdminRole", policy =>
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("RequireAdminRole", policy =>
+        policy.RequireRole("Admin", "SuperAdmin"))
+    .AddPolicy("RequireSuperAdminRole", policy =>
         policy.RequireRole("SuperAdmin"));
-});
+
+builder.Services.AddDatabaseAvailability();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -77,12 +79,8 @@ var app = builder.Build();
 
 // Run migrations and seed in all environments so the admin schema
 // and default accounts are created on Render (Production) on first deploy.
-await using (var scope = app.Services.CreateAsyncScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await dbContext.Database.MigrateAsync();
-    await AdminIdentitySeedData.SeedAsync(scope.ServiceProvider, app.Configuration);
-}
+await app.TryInitializeDatabaseAsync<ApplicationDbContext>(
+    services => AdminIdentitySeedData.SeedAsync(services, app.Configuration));
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -95,6 +93,7 @@ else
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+app.UseDatabaseAvailabilityPage();
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
@@ -103,6 +102,8 @@ app.UseAntiforgery();
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+app.MapDatabaseHealthCheck();
 
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();

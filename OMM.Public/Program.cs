@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -6,6 +7,7 @@ using OMM.Public.Components;
 using OMM.Public.Components.Account;
 using OMM.Public.Data;
 using OMM.Public.Services;
+using OMM.Shared.Database;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +17,7 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddScoped<IMineService, MockMineService>();
 builder.Services.AddMemoryCache();
+builder.Services.AddDatabaseAvailability();
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityRedirectManager>();
@@ -57,10 +60,21 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    await using var scope = app.Services.CreateAsyncScope();
-    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await dbContext.Database.MigrateAsync();
-    await StockDataSeeder.SeedAsync(dbContext, Path.Combine(app.Environment.ContentRootPath, "wwwroot", "data", "klse-stocks.json"));
+    await app.TryInitializeDatabaseAsync<ApplicationDbContext>(services =>
+    {
+        var dbContext = services.GetRequiredService<ApplicationDbContext>();
+        var stockDataPath = Path.Combine(
+            app.Environment.ContentRootPath,
+            "wwwroot",
+            "data",
+            "klse-stocks.json");
+
+        return StockDataSeeder.SeedAsync(dbContext, stockDataPath);
+    });
+}
+else
+{
+    await app.TryCheckDatabaseAsync<ApplicationDbContext>();
 }
 
 await using (var scope = app.Services.CreateAsyncScope())
@@ -79,6 +93,7 @@ else
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+app.UseDatabaseAvailabilityPage();
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
@@ -87,6 +102,8 @@ app.UseAntiforgery();
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+app.MapDatabaseHealthCheck();
 
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();

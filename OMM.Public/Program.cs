@@ -8,6 +8,7 @@ using OMM.Public.Components.Account;
 using OMM.Public.Data;
 using OMM.Public.Services;
 using OMM.Shared.Database;
+using OMM.Shared.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +19,7 @@ builder.Services.AddRazorComponents()
 builder.Services.AddScoped<IMineService, MockMineService>();
 builder.Services.AddMemoryCache();
 builder.Services.AddDatabaseAvailability();
+builder.Services.AddDatabaseAlerting(builder.Configuration);
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityRedirectManager>();
@@ -93,6 +95,7 @@ else
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+app.UseDatabaseFailureNotifications("OMM.Public");
 app.UseDatabaseAvailabilityPage();
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();

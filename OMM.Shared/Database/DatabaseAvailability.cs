@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Npgsql;
+using OMM.Shared.Infrastructure;
 
 namespace OMM.Shared.Database;
 
@@ -53,6 +54,10 @@ public static class DatabaseAvailabilityExtensions
         catch (NpgsqlException exception)
         {
             databaseAvailability.MarkUnavailable();
+            await DatabaseFailureNotificationExtensions.NotifyStartupFailureAsync(
+                scope.ServiceProvider,
+                app,
+                exception);
             logger.LogError(
                 exception,
                 "The database is unavailable. The application will start in degraded mode.");
@@ -61,6 +66,10 @@ public static class DatabaseAvailabilityExtensions
         catch (TimeoutException exception)
         {
             databaseAvailability.MarkUnavailable();
+            await DatabaseFailureNotificationExtensions.NotifyStartupFailureAsync(
+                scope.ServiceProvider,
+                app,
+                exception);
             logger.LogError(
                 exception,
                 "The database connection timed out. The application will start in degraded mode.");
@@ -84,6 +93,10 @@ public static class DatabaseAvailabilityExtensions
             if (!canConnect)
             {
                 databaseAvailability.MarkUnavailable();
+                await DatabaseFailureNotificationExtensions.NotifyStartupFailureAsync(
+                    scope.ServiceProvider,
+                    app,
+                    new InvalidOperationException("The database connection check returned false."));
                 logger.LogError("The database connection check returned false.");
                 return false;
             }
@@ -95,12 +108,20 @@ public static class DatabaseAvailabilityExtensions
         catch (NpgsqlException exception)
         {
             databaseAvailability.MarkUnavailable();
+            await DatabaseFailureNotificationExtensions.NotifyStartupFailureAsync(
+                scope.ServiceProvider,
+                app,
+                exception);
             logger.LogError(exception, "The database connection check failed.");
             return false;
         }
         catch (TimeoutException exception)
         {
             databaseAvailability.MarkUnavailable();
+            await DatabaseFailureNotificationExtensions.NotifyStartupFailureAsync(
+                scope.ServiceProvider,
+                app,
+                exception);
             logger.LogError(exception, "The database connection check timed out.");
             return false;
         }

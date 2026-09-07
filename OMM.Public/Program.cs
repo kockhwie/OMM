@@ -9,6 +9,7 @@ using OMM.Public.Data;
 using OMM.Public.Services;
 using OMM.Shared.Database;
 using OMM.Shared.Infrastructure;
+using OMM.Shared.Infrastructure.Email;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,7 +56,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
-builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+builder.Services.AddSharedIdentityEmail<ApplicationUser>(builder.Configuration);
 builder.Services.AddSingleton<IKlseStockLookupService, KlseStockLookupService>();
 
 var app = builder.Build();

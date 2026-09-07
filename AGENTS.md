@@ -31,3 +31,33 @@ apply both fixes:
 2. Add/apply a migration that removes the old audit foreign keys and indexes from the `public` master-data tables. Because database environments can be out of sync, use PostgreSQL `DROP CONSTRAINT IF EXISTS` and `DROP INDEX IF EXISTS` rather than EF `DropForeignKey`/`DropIndex` operations that fail when an object is already absent.
 
 Do not work around this by setting `CreatedByUserId` to null; preserve the admin user ID as audit data.
+
+---
+
+## Scaffolded ASP.NET Identity Components
+
+The Razor files in `OMM.Admin/Components/Account/` and `OMM.Public/Components/Account/` are project-owned scaffolded components (generated at project creation), not compiled assets from `Microsoft.AspNetCore.Identity.UI`. NuGet package updates do not overwrite them.
+
+When working with or modifying these components:
+
+1. **Surgical modifications only**:
+   - Avoid rewrites or discarding standard template structures.
+   - Keep changes additive (e.g., logging, UI styling, query parameters).
+   - Document any deviation from the default template with comments explaining the rationale.
+
+2. **Known template gotchas**:
+   - In default `ForgotPassword.razor`, the template includes `!(await UserManager.IsEmailConfirmedAsync(user))`, which silently ignores password reset requests if account emails are not confirmed. When adjusting or bypassing this check, maintain audit logging and ensure security is not compromised.
+   - When users reset passwords in `ResetPassword.razor`, confirm their email (`user.EmailConfirmed = true`) if the reset token successfully validates identity.
+
+3. **Consistency across projects**:
+   - Both `OMM.Admin` and `OMM.Public` maintain their own `Components/Account/Pages/` trees for their respective identity schemas (`admin` vs `public`). When a bugfix or UX improvement applies to standard account operations (like forgot/reset password or email confirmation), ensure both projects are reviewed and kept consistent.
+
+---
+
+## Configuration & Options Pattern
+
+When defining option/settings classes (e.g., in `OMM.Shared` or project-specific configs):
+
+- **Never hardcode environment-specific values**: Do not hardcode sender emails, domain URLs, API endpoints, or provider keys as default string initializers in options classes.
+- **Bind cleanly via `IConfiguration`**: Always use `builder.Services.Configure<TOptions>(configuration.GetSection(...))` or options validation.
+- Provide clear keys in `appsettings.json` with empty or placeholder strings so required settings are discoverable.

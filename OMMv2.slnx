@@ -19,6 +19,7 @@
     <File Path="docs/phase-5-stock-crud.md" />
     <File Path="docs/phase-6-institution-crud.md" />
     <File Path="docs/phase-7-admin-user-management.md" />
+    <File Path="docs/superpowers/plans/2026-09-07-database-availability-resilience.md" />
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".gitignore" />

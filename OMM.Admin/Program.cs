@@ -8,6 +8,7 @@ using OMM.Admin.Services.Admin;
 using OMM.Admin.Data;
 using OMM.Shared.Database;
 using OMM.Shared.Infrastructure;
+using OMM.Shared.Infrastructure.Email;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -58,9 +59,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
     options.TokenLifespan = TimeSpan.FromHours(24));
 
-builder.Services.AddHttpClient<ResendEmailSender>();
-builder.Services.AddSingleton<IEmailSender<ApplicationUser>>(serviceProvider =>
-    serviceProvider.GetRequiredService<ResendEmailSender>());
+builder.Services.AddSharedIdentityEmail<ApplicationUser>(builder.Configuration);
 
 // Audit logging service
 builder.Services.AddScoped<IAuditLogger, AuditLogger>();

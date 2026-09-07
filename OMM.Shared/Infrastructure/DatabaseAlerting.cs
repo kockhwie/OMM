@@ -19,7 +19,7 @@ public sealed class DatabaseAlertOptions
 {
     public bool Enabled { get; set; } = true;
     public string[] Recipients { get; set; } = ["kockhwie@msn.com"];
-    public string FromAddress { get; set; } = "admin@codingdinos.asia";
+    public string FromAddress { get; set; } = "jason.goh@codingdinos.com";
     public string FromName { get; set; } = "OMM Database Alerts";
     public string ResendBaseUrl { get; set; } = "https://api.resend.com";
     public string ResendApiKeyConfigurationName { get; set; } = "Resend_EmailOnboardingApi";

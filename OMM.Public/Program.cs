@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using OMM.Public.Components;
@@ -12,6 +13,13 @@ using OMM.Shared.Infrastructure;
 using OMM.Shared.Infrastructure.Email;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -65,6 +73,8 @@ builder.Services.AddSharedIdentityEmail<ApplicationUser>(builder.Configuration);
 builder.Services.AddSingleton<IKlseStockLookupService, KlseStockLookupService>();
 
 var app = builder.Build();
+
+app.UseForwardedHeaders();
 
 if (app.Environment.IsDevelopment())
 {

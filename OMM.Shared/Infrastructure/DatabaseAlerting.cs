@@ -1,6 +1,7 @@
 using System.Data.Common;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Net.Sockets;
 using System.Text.Encodings.Web;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Builder;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Npgsql;
+using OMM.Shared.Database;
 
 namespace OMM.Shared.Infrastructure;
 
@@ -280,21 +282,37 @@ public static class DatabaseFailureNotificationExtensions
             }
             catch (Exception exception) when (IsDatabaseFailure(exception))
             {
-                var alert = new DatabaseFailureAlert(
-                    DateTimeOffset.UtcNow,
-                    applicationName,
-                    context.Request.Path.ToString(),
-                    exception.GetType().FullName ?? exception.GetType().Name,
-                    exception.Message);
-                await context.RequestServices
-                    .GetRequiredService<DatabaseAlertNotifier>()
-                    .NotifyAsync(alert);
+                var databaseAvailability = context.RequestServices.GetService<DatabaseAvailability>();
+                var transitioned = databaseAvailability?.MarkUnavailable() ?? true;
+
+                if (transitioned)
+                {
+                    var alert = new DatabaseFailureAlert(
+                        DateTimeOffset.UtcNow,
+                        applicationName,
+                        context.Request.Path.ToString(),
+                        exception.GetType().FullName ?? exception.GetType().Name,
+                        exception.Message);
+
+                    try
+                    {
+                        var notifier = context.RequestServices.GetService<DatabaseAlertNotifier>();
+                        if (notifier is not null)
+                        {
+                            await notifier.NotifyAsync(alert);
+                        }
+                    }
+                    catch (Exception notifyException)
+                    {
+                        var logger = context.RequestServices.GetService<ILoggerFactory>()?
+                            .CreateLogger("DatabaseFailureNotification");
+                        logger?.LogError(notifyException, "Could not send database alert notification.");
+                    }
+                }
 
                 if (!context.Response.HasStarted)
                 {
-                    context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
-                    context.Response.ContentType = "text/html; charset=utf-8";
-                    await context.Response.WriteAsync("<h1>Service temporarily unavailable</h1><p>Please try again later.</p>");
+                    await DatabaseAvailabilityDefaults.WriteUnavailableResponseAsync(context);
                     return;
                 }
 
@@ -307,7 +325,7 @@ public static class DatabaseFailureNotificationExtensions
     {
         for (var current = exception; current is not null; current = current.InnerException)
         {
-            if (current is DbException or NpgsqlException or DbUpdateException)
+            if (current is DbException or NpgsqlException or DbUpdateException or TimeoutException or SocketException)
             {
                 return true;
             }

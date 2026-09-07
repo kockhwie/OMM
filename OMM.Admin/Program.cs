@@ -36,13 +36,23 @@ builder.Services.AddAuthorizationBuilder()
 builder.Services.AddDatabaseAvailability();
 builder.Services.AddDatabaseAlerting(builder.Configuration);
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    options.UseNpgsql(connectionString ?? string.Empty, npgsqlOptions =>
+        npgsqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 3,
+            maxRetryDelay: TimeSpan.FromSeconds(5),
+            errorCodesToAdd: null)));
 // Use a factory so Blazor components can create short-lived, non-competing
 // DbContext instances per operation (avoids "second operation" concurrency crash).
 builder.Services.AddDbContextFactory<MasterDataDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    options.UseNpgsql(connectionString ?? string.Empty, npgsqlOptions =>
+        npgsqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 3,
+            maxRetryDelay: TimeSpan.FromSeconds(5),
+            errorCodesToAdd: null)));
+builder.Services.AddSafeNpgsqlDataSource(connectionString);
+builder.Services.AddDatabaseAvailabilityMonitor();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddIdentityCore<ApplicationUser>(options =>

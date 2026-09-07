@@ -35,10 +35,15 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorizationBuilder(); // Non-Admin
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString));
-builder.Services.AddSingleton(NpgsqlDataSource.Create(connectionString));
+    options.UseNpgsql(connectionString ?? string.Empty, npgsqlOptions =>
+        npgsqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 3,
+            maxRetryDelay: TimeSpan.FromSeconds(5),
+            errorCodesToAdd: null)));
+builder.Services.AddSafeNpgsqlDataSource(connectionString);
+builder.Services.AddDatabaseAvailabilityMonitor();
 builder.Services.AddOptions<StockLookupOptions>()
     .Bind(builder.Configuration.GetSection("StockLookup"))
     .Validate(options => options.CacheDays > 0, "StockLookup:CacheDays must be greater than zero.")

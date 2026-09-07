@@ -44,10 +44,18 @@
         </nav>
 
         <div class="p-3 border-top" style="border-color: var(--omm-ink-800) !important;">
-            <div class="d-flex align-items-center justify-content-between text-muted small px-2">
+            <div class="d-flex align-items-center justify-content-between text-muted small px-2 mb-2">
                 <span>OMM Admin v2.0</span>
                 <span class="badge bg-secondary-subtle text-secondary" style="font-size: 0.65rem;">Neon PG</span>
             </div>
+            <form action="Account/Logout" method="post" class="w-100">
+                <AntiforgeryToken />
+                <input type="hidden" name="ReturnUrl" value="/login" />
+                <button type="submit" class="sidebar-link w-100 border-0 bg-transparent text-start text-danger d-flex align-items-center gap-2 py-1 px-2" style="font-size: 0.85rem;">
+                    <i class="ti ti-logout"></i>
+                    <span>Sign Out</span>
+                </button>
+            </form>
         </div>
     </aside>
 
@@ -87,11 +95,25 @@
                         <i class="ti ti-users"></i>
                         <span>Users</span>
                     </NavLink>
+                    <NavLink class="sidebar-link" href="admin/audit-log" @onclick="ToggleMobileNav">
+                        <i class="ti ti-history"></i>
+                        <span>Audit Log</span>
+                    </NavLink>
                     <NavLink class="sidebar-link" href="admin/email-test" @onclick="ToggleMobileNav">
                         <i class="ti ti-mail-check"></i>
                         <span>Test Email</span>
                     </NavLink>
                 </nav>
+                <div class="p-3 border-top" style="border-color: var(--omm-ink-800) !important;">
+                    <form action="Account/Logout" method="post" class="w-100">
+                        <AntiforgeryToken />
+                        <input type="hidden" name="ReturnUrl" value="/login" />
+                        <button type="submit" class="sidebar-link w-100 border-0 bg-transparent text-start text-danger d-flex align-items-center gap-2 py-1 px-2" style="font-size: 0.85rem;">
+                            <i class="ti ti-logout"></i>
+                            <span>Sign Out</span>
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     }
@@ -122,9 +144,9 @@
                             <form action="Account/Logout" method="post" class="d-inline">
                                 <AntiforgeryToken />
                                 <input type="hidden" name="ReturnUrl" value="/login" />
-                                <button type="submit" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+                                <button type="submit" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1 px-3 py-1 rounded-2 shadow-none" title="Sign Out">
                                     <i class="ti ti-logout"></i>
-                                    <span class="d-none d-sm-inline">Sign Out</span>
+                                    <span>Sign Out</span>
                                 </button>
                             </form>
                         </div>

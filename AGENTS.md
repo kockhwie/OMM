@@ -1,5 +1,21 @@
 # OMM Agent Notes
 
+## Service and infrastructure placement rule
+
+Before writing any service, infrastructure class, or HTTP client, apply this decision rule:
+
+**Ask: "Could any other project in this solution ever need this?"**
+
+- **Yes, or unsure → `OMM.Shared`**. This includes email sending, external API clients (Resend, payment gateways, etc.), background job helpers, caching utilities, config option classes, shared DTOs, and any cross-cutting concern.
+- **No, and it is tightly coupled to the Admin identity schema → `OMM.Admin`**. Examples: admin `ApplicationUser` pages, admin-only business logic such as user invitation and audit logging.
+- **No, and it is tightly coupled to the Public user schema → `OMM.Public`**. Examples: public `ApplicationUser` pages, portfolio and dashboard features exclusive to the public app.
+
+**Never place something in `OMM.Admin` or `OMM.Public` just because the current feature is for that project.** If in doubt, put it in `OMM.Shared` — it is always cheaper to start shared than to move later.
+
+When registering a shared service, use an extension method in `OMM.Shared` (e.g. `services.AddEmailSender(config)`) and call it from both `OMM.Admin/Program.cs` and `OMM.Public/Program.cs`.
+
+---
+
 ## Master-data audit foreign keys
 
 `OMM.Admin` uses admin identities in the `admin` PostgreSQL schema, while master-data tables (`Country`, `Exchange`, `Market`, `Sector`, `SubSector`, `Institution`, and `Stock`) live in the `public` schema. Do not configure `AuditableEntity.CreatedByUserId`, `ModifiedByUserId`, or `DeletedByUserId` as foreign keys to `AspNetUsers` for these shared master-data tables. Store these values as nullable text IDs.

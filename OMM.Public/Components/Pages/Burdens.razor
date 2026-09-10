@@ -209,6 +209,10 @@ else
                     <button type="button" class="btn-close btn-close-white" @onclick="CloseAddModal"></button>
                 </div>
                 <div class="modal-body p-4">
+                    @if (!string.IsNullOrEmpty(inputError))
+                    {
+                        <div class="alert alert-danger rounded-3 mb-3" role="alert">@inputError</div>
+                    }
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
                             <label class="form-label small fw-semibold text-dark">Burden Name *</label>
@@ -266,6 +270,7 @@ else
     private BurdenType? selectedType;
     private bool showAddModal = false;
     private Burden newBurden = new();
+    private string? inputError;
 
     protected override async Task OnInitializedAsync()
     {
@@ -289,6 +294,7 @@ else
 
     private void OpenAddModal()
     {
+        inputError = null;
         newBurden = new Burden
         {
             Type = BurdenType.PersonalLoan,
@@ -300,12 +306,14 @@ else
 
     private void CloseAddModal()
     {
+        inputError = null;
         showAddModal = false;
     }
 
     private async Task SaveBurden()
     {
-        if (string.IsNullOrWhiteSpace(newBurden.Name))
+        inputError = PublicInputValidator.GetDisplayTextError("Burden name", newBurden.Name);
+        if (inputError is not null)
             return;
 
         if (newBurden.OriginalAmount <= 0)

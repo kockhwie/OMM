@@ -124,6 +124,10 @@ else
                     <button type="button" class="btn-close btn-close-white" @onclick="CloseAddModal"></button>
                 </div>
                 <div class="modal-body p-4">
+                    @if (!string.IsNullOrEmpty(inputError))
+                    {
+                        <div class="alert alert-danger rounded-3 mb-3" role="alert">@inputError</div>
+                    }
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
                             <label class="form-label small fw-semibold text-dark">Goal Title *</label>
@@ -175,6 +179,7 @@ else
     private bool showAddModal = false;
     private Goal newGoal = new();
     private DateTime targetDateInput = DateTime.Today.AddYears(1);
+    private string? inputError;
 
     protected override async Task OnInitializedAsync()
     {
@@ -188,6 +193,7 @@ else
 
     private void OpenAddModal()
     {
+        inputError = null;
         targetDateInput = DateTime.Today.AddYears(1);
         newGoal = new Goal
         {
@@ -199,12 +205,14 @@ else
 
     private void CloseAddModal()
     {
+        inputError = null;
         showAddModal = false;
     }
 
     private async Task SaveGoal()
     {
-        if (string.IsNullOrWhiteSpace(newGoal.Title) || newGoal.Target <= 0)
+        inputError = PublicInputValidator.GetDisplayTextError("Goal title", newGoal.Title);
+        if (inputError is not null || newGoal.Target <= 0)
             return;
 
         newGoal.TargetDate = targetDateInput.ToString("yyyy-MM-dd");

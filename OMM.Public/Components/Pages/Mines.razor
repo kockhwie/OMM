@@ -160,6 +160,10 @@ else
                     <button type="button" class="btn-close btn-close-white" @onclick="CloseAddModal"></button>
                 </div>
                 <div class="modal-body p-4">
+                    @if (!string.IsNullOrEmpty(inputError))
+                    {
+                        <div class="alert alert-danger rounded-3 mb-3" role="alert">@inputError</div>
+                    }
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
                             <label class="form-label small fw-semibold text-dark">Mine Name *</label>
@@ -227,6 +231,7 @@ else
     private MineCategory? selectedCategory;
     private bool showAddModal = false;
     private Mine newMine = new();
+    private string? inputError;
 
     protected override async Task OnInitializedAsync()
     {
@@ -271,6 +276,7 @@ else
 
     private void OpenAddModal()
     {
+        inputError = null;
         newMine = new Mine
         {
             Category = MineCategory.Investments,
@@ -283,12 +289,15 @@ else
 
     private void CloseAddModal()
     {
+        inputError = null;
         showAddModal = false;
     }
 
     private async Task SaveMine()
     {
-        if (string.IsNullOrWhiteSpace(newMine.Name))
+        inputError = PublicInputValidator.GetDisplayTextError("Mine name", newMine.Name)
+            ?? PublicInputValidator.GetDisplayTextError("Holdings / details", newMine.Holdings, optional: true);
+        if (inputError is not null)
             return;
 
         if (newMine.PurchaseCost > 0)

@@ -20,6 +20,15 @@
     </div>
 }
 
+@if (!string.IsNullOrEmpty(inputError))
+{
+    <div class="alert alert-danger alert-dismissible fade show rounded-4 border-0 shadow-sm d-flex align-items-center gap-2 mb-4" role="alert">
+        <i class="ti ti-alert-circle fs-4"></i>
+        <span>@inputError</span>
+        <button type="button" class="btn-close" @onclick="() => inputError = null"></button>
+    </div>
+}
+
 <div class="row g-4 mb-4">
     <!-- 1. Profile Details -->
     <div class="col-12 col-lg-6">
@@ -200,6 +209,7 @@
 @code {
     private MinerProfile profile = new();
     private bool savedNotification = false;
+    private string? inputError;
 
     protected override async Task OnInitializedAsync()
     {
@@ -208,6 +218,13 @@
 
     private void SavePreferences()
     {
+        inputError = PublicInputValidator.GetDisplayTextError("Miner name", profile.Name);
+        if (inputError is not null)
+        {
+            savedNotification = false;
+            return;
+        }
+
         savedNotification = true;
     }
 

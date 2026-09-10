@@ -85,24 +85,17 @@ public sealed class DatabaseAvailabilityMonitorOptions
     public int ProbeTimeoutSeconds { get; set; } = 10;
 }
 
-public sealed class DatabaseAvailabilityMonitor : BackgroundService
+public sealed class DatabaseAvailabilityMonitor(
+    IServiceProvider serviceProvider,
+    DatabaseAvailability availability,
+    ILogger<DatabaseAvailabilityMonitor> logger,
+    IOptions<DatabaseAvailabilityMonitorOptions>? options = null) : BackgroundService
 {
-    private readonly IServiceProvider _serviceProvider;
-    private readonly DatabaseAvailability _availability;
-    private readonly ILogger<DatabaseAvailabilityMonitor> _logger;
-    private readonly IOptions<DatabaseAvailabilityMonitorOptions> _options;
-
-    public DatabaseAvailabilityMonitor(
-        IServiceProvider serviceProvider,
-        DatabaseAvailability availability,
-        ILogger<DatabaseAvailabilityMonitor> logger,
-        IOptions<DatabaseAvailabilityMonitorOptions>? options = null)
-    {
-        _serviceProvider = serviceProvider;
-        _availability = availability;
-        _logger = logger;
-        _options = options ?? Options.Create(new DatabaseAvailabilityMonitorOptions());
-    }
+    private readonly IServiceProvider _serviceProvider = serviceProvider;
+    private readonly DatabaseAvailability _availability = availability;
+    private readonly ILogger<DatabaseAvailabilityMonitor> _logger = logger;
+    private readonly IOptions<DatabaseAvailabilityMonitorOptions> _options =
+        options ?? Options.Create(new DatabaseAvailabilityMonitorOptions());
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {

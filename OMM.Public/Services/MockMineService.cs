@@ -1,4 +1,5 @@
 using OMM.Public.Models;
+using OMM.Public.Validation;
 
 namespace OMM.Public.Services;
 
@@ -264,6 +265,8 @@ public class MockMineService : IMineService
 
     public Task AddMineAsync(Mine mine)
     {
+        PublicInputValidator.ValidateDisplayText("Mine name", mine.Name);
+        PublicInputValidator.ValidateDisplayText("Holdings / details", mine.Holdings, optional: true);
         if (string.IsNullOrEmpty(mine.Id))
             mine.Id = $"mine-{Guid.NewGuid():N}"[..12];
         if (string.IsNullOrEmpty(mine.UpdatedAt))
@@ -286,6 +289,7 @@ public class MockMineService : IMineService
 
     public Task AddBurdenAsync(Burden burden)
     {
+        PublicInputValidator.ValidateDisplayText("Burden name", burden.Name);
         if (string.IsNullOrEmpty(burden.Id))
             burden.Id = $"burden-{Guid.NewGuid():N}"[..12];
         _burdens.Add(burden);
@@ -303,6 +307,7 @@ public class MockMineService : IMineService
 
     public Task AddIncomeRecordAsync(IncomeRecord record)
     {
+        PublicInputValidator.ValidateDisplayText("Income source", record.Source);
         if (string.IsNullOrEmpty(record.Id))
             record.Id = $"inc-{Guid.NewGuid():N}"[..10];
         if (string.IsNullOrEmpty(record.Date))
@@ -322,6 +327,7 @@ public class MockMineService : IMineService
 
     public Task AddGoalAsync(Goal goal)
     {
+        PublicInputValidator.ValidateDisplayText("Goal title", goal.Title);
         if (string.IsNullOrEmpty(goal.Id))
             goal.Id = $"goal-{Guid.NewGuid():N}"[..10];
         _goals.Add(goal);

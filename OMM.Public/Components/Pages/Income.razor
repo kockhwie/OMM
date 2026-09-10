@@ -183,6 +183,10 @@
                     <button type="button" class="btn-close btn-close-white" @onclick="CloseAddModal"></button>
                 </div>
                 <div class="modal-body p-4">
+                    @if (!string.IsNullOrEmpty(inputError))
+                    {
+                        <div class="alert alert-danger rounded-3 mb-3" role="alert">@inputError</div>
+                    }
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
                             <label class="form-label small fw-semibold text-dark">Income Source *</label>
@@ -236,6 +240,7 @@
     private IncomeClass? selectedClass;
     private bool showAddModal = false;
     private IncomeRecord newRecord = new();
+    private string? inputError;
 
     protected override async Task OnInitializedAsync()
     {
@@ -274,6 +279,7 @@
 
     private void OpenAddModal()
     {
+        inputError = null;
         newRecord = new IncomeRecord
         {
             Classification = IncomeClass.Active,
@@ -285,6 +291,7 @@
 
     private void CloseAddModal()
     {
+        inputError = null;
         showAddModal = false;
     }
 
@@ -310,6 +317,10 @@
 
     private async Task SaveIncome()
     {
+        inputError = PublicInputValidator.GetDisplayTextError("Income source", newRecord.Source);
+        if (inputError is not null)
+            return;
+
         if (string.IsNullOrWhiteSpace(newRecord.Source) || newRecord.Amount <= 0)
             return;
 

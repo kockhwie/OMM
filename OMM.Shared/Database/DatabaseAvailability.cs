@@ -245,13 +245,13 @@ public static class DatabaseAvailabilityExtensions
     {
         services.AddSingleton<NpgsqlDataSource>(sp =>
         {
-            var availability = sp.GetRequiredService<DatabaseAvailability>();
-            var logger = sp.GetRequiredService<ILoggerFactory>().CreateLogger("NpgsqlDataSource");
+            var availability = sp.GetService<DatabaseAvailability>();
+            var logger = sp.GetService<ILoggerFactory>()?.CreateLogger("NpgsqlDataSource");
 
             if (string.IsNullOrWhiteSpace(connectionString))
             {
-                availability.MarkUnavailable();
-                logger.LogError("NpgsqlDataSource creation failed: connection string is not configured.");
+                availability?.MarkUnavailable();
+                logger?.LogError("NpgsqlDataSource creation failed: connection string is not configured.");
                 throw new NpgsqlException("Database connection string is not configured.");
             }
 
@@ -261,8 +261,8 @@ public static class DatabaseAvailabilityExtensions
             }
             catch (Exception ex) when (ex is ArgumentException or FormatException)
             {
-                availability.MarkUnavailable();
-                logger.LogError(ex, "NpgsqlDataSource creation failed due to invalid connection string format.");
+                availability?.MarkUnavailable();
+                logger?.LogError(ex, "NpgsqlDataSource creation failed due to invalid connection string format.");
                 throw new NpgsqlException("Database connection string format is invalid.", ex);
             }
         });

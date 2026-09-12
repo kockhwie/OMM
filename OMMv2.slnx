@@ -27,4 +27,5 @@
   <Project Path="OMM.Admin/OMM.Admin.csproj" />
   <Project Path="OMM.Public/OMM.Public.csproj" />
   <Project Path="OMM.Shared/OMM.Shared.csproj" />
+  <Project Path="OMM.Shared.Tests/OMM.Shared.Tests.csproj" />
 </Solution>

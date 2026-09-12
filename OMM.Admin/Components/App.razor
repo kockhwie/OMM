@@ -32,7 +32,9 @@
 </head>
 
 <body>
-    <Routes @rendermode="PageRenderMode" />
+    <DatabaseErrorBoundary @rendermode="PageRenderMode">
+        <Routes />
+    </DatabaseErrorBoundary>
     <ReconnectModal />
     
     <!-- Bootstrap JS Bundle -->

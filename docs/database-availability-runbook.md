@@ -84,3 +84,15 @@ Never assume a fix is successful based only on local workstation testing. Verify
 - **Alert delivery resilience**:
   - If the email notification provider (e.g., Resend) fails or times out, the error is logged locally via `RollingDatabaseLogWriter` (`database-current.log`).
   - An email provider failure **never** replaces or masks the original database exception, ensuring application stability is preserved.
+
+---
+
+## 5. System Limitations & Operational Boundaries
+
+- **No automatic configuration repair**:
+  - The application cannot automatically fix a stale or invalid Neon hostname, rotate expired credentials, or modify Render environment variables. Operator intervention in Render and Neon is strictly required.
+- **Circuit recovery requires user refresh**:
+  - If an active Blazor Server circuit encounters a database error, `<DatabaseErrorBoundary>` isolates the component and displays a safe retry message. The circuit cannot automatically rewind state; the user must click **Refresh page**.
+- **Process-isolated recovery**:
+  - Background connectivity probes occur every 60 seconds (with an early probe on cold start). If the database resumes, the application restores availability automatically without needing a redeploy unless configuration was changed.
+

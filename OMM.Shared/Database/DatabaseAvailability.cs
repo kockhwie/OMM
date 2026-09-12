@@ -82,30 +82,53 @@ public static class DatabaseAvailabilityDefaults
 public sealed class DatabaseAvailabilityMonitorOptions
 {
     public TimeSpan Interval { get; set; } = TimeSpan.FromSeconds(60);
+    public TimeSpan EarlyProbeDelay { get; set; } = TimeSpan.FromSeconds(5);
     public int ProbeTimeoutSeconds { get; set; } = 10;
 }
 
-public sealed class DatabaseAvailabilityMonitor(
-    IServiceProvider serviceProvider,
-    DatabaseAvailability availability,
-    ILogger<DatabaseAvailabilityMonitor> logger,
-    IOptions<DatabaseAvailabilityMonitorOptions>? options = null) : BackgroundService
+public sealed class DatabaseAvailabilityMonitor : BackgroundService
 {
-    private readonly IServiceProvider _serviceProvider = serviceProvider;
-    private readonly DatabaseAvailability _availability = availability;
-    private readonly ILogger<DatabaseAvailabilityMonitor> _logger = logger;
-    private readonly IOptions<DatabaseAvailabilityMonitorOptions> _options =
-        options ?? Options.Create(new DatabaseAvailabilityMonitorOptions());
+    private readonly IServiceProvider _serviceProvider;
+    private readonly DatabaseAvailability _availability;
+    private readonly ILogger<DatabaseAvailabilityMonitor> _logger;
+    private readonly IOptions<DatabaseAvailabilityMonitorOptions> _options;
+    private readonly Func<CancellationToken, Task<IAsyncDisposable>>? _connectionFactory;
+
+    public DatabaseAvailabilityMonitor(
+        IServiceProvider serviceProvider,
+        DatabaseAvailability availability,
+        ILogger<DatabaseAvailabilityMonitor> logger,
+        IOptions<DatabaseAvailabilityMonitorOptions>? options = null)
+        : this(serviceProvider, availability, logger, options, null)
+    {
+    }
+
+    public DatabaseAvailabilityMonitor(
+        IServiceProvider serviceProvider,
+        DatabaseAvailability availability,
+        ILogger<DatabaseAvailabilityMonitor> logger,
+        IOptions<DatabaseAvailabilityMonitorOptions>? options,
+        Func<CancellationToken, Task<IAsyncDisposable>>? connectionFactory)
+    {
+        _serviceProvider = serviceProvider;
+        _availability = availability;
+        _logger = logger;
+        _options = options ?? Options.Create(new DatabaseAvailabilityMonitorOptions());
+        _connectionFactory = connectionFactory;
+    }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        // If the application started in degraded mode, perform an early probe after 5s
+        // If the application started in degraded mode, perform an early probe after early probe delay
         // to rapidly recover if the database was simply waking up (e.g. Neon cold start).
         if (!_availability.IsAvailable)
         {
             try
             {
-                await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+                if (_options.Value.EarlyProbeDelay > TimeSpan.Zero)
+                {
+                    await Task.Delay(_options.Value.EarlyProbeDelay, stoppingToken);
+                }
                 await ProbeAsync(stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -146,20 +169,27 @@ public sealed class DatabaseAvailabilityMonitor(
     {
         try
         {
-            var dataSource = _serviceProvider.GetService<NpgsqlDataSource>();
-            if (dataSource is null)
-            {
-                return;
-            }
-
             using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             timeoutCts.CancelAfter(TimeSpan.FromSeconds(_options.Value.ProbeTimeoutSeconds));
 
-            await using var connection = await dataSource.OpenConnectionAsync(timeoutCts.Token);
-            await using var command = connection.CreateCommand();
-            command.CommandText = "SELECT 1";
-            command.CommandTimeout = _options.Value.ProbeTimeoutSeconds;
-            await command.ExecuteScalarAsync(timeoutCts.Token);
+            if (_connectionFactory is not null)
+            {
+                await using var connection = await _connectionFactory(timeoutCts.Token);
+            }
+            else
+            {
+                var dataSource = _serviceProvider.GetService<NpgsqlDataSource>();
+                if (dataSource is null)
+                {
+                    return;
+                }
+
+                await using var connection = await dataSource.OpenConnectionAsync(timeoutCts.Token);
+                await using var command = connection.CreateCommand();
+                command.CommandText = "SELECT 1";
+                command.CommandTimeout = _options.Value.ProbeTimeoutSeconds;
+                await command.ExecuteScalarAsync(timeoutCts.Token);
+            }
 
             if (_availability.MarkAvailable())
             {

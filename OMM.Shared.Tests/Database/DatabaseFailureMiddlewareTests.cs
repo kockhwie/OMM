@@ -233,17 +233,30 @@ public class DatabaseFailureMiddlewareTests
         Assert.Empty(emailSender.SentAlerts);
     }
 
+    private sealed class StartedHttpResponseFeature : Microsoft.AspNetCore.Http.Features.IHttpResponseFeature
+    {
+        public int StatusCode { get; set; } = 200;
+        public string? ReasonPhrase { get; set; }
+        public IHeaderDictionary Headers { get; set; } = new HeaderDictionary();
+        public Stream Body { get; set; } = new MemoryStream();
+        public bool HasStarted => true;
+
+        public void OnStarting(Func<object, Task> callback, object state) { }
+        public void OnCompleted(Func<object, Task> callback, object state) { }
+    }
+
     [Fact]
     public async Task ResponseAlreadyStarted_RethrowsDatabaseException()
     {
         var expectedException = new NpgsqlException("Fatal database disconnect");
-        var (pipeline, availability, emailSender, sp) = CreateTestPipeline(async context =>
+        var (pipeline, availability, emailSender, sp) = CreateTestPipeline(_ =>
         {
-            await context.Response.StartAsync();
             throw expectedException;
         });
 
         var context = CreateHttpContext(sp);
+        context.Features.Set<Microsoft.AspNetCore.Http.Features.IHttpResponseFeature>(new StartedHttpResponseFeature());
+
         var ex = await Assert.ThrowsAsync<NpgsqlException>(() => pipeline(context));
 
         Assert.Same(expectedException, ex);
@@ -255,13 +268,14 @@ public class DatabaseFailureMiddlewareTests
     public async Task NotifierFailure_DoesNotReplaceOriginalDatabaseException()
     {
         var expectedException = new NpgsqlException("Fatal database disconnect");
-        var (pipeline, availability, _, sp) = CreateTestPipeline(async context =>
+        var (pipeline, availability, _, sp) = CreateTestPipeline(_ =>
         {
-            await context.Response.StartAsync();
             throw expectedException;
         }, sender => sender.ShouldThrow = true);
 
         var context = CreateHttpContext(sp);
+        context.Features.Set<Microsoft.AspNetCore.Http.Features.IHttpResponseFeature>(new StartedHttpResponseFeature());
+
         // Even though notifier throws, the original NpgsqlException is rethrown when response has started
         var ex = await Assert.ThrowsAsync<NpgsqlException>(() => pipeline(context));
 

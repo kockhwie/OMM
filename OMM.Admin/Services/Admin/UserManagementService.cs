@@ -65,6 +65,8 @@ namespace OMM.Admin.Services.Admin
                     user.Id,
                     user.UserName ?? string.Empty,
                     user.Email ?? string.Empty,
+                    user.FirstName,
+                    user.LastName,
                     string.Join(' ', new[] { user.FirstName, user.LastName }.Where(value => !string.IsNullOrWhiteSpace(value))),
                     (await _userManager.GetRolesAsync(user)).ToArray(),
                     user.EmailConfirmed,
@@ -265,6 +267,45 @@ namespace OMM.Admin.Services.Admin
             }
 
             return addResult;
+        }
+
+        public async Task<IdentityResult> UpdateUserAsync(string actorUserId, UserUpdateDto dto)
+        {
+            var user = await _userManager.FindByIdAsync(dto.UserId);
+            if (user == null)
+                return IdentityResult.Failed(new IdentityError { Code = "NotFound", Description = "User not found." });
+
+            var nameChanged = (user.FirstName ?? string.Empty) != (dto.FirstName ?? string.Empty) ||
+                              (user.LastName ?? string.Empty) != (dto.LastName ?? string.Empty);
+            var oldFirstName = user.FirstName;
+            var oldLastName = user.LastName;
+
+            user.FirstName = dto.FirstName;
+            user.LastName = dto.LastName;
+
+            var updateResult = await _userManager.UpdateAsync(user);
+            if (!updateResult.Succeeded)
+                return updateResult;
+
+            if (nameChanged)
+            {
+                var (actorId, actorName) = await ResolveActorAsync(actorUserId);
+                await _auditLogger.LogAsync(actorId, actorName, "UpdateProfile", user.Id,
+                    $"Updated profile for '{user.UserName}' (Name: '{oldFirstName} {oldLastName}' -> '{dto.FirstName} {dto.LastName}')");
+            }
+
+            if (!string.IsNullOrWhiteSpace(dto.Role))
+            {
+                var currentRoles = await _userManager.GetRolesAsync(user);
+                if (!currentRoles.Contains(dto.Role))
+                {
+                    var roleResult = await UpdateRoleAsync(actorUserId, dto.UserId, dto.Role);
+                    if (!roleResult.Succeeded)
+                        return roleResult;
+                }
+            }
+
+            return IdentityResult.Success;
         }
     }
 }

@@ -1,0 +1,169 @@
+@using System.ComponentModel.DataAnnotations
+@using OMM.Admin.Services.Admin
+@inject IUserManagementService UserManagementService
+
+@if (IsOpen && User != null)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.6); z-index: 1050;" role="dialog" aria-modal="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header bg-dark text-white px-4 py-3 border-0 d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="stat-icon-wrapper bg-primary text-white p-2 rounded-3" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
+                            <i class="ti ti-user-edit fs-5"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-bold font-display mb-0">Edit User: @User.UserName</h5>
+                            <span class="text-muted small">Update administrator details and role permissions</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" @onclick="HandleClose" aria-label="Close" disabled="@_isSaving"></button>
+                </div>
+
+                <div class="modal-body p-4 bg-light-subtle">
+                    @if (!string.IsNullOrEmpty(_errorMessage))
+                    {
+                        <div class="alert alert-danger d-flex align-items-center gap-2 rounded-3 mb-3 py-2" role="alert">
+                            <i class="ti ti-alert-circle fs-5"></i>
+                            <div>@_errorMessage</div>
+                        </div>
+                    }
+
+                    <div class="card border-0 bg-white shadow-sm rounded-3 p-3 mb-3">
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-muted mb-0">Username</label>
+                                <div class="fw-bold font-monospace text-dark">@User.UserName</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-muted mb-0">Email</label>
+                                <div class="text-dark">@User.Email</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <EditForm Model="@Model" OnValidSubmit="HandleValidSubmit">
+                        <DataAnnotationsValidator />
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-dark">First Name</label>
+                                <InputText class="form-control rounded-3" placeholder="e.g. John" @bind-Value="Model.FirstName" />
+                                <ValidationMessage For="@(() => Model.FirstName)" class="text-danger small mt-1" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-dark">Last Name</label>
+                                <InputText class="form-control rounded-3" placeholder="e.g. Doe" @bind-Value="Model.LastName" />
+                                <ValidationMessage For="@(() => Model.LastName)" class="text-danger small mt-1" />
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label small fw-semibold text-dark">Role Assignment <span class="text-danger">*</span></label>
+                                <InputSelect class="form-select rounded-3" @bind-Value="Model.Role">
+                                    <option value="Admin">Admin</option>
+                                    <option value="SuperAdmin">SuperAdmin</option>
+                                </InputSelect>
+                                <ValidationMessage For="@(() => Model.Role)" class="text-danger small mt-1" />
+                                @if (IsEditingSelf && User.Roles.Contains("SuperAdmin") && Model.Role != "SuperAdmin")
+                                {
+                                    <div class="text-warning small mt-1 d-flex align-items-center gap-1">
+                                        <i class="ti ti-alert-triangle"></i> You cannot demote your own active account from SuperAdmin.
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="modal-footer px-0 pb-0 mt-4 border-0 d-flex align-items-center justify-content-between">
+                            <button type="button" class="btn btn-outline-secondary rounded-3 px-3" @onclick="HandleClose" disabled="@_isSaving">Cancel</button>
+                            <button type="submit" class="btn btn-primary rounded-3 px-4 fw-semibold d-flex align-items-center gap-2" disabled="@_isSaving">
+                                @if (_isSaving)
+                                {
+                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                    <span>Saving...</span>
+                                }
+                                else
+                                {
+                                    <i class="ti ti-device-floppy"></i>
+                                    <span>Save Changes</span>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public UserListDto? User { get; set; }
+    [Parameter] public string CurrentUserId { get; set; } = string.Empty;
+    [Parameter] public EventCallback<UserUpdateDto> OnSave { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private UserEditFormModel Model { get; set; } = new();
+    private string? _errorMessage;
+    private bool _isSaving;
+
+    private bool IsEditingSelf => User != null && !string.IsNullOrEmpty(CurrentUserId) && User.Id == CurrentUserId;
+
+    protected override void OnParametersSet()
+    {
+        if (!IsOpen || User == null)
+        {
+            return;
+        }
+
+        _errorMessage = null;
+        Model = new UserEditFormModel
+        {
+            UserId = User.Id,
+            FirstName = User.FirstName,
+            LastName = User.LastName,
+            Role = User.Roles.FirstOrDefault() ?? "Admin"
+        };
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        _isSaving = true;
+        _errorMessage = null;
+        try
+        {
+            var updateDto = new UserUpdateDto(Model.UserId, Model.FirstName, Model.LastName, Model.Role);
+            if (OnSave.HasDelegate)
+            {
+                await OnSave.InvokeAsync(updateDto);
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private async Task HandleClose()
+    {
+        if (OnClose.HasDelegate)
+        {
+            await OnClose.InvokeAsync();
+        }
+    }
+
+    public class UserEditFormModel
+    {
+        public string UserId { get; set; } = string.Empty;
+
+        [MaxLength(50, ErrorMessage = "First Name cannot exceed 50 characters.")]
+        public string? FirstName { get; set; }
+
+        [MaxLength(50, ErrorMessage = "Last Name cannot exceed 50 characters.")]
+        public string? LastName { get; set; }
+
+        [Required(ErrorMessage = "Role is required.")]
+        public string Role { get; set; } = "Admin";
+    }
+}

@@ -6,7 +6,8 @@ using OMM.Admin.Data;
 namespace OMM.Admin.Services.Admin
 {
     public record InviteDto(string Username, string Email, string DisplayName, string Role);
-    public record UserListDto(string Id, string UserName, string Email, string DisplayName, string[] Roles, bool EmailConfirmed, bool MustChangePassword, string? LockoutEnd);
+    public record UserListDto(string Id, string UserName, string Email, string? FirstName, string? LastName, string DisplayName, string[] Roles, bool EmailConfirmed, bool MustChangePassword, string? LockoutEnd);
+    public record UserUpdateDto(string UserId, string? FirstName, string? LastName, string Role);
 
     public interface IUserManagementService
     {
@@ -18,5 +19,6 @@ namespace OMM.Admin.Services.Admin
         Task<IdentityResult> DeactivateAsync(string actorUserId, string userId);
         Task<IdentityResult> ReactivateAsync(string userId, string? actorUserId = null);
         Task<IdentityResult> UpdateRoleAsync(string actorUserId, string userId, string role);
+        Task<IdentityResult> UpdateUserAsync(string actorUserId, UserUpdateDto dto);
     }
 }

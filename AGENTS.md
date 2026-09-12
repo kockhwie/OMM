@@ -61,3 +61,25 @@ When defining option/settings classes (e.g., in `OMM.Shared` or project-specific
 - **Never hardcode environment-specific values**: Do not hardcode sender emails, domain URLs, API endpoints, or provider keys as default string initializers in options classes.
 - **Bind cleanly via `IConfiguration`**: Always use `builder.Services.Configure<TOptions>(configuration.GetSection(...))` or options validation.
 - Provide clear keys in `appsettings.json` with empty or placeholder strings so required settings are discoverable.
+
+---
+
+## Blazor SSR Boundaries & RenderFragment Serialization
+
+In Blazor (.NET 8+), parameters passed across an SSR-to-interactive boundary (a component with `@rendermode` rendered by a static SSR host) must be JSON-serializable.
+
+- **`RenderFragment` is a delegate** (`Action<RenderTreeBuilder>`) and **cannot be serialized across an interactive boundary**.
+- **Never place `@rendermode` directly on wrapper components that receive a `ChildContent` delegate** (such as `<DatabaseErrorBoundary @rendermode="...">`, layout wrappers, or cascading containers). Doing so causes a runtime `System.InvalidOperationException: Cannot pass the parameter 'ChildContent' to component with rendermode...`.
+- **Correct pattern**:
+  - Apply `@rendermode="PageRenderMode"` to `<Routes @rendermode="PageRenderMode" />` in `App.razor` (or at the `@page` directive level).
+  - Nest boundary components (like `<DatabaseErrorBoundary>`) **inside** `Routes.razor` (e.g. wrapping `<AuthorizeRouteView>`), so both the boundary and its children reside within the same interactive boundary without crossing an SSR serialization boundary.
+
+---
+
+## Pre-Commit Verification Gate (Integration Smoke Tests)
+
+`dotnet build` and unit tests in `OMM.Shared.Tests` only validate static types and isolated class logic; **they cannot catch ASP.NET Core runtime dispatch errors, Blazor SSR boundary violations, DI resolution failures, or routing crashes**.
+
+- **Always run `dotnet test` (or `dotnet test OMMv2.slnx`) before committing or claiming completion.**
+- The `OMM.Integration.Tests` project uses `WebApplicationFactory` to boot the live Kestrel pipeline in-process in the `Integration` environment. It validates real HTTP requests against critical routes in both `OMM.Admin` and `OMM.Public` to guarantee that no runtime 500 errors, SSR boundary violations, or missing services slip into commits.
+

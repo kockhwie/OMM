@@ -128,3 +128,5 @@ app.MapDatabaseHealthCheck();
 app.MapAdditionalIdentityEndpoints();
 
 app.Run();
+
+public partial class Program { }

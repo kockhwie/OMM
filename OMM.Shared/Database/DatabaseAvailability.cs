@@ -250,6 +250,12 @@ public static class DatabaseAvailabilityExtensions
 
             if (string.IsNullOrWhiteSpace(connectionString))
             {
+                var env = sp.GetService<IHostEnvironment>();
+                if (env?.IsEnvironment("Integration") == true || env?.IsEnvironment("Testing") == true)
+                {
+                    return NpgsqlDataSource.Create("Host=127.0.0.1;Port=5432;Database=test;Username=postgres;Password=postgres");
+                }
+
                 availability?.MarkUnavailable();
                 logger?.LogError("NpgsqlDataSource creation failed: connection string is not configured.");
                 throw new NpgsqlException("Database connection string is not configured.");
@@ -293,6 +299,24 @@ public static class DatabaseAvailabilityExtensions
         var databaseAvailability = scope.ServiceProvider.GetRequiredService<DatabaseAvailability>();
         var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>()
             .CreateLogger("DatabaseStartup");
+
+        if (app.Environment.IsEnvironment("Integration") || app.Environment.IsEnvironment("Testing"))
+        {
+            databaseAvailability.MarkAvailable();
+            logger.LogInformation("Integration environment detected; skipping database migration.");
+            return true;
+        }
+
+        if (!dbContext.Database.IsRelational())
+        {
+            await dbContext.Database.EnsureCreatedAsync();
+            if (seedAsync is not null)
+            {
+                await seedAsync(scope.ServiceProvider);
+            }
+            databaseAvailability.MarkAvailable();
+            return true;
+        }
 
         const int maxAttempts = 3;
         var retryDelay = TimeSpan.FromSeconds(2);
@@ -350,6 +374,12 @@ public static class DatabaseAvailabilityExtensions
         var databaseAvailability = scope.ServiceProvider.GetRequiredService<DatabaseAvailability>();
         var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>()
             .CreateLogger("DatabaseStartup");
+
+        if (app.Environment.IsEnvironment("Integration") || app.Environment.IsEnvironment("Testing") || !dbContext.Database.IsRelational())
+        {
+            databaseAvailability.MarkAvailable();
+            return true;
+        }
 
         const int maxAttempts = 3;
         var retryDelay = TimeSpan.FromSeconds(2);

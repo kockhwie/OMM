@@ -31,7 +31,7 @@
     }
 
     <AdminDataGrid TItem="UserListDto" Items="@_users" TotalCount="@_users.Count" IsLoading="@_isLoading" SearchPlaceholder="Search username, email or name..." OnSearchChanged="LoadUsersAsync">
-        <ToolbarTemplate><AdminInviteModal /></ToolbarTemplate>
+        <ToolbarTemplate><AdminInviteModal CurrentUserId="@_currentUserId" OnInviteSuccess="@(async () => await LoadUsersAsync())" /></ToolbarTemplate>
         <Columns>
             <GridColumn TItem="UserListDto" Field="@(user => user.UserName)" Title="Username" Sortable="true">
                 <Template Context="user">

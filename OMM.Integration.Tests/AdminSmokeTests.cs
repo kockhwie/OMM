@@ -18,6 +18,7 @@ public class AdminSmokeTests : IClassFixture<AdminWebAppFactory>
     [InlineData("/not-found")]
     [InlineData("/Account/AccessDenied")]
     [InlineData("/admin/users")]
+    [InlineData("/admin/audit-log")]
     [InlineData("/admin/audit-logs")]
     public async Task Get_Endpoints_ReturnsSuccessOrRedirect_WithoutUnhandledExceptions(string url)
     {

@@ -1,74 +1,168 @@
-@using OMM.Admin.Services.Admin
 @using System.ComponentModel.DataAnnotations
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@using OMM.Admin.Services.Admin
 @inject IUserManagementService UserManagementService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
-<div class="invite-modal card border-0 shadow-sm p-3">
-    <h3>Invite Admin</h3>
-    @if (!string.IsNullOrWhiteSpace(statusMessage))
-    {
-        <div class="alert alert-@statusClass">@statusMessage</div>
-    }
-    <EditForm Model="inviteModel" OnValidSubmit="HandleInvite">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
-        <div>
-            <label>Username</label>
-            <InputText @bind-Value="inviteModel.Username" />
+<button class="btn btn-primary btn-sm d-flex align-items-center gap-1" @onclick="OpenModal">
+    <i class="ti ti-user-plus"></i>
+    <span>Invite Admin</span>
+</button>
+
+@if (_isOpen)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.6); z-index: 1050;" role="dialog" aria-modal="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header bg-dark text-white px-4 py-3 border-0 d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="stat-icon-wrapper bg-primary text-white p-2 rounded-3" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
+                            <i class="ti ti-user-plus fs-5"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-bold font-display mb-0">Invite Administrator</h5>
+                            <span class="text-muted small">Send an onboarding invitation link to a new admin user</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" @onclick="CloseModal" aria-label="Close" disabled="@_isSaving"></button>
+                </div>
+
+                <div class="modal-body p-4 bg-light-subtle">
+                    @if (!string.IsNullOrEmpty(_errorMessage))
+                    {
+                        <div class="alert alert-danger d-flex align-items-center gap-2 rounded-3 mb-3 py-2" role="alert">
+                            <i class="ti ti-alert-circle fs-5"></i>
+                            <div>@_errorMessage</div>
+                        </div>
+                    }
+
+                    <EditForm Model="@_inviteModel" OnValidSubmit="HandleInvite">
+                        <DataAnnotationsValidator />
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-dark">Username <span class="text-danger">*</span></label>
+                                <InputText class="form-control rounded-3" placeholder="e.g. jdoe" @bind-Value="_inviteModel.Username" />
+                                <ValidationMessage For="@(() => _inviteModel.Username)" class="text-danger small mt-1" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-dark">Email Address <span class="text-danger">*</span></label>
+                                <InputText class="form-control rounded-3" placeholder="name@example.com" @bind-Value="_inviteModel.Email" />
+                                <ValidationMessage For="@(() => _inviteModel.Email)" class="text-danger small mt-1" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-dark">Display Name <span class="text-danger">*</span></label>
+                                <InputText class="form-control rounded-3" placeholder="e.g. John Doe" @bind-Value="_inviteModel.DisplayName" />
+                                <ValidationMessage For="@(() => _inviteModel.DisplayName)" class="text-danger small mt-1" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold text-dark">Role Assignment <span class="text-danger">*</span></label>
+                                <InputSelect class="form-select rounded-3" @bind-Value="_inviteModel.Role">
+                                    <option value="Admin">Admin</option>
+                                    <option value="SuperAdmin">SuperAdmin</option>
+                                </InputSelect>
+                                <ValidationMessage For="@(() => _inviteModel.Role)" class="text-danger small mt-1" />
+                            </div>
+                        </div>
+
+                        <div class="modal-footer px-0 pb-0 mt-4 border-0 d-flex align-items-center justify-content-between">
+                            <button type="button" class="btn btn-outline-secondary rounded-3 px-3" @onclick="CloseModal" disabled="@_isSaving">Cancel</button>
+                            <button type="submit" class="btn btn-primary rounded-3 px-4 fw-semibold d-flex align-items-center gap-2" disabled="@_isSaving">
+                                @if (_isSaving)
+                                {
+                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                    <span>Sending Invite...</span>
+                                }
+                                else
+                                {
+                                    <i class="ti ti-mail-forward"></i>
+                                    <span>Send Invitation</span>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
         </div>
-        <div>
-            <label>Email</label>
-            <InputText @bind-Value="inviteModel.Email" />
-        </div>
-        <div>
-            <label>Display Name</label>
-            <InputText @bind-Value="inviteModel.DisplayName" />
-        </div>
-        <div>
-            <label>Role</label>
-            <InputSelect @bind-Value="inviteModel.Role">
-                <option value="Admin">Admin</option>
-                <option value="SuperAdmin">SuperAdmin</option>
-            </InputSelect>
-        </div>
-        <button type="submit">Invite</button>
-    </EditForm>
-</div>
+    </div>
+}
 
 @code {
-    private InviteModel inviteModel = new InviteModel();
+    [Parameter] public string? CurrentUserId { get; set; }
+    [Parameter] public EventCallback OnInviteSuccess { get; set; }
 
-    private class InviteModel
+    private bool _isOpen;
+    private bool _isSaving;
+    private string? _errorMessage;
+    private InviteModel _inviteModel = new();
+
+    private void OpenModal()
     {
-        [Required, StringLength(50)]
-        public string Username { get; set; } = string.Empty;
-
-        [Required, EmailAddress]
-        public string Email { get; set; } = string.Empty;
-
-        [Required, StringLength(100)]
-        public string DisplayName { get; set; } = string.Empty;
-
-        [Required]
-        public string Role { get; set; } = "Admin";
+        _inviteModel = new InviteModel();
+        _errorMessage = null;
+        _isOpen = true;
     }
 
-    private string? statusMessage;
-    private string statusClass = "success";
+    private void CloseModal()
+    {
+        if (!_isSaving)
+        {
+            _isOpen = false;
+        }
+    }
 
     private async Task HandleInvite()
     {
-        var dto = new InviteDto(inviteModel.Username, inviteModel.Email, inviteModel.DisplayName, inviteModel.Role);
-        var result = await UserManagementService.InviteAsync(dto);
-        if (result.Succeeded)
+        _isSaving = true;
+        _errorMessage = null;
+
+        try
         {
-            statusClass = "success";
-            statusMessage = "Invitation sent.";
-            inviteModel = new InviteModel();
+            var actorUserId = CurrentUserId;
+            if (string.IsNullOrWhiteSpace(actorUserId))
+            {
+                var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+                actorUserId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            }
+
+            var dto = new InviteDto(_inviteModel.Username.Trim(), _inviteModel.Email.Trim(), _inviteModel.DisplayName.Trim(), _inviteModel.Role);
+            var result = await UserManagementService.InviteAsync(dto, actorUserId);
+
+            if (result.Succeeded)
+            {
+                _isOpen = false;
+                if (OnInviteSuccess.HasDelegate)
+                {
+                    await OnInviteSuccess.InvokeAsync();
+                }
+            }
+            else
+            {
+                _errorMessage = string.Join(" ", result.Errors.Select(e => e.Description));
+            }
         }
-        else
+        catch (Exception ex)
         {
-            statusClass = "danger";
-            statusMessage = string.Join(" ", result.Errors.Select(e => e.Description));
+            _errorMessage = ex.Message;
         }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    public class InviteModel
+    {
+        [Required(ErrorMessage = "Username is required."), StringLength(50)]
+        public string Username { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Email is required."), EmailAddress(ErrorMessage = "Please enter a valid email address.")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Display name is required."), StringLength(100)]
+        public string DisplayName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Role is required.")]
+        public string Role { get; set; } = "Admin";
     }
 }

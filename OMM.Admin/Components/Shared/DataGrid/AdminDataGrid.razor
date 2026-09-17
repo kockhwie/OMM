@@ -30,7 +30,7 @@
             {
                 <div class="d-flex align-items-center gap-2">
                     <span class="text-muted small text-nowrap">Show:</span>
-                    <select class="form-select form-select-sm datagrid-pagesize-select" value="@PageSize" @onchange="HandlePageSizeChange">
+                    <select class="form-select form-select-sm" value="@PageSize" @onchange="HandlePageSizeChange">
                         @foreach (var size in PageSizeOptions)
                         {
                             <option value="@size">@size</option>

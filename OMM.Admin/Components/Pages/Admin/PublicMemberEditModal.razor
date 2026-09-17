@@ -1,0 +1,99 @@
+@using System.ComponentModel.DataAnnotations
+@using OMM.Admin.Services.Admin
+
+@if (IsOpen && Member != null)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.6); z-index: 1050;" role="dialog" aria-modal="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header bg-dark text-white px-4 py-3 border-0 d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="stat-icon-wrapper bg-primary text-white p-2 rounded-3" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
+                            <i class="ti ti-user-edit fs-5"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-bold font-display mb-0">Edit Member: @Member.UserName</h5>
+                            <span class="text-muted small">Update public member details</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" @onclick="HandleClose" disabled="@_isSaving" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 bg-light-subtle">
+                    @if (!string.IsNullOrWhiteSpace(_errorMessage))
+                    {
+                        <div class="alert alert-danger">@_errorMessage</div>
+                    }
+                    <div class="card border-0 bg-white shadow-sm rounded-3 p-3 mb-3">
+                        <div><span class="text-muted small">Email</span><div>@Member.Email</div></div>
+                    </div>
+                    <EditForm Model="@Model" OnValidSubmit="HandleValidSubmit">
+                        <DataAnnotationsValidator />
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">First Name</label>
+                                <InputText class="form-control rounded-3" @bind-Value="Model.FirstName" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">Last Name</label>
+                                <InputText class="form-control rounded-3" @bind-Value="Model.LastName" />
+                            </div>
+                        </div>
+                        <div class="modal-footer px-0 pb-0 mt-4 border-0 justify-content-between">
+                            <button type="button" class="btn btn-outline-secondary" @onclick="HandleClose" disabled="@_isSaving">Cancel</button>
+                            <button type="submit" class="btn btn-primary" disabled="@_isSaving">
+                                @(_isSaving ? "Saving..." : "Save Changes")
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public PublicMemberListDto? Member { get; set; }
+    [Parameter] public EventCallback<PublicMemberUpdateDto> OnSave { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private MemberEditModel Model { get; set; } = new();
+    private string? _errorMessage;
+    private bool _isSaving;
+    private string? _loadedMemberId;
+
+    protected override void OnParametersSet()
+    {
+        if (Member != null && Member.Id != _loadedMemberId)
+        {
+            _loadedMemberId = Member.Id;
+            Model = new MemberEditModel { FirstName = Member.FirstName, LastName = Member.LastName };
+            _errorMessage = null;
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        _isSaving = true;
+        try
+        {
+            await OnSave.InvokeAsync(new PublicMemberUpdateDto(Member!.Id, Model.FirstName, Model.LastName));
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private async Task HandleClose() => await OnClose.InvokeAsync();
+
+    private sealed class MemberEditModel
+    {
+        [StringLength(50)] public string? FirstName { get; set; }
+        [StringLength(50)] public string? LastName { get; set; }
+    }
+}

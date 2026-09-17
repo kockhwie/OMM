@@ -1,9 +1,11 @@
 @page "/admin"
 @using Microsoft.EntityFrameworkCore
 @using OMM.Admin.Data
+@using OMM.Admin.Services.Admin
 @using OMM.Shared.Models.MasterData
 @inject MasterDataDbContext MasterDbContext
 @inject ApplicationDbContext IdentityDbContext
+@inject IPublicMemberManagementService PublicMemberManagementService
 
 <PageTitle>Admin Dashboard - OMM</PageTitle>
 
@@ -38,12 +40,26 @@
                 <div class="omm-card metric-card border-danger-subtle bg-danger-subtle bg-opacity-10">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
-                            <div class="stat-label text-danger">Admin Accounts</div>
+                            <div class="stat-label text-danger d-flex align-items-center gap-2">
+                                <span class="stat-icon-inline bg-danger text-white"><i class="ti ti-shield-check"></i></span>
+                                Admin Accounts
+                            </div>
                             <div class="stat-value text-danger mt-1">@adminUserCount</div>
                             <div class="text-muted small mt-1">SuperAdmin & Admin roles</div>
                         </div>
-                        <div class="stat-icon-wrapper bg-danger text-white">
-                            <i class="ti ti-shield-check"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="omm-card metric-card border-primary-subtle bg-primary-subtle bg-opacity-10">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="stat-label text-primary d-flex align-items-center gap-2">
+                                <span class="stat-icon-inline bg-primary text-white"><i class="ti ti-user-check"></i></span>
+                                Public Members
+                            </div>
+                            <div class="stat-value text-primary mt-1">@publicMemberCount</div>
+                            <div class="text-muted small mt-1">Registered member accounts</div>
                         </div>
                     </div>
                 </div>
@@ -52,13 +68,13 @@
                 <div class="omm-card metric-card">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
-                            <div class="stat-label">KLSE Stocks</div>
+                            <div class="stat-label d-flex align-items-center gap-2">
+                                <span class="stat-icon-inline bg-primary-subtle text-primary"><i class="ti ti-chart-candle"></i></span>
+                                KLSE Stocks
+                            </div>
                             <div class="stat-value mt-1">@stockCount.ToString("N0")</div>
                             <div class="text-muted small mt-1">Equities & listed securities</div>
                         </div>
-                        <div class="stat-icon-wrapper bg-primary-subtle text-primary">
-                            <i class="ti ti-chart-candle"></i>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -66,30 +82,17 @@
                 <div class="omm-card metric-card">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
-                            <div class="stat-label">Financial Institutions</div>
+                            <div class="stat-label d-flex align-items-center gap-2">
+                                <span class="stat-icon-inline bg-success-subtle text-success"><i class="ti ti-building-bank"></i></span>
+                                Financial Institutions
+                            </div>
                             <div class="stat-value mt-1">@institutionCount.ToString("N0")</div>
                             <div class="text-muted small mt-1">Banks, brokers, providers</div>
                         </div>
-                        <div class="stat-icon-wrapper bg-success-subtle text-success">
-                            <i class="ti ti-building-bank"></i>
-                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-md-6 col-xl-3">
-                <div class="omm-card metric-card">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <div class="stat-label">Markets & Exchanges</div>
-                            <div class="stat-value mt-1">@(marketCount + exchangeCount)</div>
-                            <div class="text-muted small mt-1">@exchangeCount exchanges, @marketCount markets</div>
-                        </div>
-                        <div class="stat-icon-wrapper bg-warning-subtle text-warning">
-                            <i class="ti ti-world"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
+             
         </div>
 
         <!-- Master Data Tables Detail Section -->
@@ -245,6 +248,7 @@
     private int institutionCount;
     private int stockCount;
     private int adminUserCount;
+    private int publicMemberCount;
 
     protected override async Task OnInitializedAsync()
     {
@@ -274,6 +278,8 @@
                 .Select(ur => ur.UserId)
                 .Distinct()
                 .CountAsync();
+
+            publicMemberCount = await PublicMemberManagementService.CountAsync();
         }
         catch (Exception ex)
         {

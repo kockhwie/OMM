@@ -51,6 +51,12 @@ builder.Services.AddDbContextFactory<MasterDataDbContext>(options =>
             maxRetryCount: 3,
             maxRetryDelay: TimeSpan.FromSeconds(5),
             errorCodesToAdd: null)));
+builder.Services.AddDbContextFactory<PublicMemberDbContext>(options =>
+    options.UseNpgsql(connectionString ?? string.Empty, npgsqlOptions =>
+        npgsqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 3,
+            maxRetryDelay: TimeSpan.FromSeconds(5),
+            errorCodesToAdd: null)));
 builder.Services.AddSafeNpgsqlDataSource(connectionString);
 builder.Services.AddDatabaseAvailabilityMonitor();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -76,6 +82,7 @@ builder.Services.AddScoped<IAuditLogger, AuditLogger>();
 
 // User management service (invite, resend, lockout, deactivate)
 builder.Services.AddScoped<IUserManagementService, UserManagementService>();
+builder.Services.AddScoped<IPublicMemberManagementService, PublicMemberManagementService>();
 
 // Override Identity cookie defaults so unauthorized requests redirect to our
 // custom /login page instead of the scaffolded /Account/Login endpoint.

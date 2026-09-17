@@ -30,7 +30,7 @@
   databases during development.
 - EF Core is the migration owner for each schema/store: `OMM.Public` owns the
   shared market-data migrations and `OMM.Admin` owns its Admin Identity
-  migrations. Dapper is used for business/reference-data access where
+  migrations. Dapper is used for business/markets-sectors access where
   appropriate; this is a hybrid design, not an EF replacement.
 - Stock lookup supports `Database` and `Json` providers through
   `StockLookup:Provider`. The database provider is the default, while the existing

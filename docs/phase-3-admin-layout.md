@@ -118,7 +118,7 @@ A `/admin/*` area exists, is visually unmistakable from the miner-facing app, is
    - **KLSE Stocks** → `/admin/klse-stocks` (**stub only** — "Coming in Phase 5" —
      no `AdminDataGrid` exists yet, that's Phase 4)
    - **Institutions** → `/admin/institutions` (**stub only** — Phase 6)
-   - **Markets & Sectors** → `/admin/reference-data` (**stub only** — read-only
+   - **Markets & Sectors** → `/admin/markets-sectors` (**stub only** — read-only
      browse of seeded data, not scheduled to be built out yet)
    - **Users** → `/admin/users` (**stub only** — not scheduled)
 
@@ -242,7 +242,7 @@ A `/admin/*` area exists, is visually unmistakable from the miner-facing app, is
 5. **Create the 4 stub pages** under `OMM.Admin/Components/Pages/Admin/`:
    - `KlseStocks.razor` (`@page "/admin/klse-stocks"`)
    - `Institutions.razor` (`@page "/admin/institutions"`)
-   - `ReferenceData.razor` (`@page "/admin/reference-data"`)
+   - `MarketsAndSectors` (`@page "/admin/markets-sectors"`)
    - `Users.razor` (`@page "/admin/users"`)
 
    Each just needs a heading and a "Coming in Phase N" message — they exist so the
@@ -255,7 +255,7 @@ A `/admin/*` area exists, is visually unmistakable from the miner-facing app, is
 - [x] Logging in as `superadmin` and visiting `/admin` shows the layout with correct
       row counts matching what's actually in the database.
 - [x] All 4 stub routes (`/admin/klse-stocks`, `/admin/institutions`,
-      `/admin/reference-data`, `/admin/users`) load without error when logged in as
+      `/admin/markets-sectors`, `/admin/users`) load without error when logged in as
       an admin.
 - [x] Logging in as a **non-admin** user (if you have a test member account; if not,
       temporarily remove the `Admin`/`SuperAdmin` role from your own test account,

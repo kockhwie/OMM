@@ -82,7 +82,7 @@ Both applications connect to the same PostgreSQL Neon database (`DATABASE_URL`),
 | `/admin` | `Pages/Admin/Index.razor` | **Complete** | System row counts for all 7 master tables + admin users |
 | `/admin/klse-stocks` | `Pages/Admin/KlseStocks.razor` | **Stub** | Ready for Phase 4/5 (`AdminDataGrid` + Stock management) |
 | `/admin/institutions` | `Pages/Admin/Institutions.razor` | **Stub** | Ready for Phase 6 (Institution management) |
-| `/admin/reference-data` | `Pages/Admin/ReferenceData.razor` | **Stub** | Markets & Sectors reference browse |
+| `/admin/markets-sectors` | `Pages/Admin/MarketsAndSectors` | **Stub** | Markets & Sectors reference browse |
 | `/admin/users` | `Pages/Admin/Users.razor` | **Stub** | Ready for Phase 7 (Admin account management) |
 | `/Account/AccessDenied`| `Account/Pages/AccessDenied.razor` | **Complete** | Friendly access denied page |
 

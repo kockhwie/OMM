@@ -58,12 +58,7 @@
     color: var(--omm-ink-700, #292d39);
 }
 
-.datagrid-pagesize-select {
-    width: 75px;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    border-color: #e2e8f0;
-}
+
 
 .datagrid-count-badge {
     background-color: #f8fafc;

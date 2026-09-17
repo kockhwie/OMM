@@ -9,7 +9,7 @@
 
 ## 1. Objective
 
-Build a **reusable, generic `AdminDataGrid<TItem>` Blazor component** that will power all tabular admin list pages (`/admin/klse-stocks`, `/admin/institutions`, `/admin/reference-data`, `/admin/users`).
+Build a **reusable, generic `AdminDataGrid<TItem>` Blazor component** that will power all tabular admin list pages (`/admin/klse-stocks`, `/admin/institutions`, `/admin/markets-sectors`, `/admin/users`).
 
 The component must handle:
 - Column definition via declarative child components
@@ -198,7 +198,7 @@ Key visual rules:
 | Page | Route | Data Source | Notes |
 |---|---|---|---|
 | `KlseStocks.razor` | `/admin/klse-stocks` | `MasterDataDbContext.Stocks` | First full integration; includes Market & Sector name |
-| `ReferenceData.razor` | `/admin/reference-data` | `Markets`, `Sectors`, `SubSectors` | Tab-based view, one grid per tab |
+| `MarketsAndSectors` | `/admin/markets-sectors` | `Markets`, `Sectors`, `SubSectors` | Tab-based view, one grid per tab |
 
 ### 7.2 Pages Deferred to Phase 5/6
 

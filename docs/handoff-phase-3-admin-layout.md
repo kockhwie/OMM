@@ -14,7 +14,7 @@ criteria. Do not infer additional features from this handoff.
 - Database: PostgreSQL on Neon, development branch only
 - Database access: EF Core owns migrations per schema/store. `OMM.Public` owns
   shared master-data migrations; `OMM.Admin` owns its Admin Identity migrations.
-  Dapper is used where appropriate for business/reference-data access
+  Dapper is used where appropriate for business/markets-sectors access
 - Public stock lookup: supports `Database` and `Json` through
   `StockLookup:Provider`, with process-local `IMemoryCache` and configurable
   `StockLookup:CacheDays` (default 30)

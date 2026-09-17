@@ -49,7 +49,7 @@ Phase 4 delivered three things:
 **Integrated into:**
 
 - `/admin/klse-stocks` (`KlseStocks.razor`) — server-side mode, full sort/search/page.
-- `/admin/reference-data` (`ReferenceData.razor`) — client-side mode, 5 tabbed grids (Markets, Sectors, Sub-Sectors, Exchanges, Countries).
+- `/admin/markets-sectors` (`MarketsAndSectors`) — client-side mode, 5 tabbed grids (Markets, Sectors, Sub-Sectors, Exchanges, Countries).
 
 ---
 
@@ -108,7 +108,7 @@ builder.Services.ConfigureApplicationCookie(o =>
 
 ### Bug 2 — Sortable Navigation-Property Columns Not Sorting
 
-**Symptom:** Clicking column headers for "Exchange", "Country", and "Parent Sector" in `ReferenceData.razor` had no effect.
+**Symptom:** Clicking column headers for "Exchange", "Country", and "Parent Sector" in `MarketsAndSectors` had no effect.
 
 **Root cause:** `GridColumn.GetRawValue()` requires either a `Field` expression or a `Value` delegate. These columns only had a `Template`, so `GetRawValue()` returned `null`.
 

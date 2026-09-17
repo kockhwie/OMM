@@ -20,4 +20,8 @@
     <ProjectReference Include="..\OMM.Shared\OMM.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Services\Scraper\" />
+  </ItemGroup>
+
 </Project>

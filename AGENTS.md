@@ -76,10 +76,9 @@ In Blazor (.NET 8+), parameters passed across an SSR-to-interactive boundary (a 
 
 ---
 
-## Pre-Commit Verification Gate (Integration Smoke Tests)
+## Pre-Commit Verification & Testing Rules
 
-`dotnet build` and unit tests in `OMM.Shared.Tests` only validate static types and isolated class logic; **they cannot catch ASP.NET Core runtime dispatch errors, Blazor SSR boundary violations, DI resolution failures, or routing crashes**.
-
-- **Always run `dotnet test` (or `dotnet test OMMv2.slnx`) before committing or claiming completion.**
-- The `OMM.Integration.Tests` project uses `WebApplicationFactory` to boot the live Kestrel pipeline in-process in the `Integration` environment. It validates real HTTP requests against critical routes in both `OMM.Admin` and `OMM.Public` to guarantee that no runtime 500 errors, SSR boundary violations, or missing services slip into commits.
+- **Do NOT run `dotnet test` automatically.** Ask the user to run the tests manually (e.g., `dotnet test OMMv2.slnx`) or request explicit permission before running tests, to save tokens and prevent background process/file lock delays.
+- **Do NOT automatically execute `git commit` or `git push`.** Always present completed changes to the user for review first.
+- The `OMM.Integration.Tests` project uses `WebApplicationFactory` to boot the live Kestrel pipeline in-process in the `Integration` environment. It validates real HTTP requests against critical routes in both `OMM.Admin` and `OMM.Public`.
 

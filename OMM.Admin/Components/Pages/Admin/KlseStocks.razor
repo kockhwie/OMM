@@ -367,8 +367,7 @@
                     s.StockCode.ToLower().Contains(term) ||
                     s.ShortName_EN.ToLower().Contains(term) ||
                     (s.RicCode != null && s.RicCode.ToLower().Contains(term)) ||
-                    (s.LegalName_EN != null && s.LegalName_EN.ToLower().Contains(term)) ||
-                    (s.YahooSymbol != null && s.YahooSymbol.ToLower().Contains(term)));
+                    (s.LegalName_EN != null && s.LegalName_EN.ToLower().Contains(term)));
             }
 
             // Dropdown Filters
@@ -589,7 +588,6 @@
                 LegalName_ZH_TW = model.LegalName_ZH_TW?.Trim(),
                 LegalName_ZH_CN = model.LegalName_ZH_CN?.Trim(),
                 RicCode = model.RicCode?.Trim(),
-                YahooSymbol = model.YahooSymbol?.Trim(),
                 IsinCode = model.IsinCode?.Trim(),
                 MarketId = model.MarketId,
                 SectorId = model.SectorId > 0 ? model.SectorId : null,
@@ -625,7 +623,6 @@
             stockToUpdate.LegalName_ZH_TW = model.LegalName_ZH_TW?.Trim();
             stockToUpdate.LegalName_ZH_CN = model.LegalName_ZH_CN?.Trim();
             stockToUpdate.RicCode = model.RicCode?.Trim();
-            stockToUpdate.YahooSymbol = model.YahooSymbol?.Trim();
             stockToUpdate.IsinCode = model.IsinCode?.Trim();
             stockToUpdate.MarketId = model.MarketId;
             stockToUpdate.SectorId = model.SectorId > 0 ? model.SectorId : null;

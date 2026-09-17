@@ -2,6 +2,8 @@
   <Folder Name="/docs/">
     <File Path="docs/admin-backend-tasks.md" />
     <File Path="docs/calculator-history-product-direction.md" />
+    <File Path="docs/calculator-job-design.md" />
+    <File Path="docs/scraper-design.md" />
     <File Path="docs/handoff-phase-3-admin-layout.md" />
     <File Path="docs/handoff-phase-3.md" />
     <File Path="docs/handoff-phase-4.md" />

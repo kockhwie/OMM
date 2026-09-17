@@ -1,8 +1,10 @@
 @using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.EntityFrameworkCore
 @using OMM.Admin.Data
 @using OMM.Shared.Models.MasterData
 @inject IDbContextFactory<MasterDataDbContext> DbContextFactory
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 @if (IsOpen)
 {
@@ -97,11 +99,6 @@
                                     <label class="form-label small fw-semibold text-dark">RIC Code</label>
                                     <InputText class="form-control rounded-3 font-monospace" placeholder="e.g. MBBM.KL" @bind-Value="Model.RicCode" />
                                     <div class="form-text small">Reuters Instrument Code</div>
-                                </div>
-
-                                <div class="col-md-4">
-                                    <label class="form-label small fw-semibold text-dark">Yahoo Finance Symbol</label>
-                                    <InputText class="form-control rounded-3 font-monospace" placeholder="e.g. 1155.KL" @bind-Value="Model.YahooSymbol" />
                                 </div>
 
                                 <div class="col-md-4">
@@ -220,10 +217,12 @@
                         <!-- Tab 4: Fundamentals & Metrics (Read-Only) -->
                         @if (_activeTab == "fundamentals" && !IsNew && OriginalStock != null)
                         {
-                            <div class="alert alert-info d-flex align-items-center gap-2 rounded-3 mb-3 py-2">
-                                <i class="ti ti-lock fs-5"></i>
-                                <div class="small">
-                                    <strong>Read-Only Market Fundamentals:</strong> These metrics are managed exclusively by scheduled market data scraping and dividend calculation jobs.
+                            <div class="alert alert-info d-flex flex-wrap align-items-center justify-content-between gap-3 rounded-3 mb-3 py-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="ti ti-lock fs-5 flex-shrink-0"></i>
+                                    <div class="small">
+                                        <strong>Market Fundamentals:</strong> Stored market data and calculated valuation metrics.
+                                    </div>
                                 </div>
                             </div>
 
@@ -256,7 +255,7 @@
                                     <div class="p-3 bg-white rounded-3 border shadow-xs">
                                         <div class="text-muted small">Dividend Yield</div>
                                         <div class="h5 fw-bold text-success font-monospace mb-0">
-                                            @(OriginalStock.DividendYield.HasValue ? $"{OriginalStock.DividendYield.Value:P2}" : "-")
+                                            @(OriginalStock.DividendYield.HasValue ? $"{OriginalStock.DividendYield.Value:N2}%" : "-")
                                         </div>
                                     </div>
                                 </div>
@@ -436,7 +435,6 @@
                 LegalName_ZH_TW = OriginalStock.LegalName_ZH_TW,
                 LegalName_ZH_CN = OriginalStock.LegalName_ZH_CN,
                 RicCode = OriginalStock.RicCode,
-                YahooSymbol = OriginalStock.YahooSymbol,
                 IsinCode = OriginalStock.IsinCode,
                 MarketId = OriginalStock.MarketId,
                 SectorId = OriginalStock.SectorId,
@@ -575,9 +573,6 @@
 
         [StringLength(30, ErrorMessage = "RIC Code cannot exceed 30 characters.")]
         public string? RicCode { get; set; }
-
-        [StringLength(30, ErrorMessage = "Yahoo Symbol cannot exceed 30 characters.")]
-        public string? YahooSymbol { get; set; }
 
         [StringLength(30, ErrorMessage = "ISIN Code cannot exceed 30 characters.")]
         public string? IsinCode { get; set; }

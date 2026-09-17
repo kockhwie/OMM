@@ -9,6 +9,8 @@
 - **Rule‑001** – *No emoji icons* – Enforce usage of Tabler Icons only (already satisfied by the CDN link in `App.razor`).
 - **Rule‑002** – *Bootstrap version* – Keep Bootstrap at the latest stable `5.3.x` series (checked in CI).
 - **Rule‑003** – *Demo folder exclusion* – Do not commit the `demo/` directory (covered by `.gitignore`).
+- **Rule‑004** – *No automatic test execution* – Do NOT run `dotnet test` automatically. Ask the user to run tests manually or prompt for explicit permission first.
+- **Rule‑005** – *No automatic git commits* – Do NOT perform `git commit` or `git push` automatically.
 
 ## Agents (optional)
 You can define additional agents that the IDE can invoke, for example:

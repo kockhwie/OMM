@@ -9,3 +9,6 @@
 - Prefer modern Blazor UI experiences for operational tasks such as viewing, searching, filtering, and downloading logs instead of PowerShell or command-line workflows.
 - Ensure runtime-required directories are created automatically if missing, including recovery after accidental deletion, rather than requiring manual folder creation.
 - For runtime/error-handling changes, do not stop at compilation; perform a practical end-to-end verification of the failure path, including generated folders/files, notification behavior, and user-visible fallback responses.
+
+## Security Practices
+- Never hardcode the Twelve Data API key. Use an environment variable in Production and .NET User Secrets for localhost/development.

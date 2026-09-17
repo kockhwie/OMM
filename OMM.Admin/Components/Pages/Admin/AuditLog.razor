@@ -52,7 +52,7 @@
                     </span>
                 </Template>
             </GridColumn>
-            <GridColumn TItem="AdminAuditLog" Field="@(log => log.TargetUserId)" Title="Target User">
+            <GridColumn TItem="AdminAuditLog" Field="@(log => log.TargetUserId)" Title="Target">
                 <Template Context="log">
                     <span class="text-muted font-monospace small">@(log.TargetUserId ?? "-")</span>
                 </Template>
@@ -112,6 +112,8 @@
         "LockAccount" or "DeactivateAccount" => "bg-danger-subtle text-danger border border-danger-subtle",
         "UnlockAccount" or "ReactivateAccount" => "bg-success-subtle text-success border border-success-subtle",
         "ForcePasswordReset" => "bg-warning-subtle text-warning border border-warning-subtle",
+        "ScrapeStock" => "bg-info-subtle text-info border border-info-subtle",
+        "ScraperRun" => "bg-primary-subtle text-primary border border-primary-subtle",
         _ => "bg-secondary-subtle text-secondary"
     };
 }

@@ -1,8 +1,10 @@
 @page "/admin/markets-sectors"
 @rendermode InteractiveServer
+@using System.Security.Claims
 @using Microsoft.EntityFrameworkCore
 @using OMM.Admin.Data
 @inject MasterDataDbContext DbContext
+@inject AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>Markets & Sectors - OMM Admin</PageTitle>
 
@@ -13,7 +15,7 @@
             <p class="text-muted mb-0">Browse Malaysian and global stock exchange reference data, sector groupings, and classifications.</p>
         </div>
         <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-2">
-            <i class="ti ti-lock me-1"></i> Read-Only Master Reference
+            <i class="ti ti-shield-check me-1"></i> Managed Master Reference
         </span>
     </div>
 
@@ -83,6 +85,11 @@
                         </Template>
                     </GridColumn>
                 </Columns>
+                <ActionColumn Context="m">
+                    <button class="btn btn-sm @(m.IsDeleted ? "btn-outline-success" : "btn-outline-danger")" title="@(m.IsDeleted ? "Restore market" : "Soft-delete market")" @onclick="@(() => ToggleDeletedAsync(m))">
+                        <i class="ti @(m.IsDeleted ? "ti-restore" : "ti-trash")"></i>
+                    </button>
+                </ActionColumn>
             </AdminDataGrid>
         }
         else if (_activeTab == "sectors")
@@ -110,6 +117,11 @@
                         </Template>
                     </GridColumn>
                 </Columns>
+                <ActionColumn Context="s">
+                    <button class="btn btn-sm @(s.IsDeleted ? "btn-outline-success" : "btn-outline-danger")" title="@(s.IsDeleted ? "Restore sector" : "Soft-delete sector")" @onclick="@(() => ToggleDeletedAsync(s))">
+                        <i class="ti @(s.IsDeleted ? "ti-restore" : "ti-trash")"></i>
+                    </button>
+                </ActionColumn>
             </AdminDataGrid>
         }
         else if (_activeTab == "subsectors")
@@ -138,6 +150,11 @@
                         </Template>
                     </GridColumn>
                 </Columns>
+                <ActionColumn Context="ss">
+                    <button class="btn btn-sm @(ss.IsDeleted ? "btn-outline-success" : "btn-outline-danger")" title="@(ss.IsDeleted ? "Restore sub-sector" : "Soft-delete sub-sector")" @onclick="@(() => ToggleDeletedAsync(ss))">
+                        <i class="ti @(ss.IsDeleted ? "ti-restore" : "ti-trash")"></i>
+                    </button>
+                </ActionColumn>
             </AdminDataGrid>
         }
         else if (_activeTab == "exchanges")
@@ -164,6 +181,11 @@
                         </Template>
                     </GridColumn>
                 </Columns>
+                <ActionColumn Context="e">
+                    <button class="btn btn-sm @(e.IsDeleted ? "btn-outline-success" : "btn-outline-danger")" title="@(e.IsDeleted ? "Restore exchange" : "Soft-delete exchange")" @onclick="@(() => ToggleDeletedAsync(e))">
+                        <i class="ti @(e.IsDeleted ? "ti-restore" : "ti-trash")"></i>
+                    </button>
+                </ActionColumn>
             </AdminDataGrid>
         }
         else if (_activeTab == "countries")
@@ -172,7 +194,7 @@
                 <Columns>
                     <GridColumn TItem="Country" Field="@(c => c.CountryCode)" Title="ISO Code" Sortable="true">
                         <Template Context="c">
-                            <span class="badge bg-secondary font-monospace">@c.CountryCode</span>
+                            <span class="badge bg-warning font-monospace">@c.CountryCode</span>
                         </Template>
                     </GridColumn>
                     <GridColumn TItem="Country" Field="@(c => c.CountryName_EN)" Title="Country Name (EN)" Sortable="true" />
@@ -185,12 +207,70 @@
                         </Template>
                     </GridColumn>
                 </Columns>
+                <ActionColumn Context="c">
+                    <button class="btn btn-sm @(c.IsDeleted ? "btn-outline-success" : "btn-outline-danger")" title="@(c.IsDeleted ? "Restore country" : "Soft-delete country")" @onclick="@(() => ToggleDeletedAsync(c))">
+                        <i class="ti @(c.IsDeleted ? "ti-restore" : "ti-trash")"></i>
+                    </button>
+                </ActionColumn>
             </AdminDataGrid>
         }
     }
+
 </div>
 
 @code {
+    private async Task ToggleDeletedAsync(AuditableEntity entity)
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var now = DateTimeOffset.UtcNow;
+
+        switch (entity)
+        {
+            case Market:
+            case Sector:
+            case SubSector:
+            case Exchange:
+            case Country:
+                if (entity.IsDeleted)
+                {
+                    entity.IsDeleted = false;
+                    SetActive(entity, true);
+                    entity.DeletedAt = null;
+                    entity.DeletedByUserId = null;
+                }
+                else
+                {
+                    entity.IsDeleted = true;
+                    SetActive(entity, false);
+                    entity.DeletedAt = now;
+                    entity.DeletedByUserId = userId;
+                }
+
+                entity.ModifiedAt = now;
+                entity.ModifiedByUserId = userId;
+                DbContext.Attach(entity);
+                DbContext.Entry(entity).State = EntityState.Modified;
+                await DbContext.SaveChangesAsync();
+                break;
+        }
+
+        await LoadTaxonomyData();
+    }
+
+    private static void SetActive(AuditableEntity entity, bool isActive)
+    {
+        switch (entity)
+        {
+            case Market item: item.IsActive = isActive; break;
+            case Sector item: item.IsActive = isActive; break;
+            case SubSector item: item.IsActive = isActive; break;
+            case Exchange item: item.IsActive = isActive; break;
+            case Country item: item.IsActive = isActive; break;
+        }
+    }
+
+
     private string _activeTab = "markets";
     private bool _isLoading = true;
 

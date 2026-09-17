@@ -85,7 +85,7 @@ public sealed class PublicMemberManagementService(
             })
             .ToListAsync(cancellationToken);
 
-        return users.Select(user => new PublicMemberListDto(
+        return [.. users.Select(user => new PublicMemberListDto(
             user.Id,
             user.UserName,
             user.Email,
@@ -94,7 +94,7 @@ public sealed class PublicMemberManagementService(
             user.EmailConfirmed,
             user.MustChangePassword,
             user.LockoutEnd?.ToString("u"),
-            null)).ToList();
+            null))];
     }
 
     public async Task<IdentityResult> UpdateAsync(PublicMemberUpdateDto dto, CancellationToken cancellationToken = default)

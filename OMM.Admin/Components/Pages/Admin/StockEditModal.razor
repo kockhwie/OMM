@@ -1,12 +1,11 @@
 @using System.ComponentModel.DataAnnotations
-@implements IAsyncDisposable
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.EntityFrameworkCore
 @using OMM.Admin.Data
 @using OMM.Shared.Models.MasterData
 @inject IDbContextFactory<MasterDataDbContext> DbContextFactory
 @inject AuthenticationStateProvider AuthenticationStateProvider
-@inject IJSRuntime JS
+ 
  
 
 
@@ -172,10 +171,11 @@
                                     <div class="form-check">
                                         <InputCheckbox class="form-check-input" id="isActiveCheck" @bind-Value="Model.IsActive" />
                                         <label class="form-check-label fw-semibold text-dark" for="isActiveCheck">
-                                            Active Listing
-                                            
+                                            Active Listing                                            
                                         </label>
-                                        <i class="ti ti-info-circle ms-1 text-muted" title="Inactive securities are hidden from default searches." aria-label="Inactive securities are hidden from default searches."></i>
+                                        <i class="ti ti-info-circle ms-1 text-muted" tabindex="0" role="button" style="cursor: pointer;"
+                                           data-bs-toggle="popover"
+                                           data-bs-content="Inactive securities are hidden from default searches."></i>                                        
                                     </div>
                                 </div>
 
@@ -183,11 +183,20 @@
                                     <div class="form-check">
                                         <InputCheckbox class="form-check-input" id="isShariahCheck" @bind-Value="Model.ShariahCompliant" />
                                         <label class="form-check-label fw-semibold text-dark" for="isShariahCheck">
-                                            Shariah Compliant <i class="ti ti-moon text-warning me-1"></i>
-                                            
+                                            Shariah Compliant                                           
                                         </label>
-                                        <button id="stock-shariah-popover" type="button" class="btn btn-lg btn-danger" data-bs-toggle="popover" data-bs-title="Popover title" data-bs-content="And here’s some amazing content. It’s very engaging. Right?">Click to toggle popover</button>
-                                        <i class="ti ti-info-circle ms-1 text-muted" title="Securities Commission Malaysia Shariah status." aria-label="Securities Commission Malaysia Shariah status."></i>
+                                        <!-- button type="button" class="btn btn-sm btn-danger"
+                                                data-bs-toggle="popover" 
+                                                data-bs-title="Shariah status"
+                                                data-bs-content="Securities Commission Malaysia Shariah classification.">Info
+                                        </button -->
+                                        <label class="form-check-label fw-semibold text-dark" for="isShariahCheck">
+                                            Shariah Compliant <i class="ti ti-moon text-warning me-1"></i>
+                                        </label>
+                                        <i class="ti ti-info-circle ms-1 text-muted" tabindex="0" role="button" style="cursor: pointer;"
+                                           data-bs-toggle="popover"
+                                           data-bs-title="Shariah status"
+                                           data-bs-content="Securities Commission Malaysia Shariah classification."></i>                                     
                                     </div>
                                 </div>
                             </div>
@@ -361,17 +370,17 @@
  
 
 @code {
-    [Parameter]
-    public bool IsOpen { get; set; }
+        [Parameter]
+        public bool IsOpen { get; set; }
 
-    [Parameter]
-    public Stock? OriginalStock { get; set; }
+        [Parameter]
+        public Stock? OriginalStock { get; set; }
 
-    [Parameter]
-    public EventCallback<StockFormModel> OnSave { get; set; }
+        [Parameter]
+        public EventCallback<StockFormModel> OnSave { get; set; }
 
-    [Parameter]
-    public EventCallback OnClose { get; set; }
+        [Parameter]
+        public EventCallback OnClose { get; set; }
 
     public bool IsNew => OriginalStock == null || OriginalStock.Id == 0;
 
@@ -384,21 +393,10 @@
     private string _activeTab = "general";
     private string? _errorMessage;
     private bool _isSaving = false;
-    private bool _popoverInitialized;
+    //private bool _popoverInitialized;
+    //private bool _wasOpen;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (IsOpen && !_popoverInitialized)
-        {
-            await JS.InvokeVoidAsync("bootstrapHelpers.initPopovers");
-            _popoverInitialized = true;
-        }
-        else if (!IsOpen && _popoverInitialized)
-        {
-            await JS.InvokeVoidAsync("bootstrapHelpers.disposePopovers");
-            _popoverInitialized = false;
-        }
-    }
+   
 
     protected override async Task OnParametersSetAsync()
     {
@@ -544,8 +542,8 @@
 
     private async Task HandleClose()
     {
-        await JS.InvokeVoidAsync("bootstrapHelpers.disposePopovers");
-        _popoverInitialized = false;
+        //await JS.InvokeVoidAsync("bootstrapHelpers.disposePopovers");
+        //_popoverInitialized = false;
 
         if (OnClose.HasDelegate)
         {
@@ -602,10 +600,4 @@
         public bool IsActive { get; set; } = true;
     }
 
-    // Ensure popovers are cleaned up when the component is torn down
-    public async ValueTask DisposeAsync()
-    {
-        await JS.InvokeVoidAsync("bootstrapHelpers.disposePopovers");
-    }
 }
-

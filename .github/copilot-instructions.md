@@ -12,3 +12,6 @@
 
 ## Security Practices
 - Never hardcode the Twelve Data API key. Use an environment variable in Production and .NET User Secrets for localhost/development.
+
+## Bilingual Column Guidelines
+- For Admin CRUD bilingual columns, prefer compact generic labels `Name (EN)` and `Name (TW)` instead of entity-specific labels such as `Market Name (EN)` or the abbreviation `ZHTW`. Keep the Traditional Chinese field visible.

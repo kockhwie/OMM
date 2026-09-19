@@ -1,32 +1,38 @@
 @using System.ComponentModel.DataAnnotations
+@implements IAsyncDisposable
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.EntityFrameworkCore
 @using OMM.Admin.Data
 @using OMM.Shared.Models.MasterData
 @inject IDbContextFactory<MasterDataDbContext> DbContextFactory
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JS
+ 
+
 
 @if (IsOpen)
 {
     <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.6); z-index: 1050;" role="dialog" aria-modal="true">
         <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
-            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-content stock-edit-modal border-0 shadow-lg rounded-4 overflow-hidden">
                 <!-- Modal Header -->
-                <div class="modal-header bg-dark text-white px-4 py-3 border-0 d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="stat-icon-wrapper bg-danger text-white p-2 rounded-3" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
+                <div class="modal-header stock-modal-header bg-dark text-white px-4 py-3 border-0 d-block">
+                    <div class="d-flex align-items-start justify-content-between">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="stock-modal-action-icon bg-danger text-white rounded-3">
                             <i class="ti @(IsNew ? "ti-plus" : "ti-edit") fs-5"></i>
+                            </div>
+                            <div>
+                                <div class="stock-modal-kicker">@(IsNew ? "New security" : "Stock record")</div>
+                                <h5 class="modal-title fw-bold font-display mb-0">@(IsNew ? "Add New KLSE Stock" : "Edit Stock")</h5>
+                            </div>
                         </div>
-                        <div>
-                            <h5 class="modal-title fw-bold font-display mb-0">
-                                @(IsNew ? "Add New KLSE Stock" : $"Edit Stock: {Model.StockCode} - {Model.ShortName_EN}")
-                            </h5>
-                            <span class="text-muted small">
-                                @(IsNew ? "Create a new Malaysian equity security record in Master Data" : "Update security details, taxonomy, and listing attributes")
-                            </span>
-                        </div>
+                        <button type="button" class="btn-close btn-close-white" @onclick="HandleClose" aria-label="Close" disabled="@_isSaving"></button>
                     </div>
-                    <button type="button" class="btn-close btn-close-white" @onclick="HandleClose" aria-label="Close" disabled="@_isSaving"></button>
+                    <div class="stock-modal-identity">
+                        <span class="stock-modal-code">@(IsNew ? "NEW" : Model.StockCode)</span>
+                        <span class="stock-modal-name">@(IsNew ? "Create a new Malaysian equity security" : (string.IsNullOrWhiteSpace(Model.ShortName_EN) ? "Unnamed security" : Model.ShortName_EN))</span>
+                    </div>
                 </div>
 
                 <!-- Modal Body -->
@@ -43,189 +49,171 @@
                         <DataAnnotationsValidator />
 
                         <!-- Nav Tabs for Organizing Information -->
-                        <ul class="nav nav-tabs border-bottom mb-4">
+                        <ul class="nav stock-modal-tabs mb-4" role="tablist">
                             <li class="nav-item">
                                 <button type="button" class="nav-link @(_activeTab == "general" ? "active fw-bold text-danger border-bottom-0" : "text-dark")" @onclick="@(() => _activeTab = "general")">
-                                    <i class="ti ti-info-circle me-1"></i> General & Security Info
+                                    <i class="ti ti-info-circle me-1"></i> Basic Info
                                 </button>
                             </li>
                             <li class="nav-item">
-                                <button type="button" class="nav-link @(_activeTab == "taxonomy" ? "active fw-bold text-danger border-bottom-0" : "text-dark")" @onclick="@(() => _activeTab = "taxonomy")">
-                                    <i class="ti ti-category me-1"></i> Market & Classification
+                                <button type="button" class="nav-link @(_activeTab == "fundamentals" ? "active fw-bold text-danger border-bottom-0" : "text-dark")" @onclick="@(() => _activeTab = "fundamentals")">
+                                    <i class="ti ti-chart-line me-1"></i> Fundamentals &amp; Metrics
                                 </button>
                             </li>
-                            <li class="nav-item">
-                                <button type="button" class="nav-link @(_activeTab == "multilingual" ? "active fw-bold text-danger border-bottom-0" : "text-dark")" @onclick="@(() => _activeTab = "multilingual")">
-                                    <i class="ti ti-language me-1"></i> Multilingual Names
-                                </button>
-                            </li>
-                            @if (!IsNew && OriginalStock != null)
-                            {
-                                <li class="nav-item">
-                                    <button type="button" class="nav-link @(_activeTab == "fundamentals" ? "active fw-bold text-danger border-bottom-0" : "text-dark")" @onclick="@(() => _activeTab = "fundamentals")">
-                                        <i class="ti ti-chart-line me-1"></i> Fundamentals & Metrics
-                                    </button>
-                                </li>
-                            }
                         </ul>
 
-                        <!-- Tab 1: General & Identifiers -->
+                        <!-- General & Security Info -->
                         @if (_activeTab == "general")
                         {
-                            <div class="row g-3">
+                            <div class="row g-4">
                                 <div class="col-md-4">
                                     <label class="form-label small fw-semibold text-dark">
-                                        Stock Code (Bursa Code) <span class="text-danger">*</span>
+                                        Stock Code <span class="text-danger">*</span>
                                     </label>
-                                    <InputText class="form-control rounded-3 font-monospace fw-bold" placeholder="e.g. 1155 or 5183" @bind-Value="Model.StockCode" />
+                                    <InputText class="form-control rounded-3 font-monospace fw-bold" placeholder="e.g. 1155" @bind-Value="Model.StockCode" />
                                     <ValidationMessage For="@(() => Model.StockCode)" class="text-danger small mt-1" />
-                                    <div class="form-text small">Unique KLSE numeric or alphanumeric ticker code.</div>
                                 </div>
 
-                                <div class="col-md-8">
-                                    <label class="form-label small fw-semibold text-dark">
-                                        Short Name (English) <span class="text-danger">*</span>
-                                    </label>
-                                    <InputText class="form-control rounded-3 fw-semibold" placeholder="e.g. MAYBANK or PETRONAS CHEMICALS" @bind-Value="Model.ShortName_EN" />
-                                    <ValidationMessage For="@(() => Model.ShortName_EN)" class="text-danger small mt-1" />
-                                </div>
-
-                                <div class="col-md-12">
-                                    <label class="form-label small fw-semibold text-dark">Legal / Full Name (English)</label>
-                                    <InputText class="form-control rounded-3" placeholder="e.g. Malayan Banking Berhad" @bind-Value="Model.LegalName_EN" />
-                                </div>
-
-                                <div class="col-md-4">
-                                    <label class="form-label small fw-semibold text-dark">RIC Code</label>
-                                    <InputText class="form-control rounded-3 font-monospace" placeholder="e.g. MBBM.KL" @bind-Value="Model.RicCode" />
-                                    <div class="form-text small">Reuters Instrument Code</div>
-                                </div>
-
-                                <div class="col-md-4">
-                                    <label class="form-label small fw-semibold text-dark">ISIN Code</label>
-                                    <InputText class="form-control rounded-3 font-monospace" placeholder="e.g. MYL1155OO000" @bind-Value="Model.IsinCode" />
-                                </div>
-
-                                <div class="col-md-4">
-                                    <label class="form-label small fw-semibold text-dark">Currency <span class="text-danger">*</span></label>
-                                    <InputText class="form-control rounded-3 font-monospace" @bind-Value="Model.Currency" />
-                                    <ValidationMessage For="@(() => Model.Currency)" class="text-danger small mt-1" />
-                                </div>
-
-                                <div class="col-md-4 d-flex align-items-center">
-                                    <div class="form-check form-switch mt-3">
-                                        <InputCheckbox class="form-check-input" id="isActiveCheck" @bind-Value="Model.IsActive" />
-                                        <label class="form-check-label fw-semibold text-dark" for="isActiveCheck">
-                                            Active Listing
-                                        </label>
-                                        <div class="form-text small">Inactive securities are hidden from default searches.</div>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-4 d-flex align-items-center">
-                                    <div class="form-check form-switch mt-3">
-                                        <InputCheckbox class="form-check-input" id="isShariahCheck" @bind-Value="Model.ShariahCompliant" />
-                                        <label class="form-check-label fw-semibold text-dark" for="isShariahCheck">
-                                            <i class="ti ti-moon text-warning me-1"></i> Shariah Compliant
-                                        </label>
-                                        <div class="form-text small">Securities Commission Malaysia Shariah status.</div>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-
-                        <!-- Tab 2: Market & Classification -->
-                        @if (_activeTab == "taxonomy")
-                        {
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    <label class="form-label small fw-semibold text-dark">
-                                        Market Board <span class="text-danger">*</span>
-                                    </label>
-                                    <select class="form-select rounded-3" value="@Model.MarketId" @onchange="HandleMarketChanged">
-                                        <option value="0">-- Select Market Board --</option>
-                                        @foreach (var m in _markets)
-                                        {
-                                            <option value="@m.Id">@m.MarketCode - @m.MarketName_EN</option>
-                                        }
-                                    </select>
-                                    <ValidationMessage For="@(() => Model.MarketId)" class="text-danger small mt-1" />
-                                </div>
-
-                                <div class="col-md-4">
-                                    <label class="form-label small fw-semibold text-dark">Sector</label>
-                                    <select class="form-select rounded-3" value="@(Model.SectorId ?? 0)" @onchange="HandleSectorChanged">
-                                        <option value="0">-- Unclassified / No Sector --</option>
-                                        @foreach (var s in _sectors)
-                                        {
-                                            <option value="@s.Id">@s.SectorName_EN</option>
-                                        }
-                                    </select>
-                                </div>
-
-                                <div class="col-md-4">
-                                    <label class="form-label small fw-semibold text-dark">Sub-Sector</label>
-                                    <select class="form-select rounded-3" value="@(Model.SubSectorId ?? 0)" @onchange="HandleSubSectorChanged" disabled="@(Model.SectorId == null || Model.SectorId == 0 || !_filteredSubSectors.Any())">
-                                        <option value="0">-- Unclassified / No Sub-Sector --</option>
-                                        @foreach (var ss in _filteredSubSectors)
-                                        {
-                                            <option value="@ss.Id">@ss.SubSectorName_EN</option>
-                                        }
-                                    </select>
-                                    @if (Model.SectorId != null && Model.SectorId > 0 && !_filteredSubSectors.Any())
-                                    {
-                                        <div class="form-text text-muted small">No sub-sectors registered under this sector.</div>
-                                    }
-                                </div>
-                            </div>
-                        }
-
-                        <!-- Tab 3: Multilingual Names -->
-                        @if (_activeTab == "multilingual")
-                        {
-                            <div class="row g-3">
-                                <div class="col-md-6">
+                                <div class="col-12">
                                     <div class="card border rounded-3 p-3 bg-white">
-                                        <h6 class="fw-bold text-dark mb-3"><i class="ti ti-letter-case me-1 text-primary"></i> Traditional Chinese (繁體中文)</h6>
+                                        <div class="mb-3">
+                                            <label class="form-label small fw-semibold text-dark">Short Name (EN) <span class="text-danger">*</span></label>
+                                            <InputText class="form-control rounded-3 fw-semibold" placeholder="e.g. MAYBANK" @bind-Value="Model.ShortName_EN" />
+                                            <ValidationMessage For="@(() => Model.ShortName_EN)" class="text-danger small mt-1" />
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label small fw-semibold text-dark">Legal Name (EN)</label>
+                                            <InputText class="form-control rounded-3" placeholder="e.g. Malayan Banking Berhad" @bind-Value="Model.LegalName_EN" />
+                                        </div>
+
+                                        <hr>
                                         <div class="mb-3">
                                             <label class="form-label small fw-semibold text-dark">Short Name (ZH-TW)</label>
                                             <InputText class="form-control rounded-3" placeholder="e.g. 馬來亞銀行" @bind-Value="Model.ShortName_ZH_TW" />
                                         </div>
-                                        <div>
+                                        <div class="mb-3">
                                             <label class="form-label small fw-semibold text-dark">Legal Name (ZH-TW)</label>
                                             <InputText class="form-control rounded-3" placeholder="e.g. 馬來亞銀行有限公司" @bind-Value="Model.LegalName_ZH_TW" />
                                         </div>
-                                    </div>
-                                </div>
 
-                                <div class="col-md-6">
-                                    <div class="card border rounded-3 p-3 bg-white">
-                                        <h6 class="fw-bold text-dark mb-3"><i class="ti ti-letter-case me-1 text-primary"></i> Simplified Chinese (简体中文)</h6>
+                                        <hr>
                                         <div class="mb-3">
                                             <label class="form-label small fw-semibold text-dark">Short Name (ZH-CN)</label>
                                             <InputText class="form-control rounded-3" placeholder="e.g. 马来亚银行" @bind-Value="Model.ShortName_ZH_CN" />
                                         </div>
-                                        <div>
+                                        <div class="mb-3">
                                             <label class="form-label small fw-semibold text-dark">Legal Name (ZH-CN)</label>
                                             <InputText class="form-control rounded-3" placeholder="e.g. 马来亚银行有限公司" @bind-Value="Model.LegalName_ZH_CN" />
                                         </div>
                                     </div>
                                 </div>
+
+                                <div class="col-12">
+                                    <div class="card border rounded-3 p-3 bg-white">                            
+                                        <div class="mb-3">
+                                            <label class="form-label small fw-semibold text-dark">
+                                                Market Board <span class="text-danger">*</span>
+                                            </label>
+                                            <select class="form-select rounded-3" value="@Model.MarketId" @onchange="HandleMarketChanged">
+                                                <option value="0">-- Select Market Board --</option>
+                                                @foreach (var m in _markets)
+                                                {
+                                                    <option value="@m.Id">@m.MarketCode - @m.MarketName_EN</option>
+                                                }
+                                            </select>
+                                            <ValidationMessage For="@(() => Model.MarketId)" class="text-danger small mt-1" />
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label small fw-semibold text-dark">Sector</label>
+                                            <select class="form-select rounded-3" value="@(Model.SectorId ?? 0)" @onchange="HandleSectorChanged">
+                                                <option value="0">-- Unclassified / No Sector --</option>
+                                                @foreach (var s in _sectors)
+                                                {
+                                                    <option value="@s.Id">@s.SectorName_EN</option>
+                                                }
+                                            </select>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label small fw-semibold text-dark">Sub-Sector</label>
+                                            <select class="form-select rounded-3" value="@(Model.SubSectorId ?? 0)" @onchange="HandleSubSectorChanged" disabled="@(Model.SectorId == null || Model.SectorId == 0 || !_filteredSubSectors.Any())">
+                                                <option value="0">-- Unclassified / No Sub-Sector --</option>
+                                                @foreach (var ss in _filteredSubSectors)
+                                                {
+                                                    <option value="@ss.Id">@ss.SubSectorName_EN</option>
+                                                }
+                                            </select>
+                                            @if (Model.SectorId != null && Model.SectorId > 0 && !_filteredSubSectors.Any())
+                                            {
+                                                <div class="form-text text-muted small">No sub-sectors registered under this sector.</div>
+                                            }
+                                        </div>                        
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold text-dark">RIC Code <div class="form-text small">Reuters Instrument Code</div></label>
+                                    <InputText class="form-control rounded-3 font-monospace" placeholder="e.g. MBBM.KL" @bind-Value="Model.RicCode" />                                
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold text-dark">ISIN Code</label>
+                                    <InputText class="form-control rounded-3 font-monospace" placeholder="e.g. MYL1155OO000" @bind-Value="Model.IsinCode" />
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label small fw-semibold text-dark">Currency <span class="text-danger">*</span></label>
+                                    <InputText class="form-control rounded-3 font-monospace" @bind-Value="Model.Currency" />
+                                    <ValidationMessage For="@(() => Model.Currency)" class="text-danger small mt-1" />
+                                </div>
+
+                                <div class="col-12">
+                                    <div class="form-check">
+                                        <InputCheckbox class="form-check-input" id="isActiveCheck" @bind-Value="Model.IsActive" />
+                                        <label class="form-check-label fw-semibold text-dark" for="isActiveCheck">
+                                            Active Listing
+                                            
+                                        </label>
+                                        <i class="ti ti-info-circle ms-1 text-muted" title="Inactive securities are hidden from default searches." aria-label="Inactive securities are hidden from default searches."></i>
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <div class="form-check">
+                                        <InputCheckbox class="form-check-input" id="isShariahCheck" @bind-Value="Model.ShariahCompliant" />
+                                        <label class="form-check-label fw-semibold text-dark" for="isShariahCheck">
+                                            Shariah Compliant <i class="ti ti-moon text-warning me-1"></i>
+                                            
+                                        </label>
+                                        <button id="stock-shariah-popover" type="button" class="btn btn-lg btn-danger" data-bs-toggle="popover" data-bs-title="Popover title" data-bs-content="And here’s some amazing content. It’s very engaging. Right?">Click to toggle popover</button>
+                                        <i class="ti ti-info-circle ms-1 text-muted" title="Securities Commission Malaysia Shariah status." aria-label="Securities Commission Malaysia Shariah status."></i>
+                                    </div>
+                                </div>
                             </div>
                         }
-
-                        <!-- Tab 4: Fundamentals & Metrics (Read-Only) -->
-                        @if (_activeTab == "fundamentals" && !IsNew && OriginalStock != null)
+                        <!-- Fundamentals & Metrics (Read-Only) -->
+                        @if (_activeTab == "fundamentals")
                         {
                             <div class="alert alert-info d-flex flex-wrap align-items-center justify-content-between gap-3 rounded-3 mb-3 py-2">
                                 <div class="d-flex align-items-center gap-2">
                                     <i class="ti ti-lock fs-5 flex-shrink-0"></i>
                                     <div class="small">
-                                        <strong>Market Fundamentals:</strong> Stored market data and calculated valuation metrics.
+                                        <strong>Market Fundamentals:</strong> These values are supplied by market data and calculated services. They are read-only in this form.
                                     </div>
                                 </div>
                             </div>
 
+                            @if (OriginalStock == null)
+                            {
+                                <div class="stock-fundamentals-empty text-center rounded-3 border bg-white p-5">
+                                    <i class="ti ti-chart-dots fs-1 text-muted"></i>
+                                    <h6 class="fw-bold mt-3 mb-2">No market data yet</h6>
+                                    <p class="text-muted small mb-0">Save this stock first. Current price, market cap, and valuation metrics will appear here when market data is available.</p>
+                                </div>
+                            }
+                            else
+                            {
                             <div class="row g-3">
                                 <div class="col-md-3 col-6">
                                     <div class="p-3 bg-white rounded-3 border shadow-xs">
@@ -340,6 +328,7 @@
                                     </div>
                                 </div>
                             </div>
+                            }
                         }
 
                         <!-- Modal Footer -->
@@ -369,6 +358,8 @@
     </div>
 }
 
+ 
+
 @code {
     [Parameter]
     public bool IsOpen { get; set; }
@@ -393,6 +384,21 @@
     private string _activeTab = "general";
     private string? _errorMessage;
     private bool _isSaving = false;
+    private bool _popoverInitialized;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (IsOpen && !_popoverInitialized)
+        {
+            await JS.InvokeVoidAsync("bootstrapHelpers.initPopovers");
+            _popoverInitialized = true;
+        }
+        else if (!IsOpen && _popoverInitialized)
+        {
+            await JS.InvokeVoidAsync("bootstrapHelpers.disposePopovers");
+            _popoverInitialized = false;
+        }
+    }
 
     protected override async Task OnParametersSetAsync()
     {
@@ -538,6 +544,9 @@
 
     private async Task HandleClose()
     {
+        await JS.InvokeVoidAsync("bootstrapHelpers.disposePopovers");
+        _popoverInitialized = false;
+
         if (OnClose.HasDelegate)
         {
             await OnClose.InvokeAsync();
@@ -592,4 +601,11 @@
 
         public bool IsActive { get; set; } = true;
     }
+
+    // Ensure popovers are cleaned up when the component is torn down
+    public async ValueTask DisposeAsync()
+    {
+        await JS.InvokeVoidAsync("bootstrapHelpers.disposePopovers");
+    }
 }
+

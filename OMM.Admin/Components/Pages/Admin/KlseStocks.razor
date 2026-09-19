@@ -172,7 +172,7 @@
                 </Template>
             </GridColumn>
 
-            <GridColumn TItem="Stock" Field="@(s => s.ShortName_EN)" Title="Security Name" Sortable="true">
+            <GridColumn TItem="Stock" Field="@(s => s.ShortName_EN)" Title="Name (EN)" Sortable="true">
                 <Template Context="stock">
                     <div class="d-flex flex-column">
                         <span class="fw-bold text-dark">@stock.ShortName_EN</span>
@@ -185,6 +185,8 @@
                     </div>
                 </Template>
             </GridColumn>
+
+            <GridColumn TItem="Stock" Field="@(s => s.ShortName_ZH_TW)" Title="Name (TW)" Sortable="true" />
 
             <GridColumn TItem="Stock" Title="Market" SortKey="Market" Sortable="true">
                 <Template Context="stock">

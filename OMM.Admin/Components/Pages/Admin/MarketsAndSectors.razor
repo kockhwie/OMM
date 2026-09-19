@@ -1,8 +1,10 @@
 @page "/admin/markets-sectors"
 @rendermode InteractiveServer
+@using System.ComponentModel.DataAnnotations
 @using System.Security.Claims
 @using Microsoft.EntityFrameworkCore
 @using OMM.Admin.Data
+@using OMM.Shared.Validation
 @inject MasterDataDbContext DbContext
 @inject AuthenticationStateProvider AuthStateProvider
 
@@ -69,8 +71,8 @@
                             </span>
                         </Template>
                     </GridColumn>
-                    <GridColumn TItem="Market" Field="@(m => m.MarketName_EN)" Title="Market Name (EN)" Sortable="true" />
-                    <GridColumn TItem="Market" Field="@(m => m.MarketName_ZH_TW)" Title="Traditional Chinese" Sortable="true" />
+                    <GridColumn TItem="Market" Field="@(m => m.MarketName_EN)" Title="Name (EN)" Sortable="true" />
+                    <GridColumn TItem="Market" Field="@(m => m.MarketName_ZH_TW)" Title="Name (TW)" Sortable="true" />
                     <GridColumn TItem="Market" Title="Exchange" Sortable="true"
                                 Value="@(m => m.Exchange?.ExchangeName_EN ?? m.Exchange?.ExchangeCode)">
                         <Template Context="m">
@@ -86,9 +88,10 @@
                     </GridColumn>
                 </Columns>
                 <ActionColumn Context="m">
-                    <button class="btn btn-sm @(m.IsDeleted ? "btn-outline-success" : "btn-outline-danger")" title="@(m.IsDeleted ? "Restore market" : "Soft-delete market")" @onclick="@(() => ToggleDeletedAsync(m))">
-                        <i class="ti @(m.IsDeleted ? "ti-restore" : "ti-trash")"></i>
-                    </button>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-secondary" title="Edit market" @onclick="@(() => OpenEditModal(m))"><i class="ti ti-edit"></i></button>
+                        <button class="btn @(m.IsDeleted ? "btn-outline-success" : "btn-outline-danger")" title="@(m.IsDeleted ? "Restore market" : "Soft-delete market")" @onclick="@(() => ToggleDeletedAsync(m))"><i class="ti @(m.IsDeleted ? "ti-restore" : "ti-trash")"></i></button>
+                    </div>
                 </ActionColumn>
             </AdminDataGrid>
         }
@@ -98,11 +101,11 @@
                 <Columns>
                     <GridColumn TItem="Sector" Field="@(s => s.SectorCode)" Title="Code" Sortable="true">
                         <Template Context="s">
-                            <span class="badge bg-light text-dark border font-monospace fw-bold">@s.SectorCode</span>
+                            <span class="badge bg-sage-subtle text-sage-emphasis border border-sage-subtle font-monospace fw-bold">@s.SectorCode</span>
                         </Template>
                     </GridColumn>
-                    <GridColumn TItem="Sector" Field="@(s => s.SectorName_EN)" Title="Sector Name (EN)" Sortable="true" />
-                    <GridColumn TItem="Sector" Field="@(s => s.SectorName_ZH_TW)" Title="Chinese (Traditional)" Sortable="true" />
+                    <GridColumn TItem="Sector" Field="@(s => s.SectorName_EN)" Title="Name (EN)" Sortable="true" />
+                    <GridColumn TItem="Sector" Field="@(s => s.SectorName_ZH_TW)" Title="Name (TW)" Sortable="true" />
                     <GridColumn TItem="Sector" Title="Country" Sortable="true"
                                 Value="@(s => s.Country?.CountryName_EN ?? s.Country?.CountryCode)">
                         <Template Context="s">
@@ -118,9 +121,10 @@
                     </GridColumn>
                 </Columns>
                 <ActionColumn Context="s">
-                    <button class="btn btn-sm @(s.IsDeleted ? "btn-outline-success" : "btn-outline-danger")" title="@(s.IsDeleted ? "Restore sector" : "Soft-delete sector")" @onclick="@(() => ToggleDeletedAsync(s))">
-                        <i class="ti @(s.IsDeleted ? "ti-restore" : "ti-trash")"></i>
-                    </button>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-secondary" title="Edit sector" @onclick="@(() => OpenEditModal(s))"><i class="ti ti-edit"></i></button>
+                        <button class="btn @(s.IsDeleted ? "btn-outline-success" : "btn-outline-danger")" title="@(s.IsDeleted ? "Restore sector" : "Soft-delete sector")" @onclick="@(() => ToggleDeletedAsync(s))"><i class="ti @(s.IsDeleted ? "ti-restore" : "ti-trash")"></i></button>
+                    </div>
                 </ActionColumn>
             </AdminDataGrid>
         }
@@ -130,10 +134,11 @@
                 <Columns>
                     <GridColumn TItem="SubSector" Field="@(ss => ss.SubSectorCode)" Title="Code" Sortable="true">
                         <Template Context="ss">
-                            <span class="badge bg-light text-dark border font-monospace fw-bold">@ss.SubSectorCode</span>
+                            <span class="badge bg-bronze-subtle text-bronze-emphasis border border-bronze-subtle font-monospace fw-bold">@ss.SubSectorCode</span>
                         </Template>
                     </GridColumn>
-                    <GridColumn TItem="SubSector" Field="@(ss => ss.SubSectorName_EN)" Title="Sub-Sector Name" Sortable="true" />
+                    <GridColumn TItem="SubSector" Field="@(ss => ss.SubSectorName_EN)" Title="Name (EN)" Sortable="true" />
+                    <GridColumn TItem="SubSector" Field="@(ss => ss.SubSectorName_ZH_TW)" Title="Name (TW)" Sortable="true" />
                     <GridColumn TItem="SubSector" Title="Parent Sector" Sortable="true"
                                 Value="@(ss => ss.Sector?.SectorName_EN)">
                         <Template Context="ss">
@@ -151,9 +156,10 @@
                     </GridColumn>
                 </Columns>
                 <ActionColumn Context="ss">
-                    <button class="btn btn-sm @(ss.IsDeleted ? "btn-outline-success" : "btn-outline-danger")" title="@(ss.IsDeleted ? "Restore sub-sector" : "Soft-delete sub-sector")" @onclick="@(() => ToggleDeletedAsync(ss))">
-                        <i class="ti @(ss.IsDeleted ? "ti-restore" : "ti-trash")"></i>
-                    </button>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-secondary" title="Edit sub-sector" @onclick="@(() => OpenEditModal(ss))"><i class="ti ti-edit"></i></button>
+                        <button class="btn @(ss.IsDeleted ? "btn-outline-success" : "btn-outline-danger")" title="@(ss.IsDeleted ? "Restore sub-sector" : "Soft-delete sub-sector")" @onclick="@(() => ToggleDeletedAsync(ss))"><i class="ti @(ss.IsDeleted ? "ti-restore" : "ti-trash")"></i></button>
+                    </div>
                 </ActionColumn>
             </AdminDataGrid>
         }
@@ -166,7 +172,8 @@
                             <span class="badge bg-dark text-white font-monospace">@e.ExchangeCode</span>
                         </Template>
                     </GridColumn>
-                    <GridColumn TItem="Exchange" Field="@(e => e.ExchangeName_EN)" Title="Exchange Name" Sortable="true" />
+                    <GridColumn TItem="Exchange" Field="@(e => e.ExchangeName_EN)" Title="Name (EN)" Sortable="true" />
+                    <GridColumn TItem="Exchange" Field="@(e => e.ExchangeName_ZH_TW)" Title="Name (TW)" Sortable="true" />
                     <GridColumn TItem="Exchange" Title="Country" Sortable="true"
                                 Value="@(e => e.Country?.CountryName_EN ?? e.Country?.CountryCode)">
                         <Template Context="e">
@@ -182,9 +189,10 @@
                     </GridColumn>
                 </Columns>
                 <ActionColumn Context="e">
-                    <button class="btn btn-sm @(e.IsDeleted ? "btn-outline-success" : "btn-outline-danger")" title="@(e.IsDeleted ? "Restore exchange" : "Soft-delete exchange")" @onclick="@(() => ToggleDeletedAsync(e))">
-                        <i class="ti @(e.IsDeleted ? "ti-restore" : "ti-trash")"></i>
-                    </button>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-secondary" title="Edit exchange" @onclick="@(() => OpenEditModal(e))"><i class="ti ti-edit"></i></button>
+                        <button class="btn @(e.IsDeleted ? "btn-outline-success" : "btn-outline-danger")" title="@(e.IsDeleted ? "Restore exchange" : "Soft-delete exchange")" @onclick="@(() => ToggleDeletedAsync(e))"><i class="ti @(e.IsDeleted ? "ti-restore" : "ti-trash")"></i></button>
+                    </div>
                 </ActionColumn>
             </AdminDataGrid>
         }
@@ -192,13 +200,13 @@
         {
             <AdminDataGrid TItem="Country" Items="@_countries" PageSize="10">
                 <Columns>
-                    <GridColumn TItem="Country" Field="@(c => c.CountryCode)" Title="ISO Code" Sortable="true">
+                    <GridColumn TItem="Country" Field="@(c => c.CountryCode)" Title="Code" Sortable="true">
                         <Template Context="c">
-                            <span class="badge bg-warning font-monospace">@c.CountryCode</span>
+                            <span class="badge text-bg-warning font-monospace">@c.CountryCode</span>
                         </Template>
                     </GridColumn>
-                    <GridColumn TItem="Country" Field="@(c => c.CountryName_EN)" Title="Country Name (EN)" Sortable="true" />
-                    <GridColumn TItem="Country" Field="@(c => c.CountryName_ZH_TW)" Title="Traditional Chinese" Sortable="true" />
+                    <GridColumn TItem="Country" Field="@(c => c.CountryName_EN)" Title="Name (EN)" Sortable="true" />
+                    <GridColumn TItem="Country" Field="@(c => c.CountryName_ZH_TW)" Title="Name (TW)" Sortable="true" />
                     <GridColumn TItem="Country" Field="@(c => c.IsActive)" Title="Status" Sortable="true">
                         <Template Context="c">
                             <span class="badge @(c.IsActive ? "bg-success-subtle text-success" : "bg-secondary-subtle text-secondary")">
@@ -208,9 +216,10 @@
                     </GridColumn>
                 </Columns>
                 <ActionColumn Context="c">
-                    <button class="btn btn-sm @(c.IsDeleted ? "btn-outline-success" : "btn-outline-danger")" title="@(c.IsDeleted ? "Restore country" : "Soft-delete country")" @onclick="@(() => ToggleDeletedAsync(c))">
-                        <i class="ti @(c.IsDeleted ? "ti-restore" : "ti-trash")"></i>
-                    </button>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-secondary" title="Edit country" @onclick="@(() => OpenEditModal(c))"><i class="ti ti-edit"></i></button>
+                        <button class="btn @(c.IsDeleted ? "btn-outline-success" : "btn-outline-danger")" title="@(c.IsDeleted ? "Restore country" : "Soft-delete country")" @onclick="@(() => ToggleDeletedAsync(c))"><i class="ti @(c.IsDeleted ? "ti-restore" : "ti-trash")"></i></button>
+                    </div>
                 </ActionColumn>
             </AdminDataGrid>
         }
@@ -218,7 +227,274 @@
 
 </div>
 
+@if (_isEditModalOpen)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.6); z-index: 1050;" role="dialog" aria-modal="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header bg-dark text-white border-0">
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0"><i class="ti ti-edit me-2"></i>Edit @_editModel.DisplayName</h5>
+                        <span class="text-white-50 small">Update master reference data</span>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" @onclick="CloseEditModal" disabled="@_isSaving" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 bg-light-subtle">
+                    @if (!string.IsNullOrEmpty(_editError))
+                    {
+                        <div class="alert alert-danger py-2" role="alert">@_editError</div>
+                    }
+                    <EditForm Model="@_editModel" OnValidSubmit="SaveEditAsync">
+                        <DataAnnotationsValidator />
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold">Code</label>
+                                <InputText class="form-control font-monospace fw-bold" @bind-Value="_editModel.Code" />
+                                <ValidationMessage For="@(() => _editModel.Code)" class="text-danger small" />
+                            </div>
+                            @if (_editModel.Kind == TaxonomyKind.Country)
+                            {
+                                <div class="col-md-8">
+                                    <label class="form-label small fw-semibold">Default Currency</label>
+                                    <InputText class="form-control font-monospace" @bind-Value="_editModel.CurrencyCode" />
+                                    <ValidationMessage For="@(() => _editModel.CurrencyCode)" class="text-danger small" />
+                                </div>
+                            }
+                            @if (_editModel.Kind == TaxonomyKind.Market)
+                            {
+                                <div class="col-md-8">
+                                    <label class="form-label small fw-semibold">Exchange</label>
+                                    <InputSelect class="form-select" @bind-Value="_editModel.ParentId">
+                                        @foreach (var exchange in _exchanges)
+                                        {
+                                            <option value="@exchange.Id">@exchange.ExchangeCode - @exchange.ExchangeName_EN</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            }
+                            @if (_editModel.Kind == TaxonomyKind.Sector)
+                            {
+                                <div class="col-md-8">
+                                    <label class="form-label small fw-semibold">Country</label>
+                                    <InputSelect class="form-select" @bind-Value="_editModel.ParentId">
+                                        @foreach (var country in _countries)
+                                        {
+                                            <option value="@country.Id">@country.CountryCode - @country.CountryName_EN</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            }
+                            @if (_editModel.Kind == TaxonomyKind.SubSector)
+                            {
+                                <div class="col-md-8">
+                                    <label class="form-label small fw-semibold">Parent Sector</label>
+                                    <InputSelect class="form-select" @bind-Value="_editModel.ParentId">
+                                        @foreach (var sector in _sectors)
+                                        {
+                                            <option value="@sector.Id">@sector.SectorCode - @sector.SectorName_EN</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            }
+                            @if (_editModel.Kind == TaxonomyKind.Exchange)
+                            {
+                                <div class="col-md-8">
+                                    <label class="form-label small fw-semibold">Country</label>
+                                    <InputSelect class="form-select" @bind-Value="_editModel.ParentId">
+                                        @foreach (var country in _countries)
+                                        {
+                                            <option value="@country.Id">@country.CountryCode - @country.CountryName_EN</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+                            }
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold">English Name</label>
+                                <InputText class="form-control" @bind-Value="_editModel.NameEN" />
+                                <ValidationMessage For="@(() => _editModel.NameEN)" class="text-danger small" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold">Traditional Chinese</label>
+                                <InputText class="form-control" @bind-Value="_editModel.NameZHTW" />
+                                <ValidationMessage For="@(() => _editModel.NameZHTW)" class="text-danger small" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold">Simplified Chinese</label>
+                                <InputText class="form-control" @bind-Value="_editModel.NameZHCN" />
+                                <ValidationMessage For="@(() => _editModel.NameZHCN)" class="text-danger small" />
+                            </div>
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <InputCheckbox class="form-check-input" @bind-Value="_editModel.IsActive" />
+                                    <label class="form-check-label fw-semibold">Active</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="button" class="btn btn-outline-secondary" @onclick="CloseEditModal" disabled="@_isSaving">Cancel</button>
+                            <button type="submit" class="btn btn-danger px-4" disabled="@_isSaving">
+                                @if (_isSaving) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                                Save Changes
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
+    private bool _isEditModalOpen;
+    private bool _isSaving;
+    private string? _editError;
+    private TaxonomyEditModel _editModel = new();
+
+    private void OpenEditModal(AuditableEntity entity)
+    {
+        _editModel = entity switch
+        {
+            Market item => new TaxonomyEditModel
+            {
+                Kind = TaxonomyKind.Market, Id = item.Id, Code = item.MarketCode,
+                NameEN = item.MarketName_EN, NameZHTW = item.MarketName_ZH_TW, NameZHCN = item.MarketName_ZH_CN,
+                ParentId = item.ExchangeId, IsActive = item.IsActive
+            },
+            Sector item => new TaxonomyEditModel
+            {
+                Kind = TaxonomyKind.Sector, Id = item.Id, Code = item.SectorCode,
+                NameEN = item.SectorName_EN, NameZHTW = item.SectorName_ZH_TW, NameZHCN = item.SectorName_ZH_CN,
+                ParentId = item.CountryId, IsActive = item.IsActive
+            },
+            SubSector item => new TaxonomyEditModel
+            {
+                Kind = TaxonomyKind.SubSector, Id = item.Id, Code = item.SubSectorCode,
+                NameEN = item.SubSectorName_EN, NameZHTW = item.SubSectorName_ZH_TW, NameZHCN = item.SubSectorName_ZH_CN,
+                ParentId = item.SectorId, IsActive = item.IsActive
+            },
+            Exchange item => new TaxonomyEditModel
+            {
+                Kind = TaxonomyKind.Exchange, Id = item.Id, Code = item.ExchangeCode,
+                NameEN = item.ExchangeName_EN, NameZHTW = item.ExchangeName_ZH_TW, NameZHCN = item.ExchangeName_ZH_CN,
+                ParentId = item.CountryId, IsActive = item.IsActive
+            },
+            Country item => new TaxonomyEditModel
+            {
+                Kind = TaxonomyKind.Country, Id = item.Id, Code = item.CountryCode,
+                NameEN = item.CountryName_EN, NameZHTW = item.CountryName_ZH_TW, NameZHCN = item.CountryName_ZH_CN,
+                CurrencyCode = item.DefaultCurrencyCode, IsActive = item.IsActive
+            },
+            _ => throw new ArgumentException("Unsupported taxonomy entity.", nameof(entity))
+        };
+
+        _editError = null;
+        _isEditModalOpen = true;
+    }
+
+    private void CloseEditModal()
+    {
+        if (!_isSaving)
+        {
+            _isEditModalOpen = false;
+            _editError = null;
+        }
+    }
+
+    private async Task SaveEditAsync()
+    {
+        _isSaving = true;
+        _editError = null;
+        var code = _editModel.Code.Trim();
+        var now = DateTimeOffset.UtcNow;
+        var userId = (await AuthStateProvider.GetAuthenticationStateAsync()).User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        try
+        {
+            switch (_editModel.Kind)
+            {
+                case TaxonomyKind.Market:
+                    if (await DbContext.Markets.AnyAsync(x => x.MarketCode == code && x.Id != _editModel.Id)) throw new InvalidOperationException($"Market code '{code}' already exists.");
+                    var market = await DbContext.Markets.FindAsync(_editModel.Id) ?? throw new InvalidOperationException("The market could not be found.");
+                    market.MarketCode = code; market.MarketName_EN = _editModel.NameEN.Trim(); market.MarketName_ZH_TW = _editModel.NameZHTW.Trim(); market.MarketName_ZH_CN = _editModel.NameZHCN.Trim(); market.ExchangeId = _editModel.ParentId; market.IsActive = _editModel.IsActive; market.ModifiedAt = now; market.ModifiedByUserId = userId;
+                    break;
+                case TaxonomyKind.Sector:
+                    if (await DbContext.Sectors.AnyAsync(x => x.SectorCode == code && x.Id != _editModel.Id)) throw new InvalidOperationException($"Sector code '{code}' already exists.");
+                    var sector = await DbContext.Sectors.FindAsync(_editModel.Id) ?? throw new InvalidOperationException("The sector could not be found.");
+                    sector.SectorCode = code; sector.SectorName_EN = _editModel.NameEN.Trim(); sector.SectorName_ZH_TW = _editModel.NameZHTW.Trim(); sector.SectorName_ZH_CN = _editModel.NameZHCN.Trim(); sector.CountryId = _editModel.ParentId; sector.IsActive = _editModel.IsActive; sector.ModifiedAt = now; sector.ModifiedByUserId = userId;
+                    break;
+                case TaxonomyKind.SubSector:
+                    if (await DbContext.SubSectors.AnyAsync(x => x.SubSectorCode == code && x.Id != _editModel.Id)) throw new InvalidOperationException($"Sub-sector code '{code}' already exists.");
+                    var subSector = await DbContext.SubSectors.FindAsync(_editModel.Id) ?? throw new InvalidOperationException("The sub-sector could not be found.");
+                    subSector.SubSectorCode = code; subSector.SubSectorName_EN = _editModel.NameEN.Trim(); subSector.SubSectorName_ZH_TW = _editModel.NameZHTW.Trim(); subSector.SubSectorName_ZH_CN = _editModel.NameZHCN.Trim(); subSector.SectorId = _editModel.ParentId; subSector.IsActive = _editModel.IsActive; subSector.ModifiedAt = now; subSector.ModifiedByUserId = userId;
+                    break;
+                case TaxonomyKind.Exchange:
+                    if (await DbContext.Exchanges.AnyAsync(x => x.ExchangeCode == code && x.Id != _editModel.Id)) throw new InvalidOperationException($"Exchange code '{code}' already exists.");
+                    var exchange = await DbContext.Exchanges.FindAsync(_editModel.Id) ?? throw new InvalidOperationException("The exchange could not be found.");
+                    exchange.ExchangeCode = code; exchange.ExchangeName_EN = _editModel.NameEN.Trim(); exchange.ExchangeName_ZH_TW = _editModel.NameZHTW.Trim(); exchange.ExchangeName_ZH_CN = _editModel.NameZHCN.Trim(); exchange.CountryId = _editModel.ParentId; exchange.IsActive = _editModel.IsActive; exchange.ModifiedAt = now; exchange.ModifiedByUserId = userId;
+                    break;
+                case TaxonomyKind.Country:
+                    if (await DbContext.Countries.AnyAsync(x => x.CountryCode == code && x.Id != _editModel.Id)) throw new InvalidOperationException($"Country code '{code}' already exists.");
+                    var country = await DbContext.Countries.FindAsync(_editModel.Id) ?? throw new InvalidOperationException("The country could not be found.");
+                    country.CountryCode = code; country.CountryName_EN = _editModel.NameEN.Trim(); country.CountryName_ZH_TW = _editModel.NameZHTW.Trim(); country.CountryName_ZH_CN = _editModel.NameZHCN.Trim(); country.DefaultCurrencyCode = _editModel.CurrencyCode.Trim().ToUpperInvariant(); country.IsActive = _editModel.IsActive; country.ModifiedAt = now; country.ModifiedByUserId = userId;
+                    break;
+            }
+
+            await DbContext.SaveChangesAsync();
+            _isEditModalOpen = false;
+            await LoadTaxonomyData();
+        }
+        catch (InvalidOperationException ex)
+        {
+            _editError = ex.Message;
+        }
+        catch (DbUpdateException)
+        {
+            _editError = "The changes could not be saved. Check the values and try again.";
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private enum TaxonomyKind
+    {
+        Market,
+        Sector,
+        SubSector,
+        Exchange,
+        Country
+    }
+
+    private sealed class TaxonomyEditModel
+    {
+        public TaxonomyKind Kind { get; set; }
+        public int Id { get; set; }
+        public string DisplayName => Kind switch
+        {
+            TaxonomyKind.SubSector => "Sub-Sector",
+            _ => Kind.ToString()
+        };
+
+        [Required, StringLength(50), SearchableText]
+        public string Code { get; set; } = string.Empty;
+
+        [Required, StringLength(200), SearchableText]
+        public string NameEN { get; set; } = string.Empty;
+
+        [Required, StringLength(200), SearchableText(true)]
+        public string NameZHTW { get; set; } = string.Empty;
+
+        [Required, StringLength(200), SearchableText(true)]
+        public string NameZHCN { get; set; } = string.Empty;
+
+        [RegularExpression("^[A-Za-z]{3}$", ErrorMessage = "Currency must be a three-letter code.")]
+        public string CurrencyCode { get; set; } = string.Empty;
+
+        public int ParentId { get; set; }
+        public bool IsActive { get; set; }
+    }
+
     private async Task ToggleDeletedAsync(AuditableEntity entity)
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();

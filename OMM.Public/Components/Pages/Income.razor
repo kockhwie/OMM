@@ -189,11 +189,11 @@
                     }
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-semibold text-dark">Income Source *</label>
+                            <label class="form-label text-dark">Income Source *</label>
                             <input type="text" class="form-control rounded-3" placeholder="e.g. Monthly Salary, Rental Dividend" @bind="newRecord.Source" />
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-semibold text-dark">Classification *</label>
+                            <label class="form-label text-dark">Classification *</label>
                             <select class="form-select rounded-3" @bind="newRecord.Classification">
                                 @foreach (var cls in Enum.GetValues<IncomeClass>())
                                 {
@@ -202,11 +202,11 @@
                             </select>
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-semibold text-dark">Amount (RM) *</label>
+                            <label class="form-label text-dark">Amount (RM) *</label>
                             <input type="number" class="form-control rounded-3" step="50" @bind="newRecord.Amount" />
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-semibold text-dark">Frequency *</label>
+                            <label class="form-label text-dark">Frequency *</label>
                             <select class="form-select rounded-3" @bind="newRecord.Frequency">
                                 <option value="monthly">Monthly</option>
                                 <option value="annual">Annual</option>
@@ -214,7 +214,7 @@
                             </select>
                         </div>
                         <div class="col-12">
-                            <label class="form-label small fw-semibold text-dark">Associated Mine (Optional)</label>
+                            <label class="form-label text-dark">Associated Mine (Optional)</label>
                             <select class="form-select rounded-3" @onchange="OnMineSelected">
                                 <option value="">— Standalone Income (e.g. Salary, Consulting) —</option>
                                 @foreach (var mine in allMines)

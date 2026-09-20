@@ -130,11 +130,11 @@ else
                     }
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-semibold text-dark">Goal Title *</label>
+                            <label class="form-label text-dark">Goal Title *</label>
                             <input type="text" class="form-control rounded-3" placeholder="e.g. Emergency Fund (6 months)" @bind="newGoal.Title" />
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-semibold text-dark">Goal Type *</label>
+                            <label class="form-label text-dark">Goal Type *</label>
                             <select class="form-select rounded-3" @bind="newGoal.Type">
                                 @foreach (var typ in Enum.GetValues<GoalType>())
                                 {
@@ -143,19 +143,19 @@ else
                             </select>
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-semibold text-dark">Target Amount / Value *</label>
+                            <label class="form-label text-dark">Target Amount / Value *</label>
                             <input type="number" class="form-control rounded-3" step="100" @bind="newGoal.Target" />
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-semibold text-dark">Current Saved / Accumulated</label>
+                            <label class="form-label text-dark">Current Saved / Accumulated</label>
                             <input type="number" class="form-control rounded-3" step="100" @bind="newGoal.Current" />
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-semibold text-dark">Target Completion Date *</label>
+                            <label class="form-label text-dark">Target Completion Date *</label>
                             <input type="date" class="form-control rounded-3" @bind="targetDateInput" />
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-semibold text-dark">Status</label>
+                            <label class="form-label text-dark">Status</label>
                             <select class="form-select rounded-3" @bind="newGoal.Status">
                                 <option value="on-track">On Track</option>
                                 <option value="needs-attention">Needs Attention</option>

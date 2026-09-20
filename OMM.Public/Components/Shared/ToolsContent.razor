@@ -123,16 +123,15 @@
             <div class="card h-100 border-0 shadow-sm rounded-4 p-4 card-hover cursor-pointer bg-white"
                  @onclick='() => OpenTool("dividend")'>
                 <div class="d-flex align-items-start justify-content-between mb-3">
-                    <div class="rounded-3 p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: #ede9fe; color: #7c3aed;">
+                    <div class="rounded-3 bg-dark text-warning p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
                         <i class="ti ti-chart-bar fs-4"></i>
                     </div>
-                    <span class="badge" style="background: #ede9fe; color: #5b21b6; border: 1px solid #ddd6fe;">Dividend</span>
-                </div>
+                    <span class="badge bg-light text-dark border">Dividend</span>                </div>
                 <h3 class="h6 fw-bold text-dark font-display mb-2">Stock Dividend Calculator</h3>
                 <p class="text-muted small mb-3 flex-grow-1" style="line-height: 1.5;">
                     Instantly calculate dividend income with fixed or variable payouts, then model DRIP and long-term portfolio growth.
                 </p>
-                <div class="d-flex align-items-center gap-1 fw-semibold small pt-2 border-top border-light-subtle" style="color: #7c3aed;">
+                <div class="d-flex align-items-center gap-1 fw-semibold small pt-2 border-top border-light-subtle text-primary">
                     <span>Calculate Dividends</span>
                     <i class="ti ti-arrow-right fs-6"></i>
                 </div>
@@ -143,7 +142,7 @@
 else
 {
     <!-- Back to Tools Header -->
-    <div class="mb-3 animate-fade-up">
+    <div class="mb-2 mb-md-3 animate-fade-up">
         <button class="btn btn-link text-muted p-0 small text-decoration-none d-inline-flex align-items-center gap-1"
                 @onclick="HandleBackToTools">
             <i class="ti ti-arrow-left"></i>
@@ -166,7 +165,7 @@ else
                     <h3 class="h6 fw-bold text-dark font-display mb-4">Placement Parameters</h3>
                     
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold text-dark">Principal Amount</label>
+                        <label class="form-label text-dark">Principal Amount</label>
                         <div class="dc-currency-group">
                             <span class="dc-currency-addon">@dcCurrencySymbol</span>
                             <input type="number" class="form-control" step="1000" @bind="fdPrincipal" @bind:event="oninput" />
@@ -174,7 +173,7 @@ else
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold text-dark">Interest Rate (% p.a.)</label>
+                        <label class="form-label text-dark">Interest Rate (% p.a.)</label>
                         <div class="dc-currency-group">
                             <input type="number" class="form-control" step="0.05" @bind="fdRate" @bind:event="oninput" />
                             <span class="dc-currency-suffix">%</span>
@@ -183,7 +182,7 @@ else
 
                     <div class="mb-3">
                         <div class="d-flex justify-content-between align-items-center mb-1">
-                            <label class="form-label small fw-semibold text-dark mb-0">Tenure: <span class="text-primary fw-bold">@fdTenureMonths months</span></label>
+                            <label class="form-label text-dark mb-0">Tenure: <span class="text-primary fw-bold">@fdTenureMonths months</span></label>
                             <span class="text-muted small">(@(fdTenureMonths >= 12 ? $"{fdTenureMonths / 12} yr {(fdTenureMonths % 12 > 0 ? $"{fdTenureMonths % 12} mo" : "")}" : $"{fdTenureMonths} mo"))</span>
                         </div>
                         <input type="range" class="form-range" min="1" max="60" @bind="fdTenureMonths" @bind:event="oninput" />
@@ -246,7 +245,7 @@ else
                     <h3 class="h6 fw-bold text-dark font-display mb-4">Cashflow Assumptions</h3>
                     
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold text-dark">Monthly Recurring Living Expenses</label>
+                        <label class="form-label text-dark">Monthly Recurring Living Expenses</label>
                         <div class="dc-currency-group">
                             <span class="dc-currency-addon">@dcCurrencySymbol</span>
                             <input type="number" class="form-control" step="250" @bind="simExpenses" @bind:event="oninput" />
@@ -254,7 +253,7 @@ else
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold text-dark">Current Monthly Passive Income</label>
+                        <label class="form-label text-dark">Current Monthly Passive Income</label>
                         <div class="dc-currency-group">
                             <span class="dc-currency-addon">@dcCurrencySymbol</span>
                             <input type="number" class="form-control" step="100" @bind="simPassive" @bind:event="oninput" />
@@ -262,7 +261,7 @@ else
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold text-dark">Monthly Savings Invested into Mines</label>
+                        <label class="form-label text-dark">Monthly Savings Invested into Mines</label>
                         <div class="dc-currency-group">
                             <span class="dc-currency-addon">@dcCurrencySymbol</span>
                             <input type="number" class="form-control" step="250" @bind="simMonthlySaving" @bind:event="oninput" />
@@ -270,7 +269,7 @@ else
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold text-dark">Assumed Average Mine Yield (% p.a.)</label>
+                        <label class="form-label text-dark">Assumed Average Mine Yield (% p.a.)</label>
                         <div class="dc-currency-group">
                             <input type="number" class="form-control" step="0.5" @bind="simYield" @bind:event="oninput" />
                             <span class="dc-currency-suffix">%</span>
@@ -332,7 +331,7 @@ else
                     <h3 class="h6 fw-bold text-dark font-display mb-4">Living Outflows</h3>
                     
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold text-dark">Monthly Essential Living Expenses</label>
+                        <label class="form-label text-dark">Monthly Essential Living Expenses</label>
                         <div class="dc-currency-group">
                             <span class="dc-currency-addon">@dcCurrencySymbol</span>
                             <input type="number" class="form-control" step="200" @bind="efMonthlyExpense" @bind:event="oninput" />
@@ -340,7 +339,7 @@ else
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold text-dark">Current Liquid Cash &amp; Deposits</label>
+                        <label class="form-label text-dark">Current Liquid Cash &amp; Deposits</label>
                         <div class="dc-currency-group">
                             <span class="dc-currency-addon">@dcCurrencySymbol</span>
                             <input type="number" class="form-control" step="1000" @bind="efCurrentCash" @bind:event="oninput" />
@@ -348,7 +347,7 @@ else
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold text-dark">Target Runway Coverage</label>
+                        <label class="form-label text-dark">Target Runway Coverage</label>
                         <select class="form-select rounded-3" @bind="efTargetMonths">
                             <option value="3">3 Months (Standard Employee)</option>
                             <option value="6">6 Months (Recommended Balanced Buffer)</option>
@@ -404,7 +403,7 @@ else
             <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-2">
                 <div>
                     <h1 class="h3 fw-bold font-display mb-1" style="color: var(--omm-ink-900);">Stock Dividend Calculator</h1>
-                    <p class="text-muted small mb-0">Professional financial calculation engine. Configured to your active currency (@userCurrency).</p>
+                    
                 </div>
                 @if (savedNotification)
                 {
@@ -416,7 +415,7 @@ else
             </div>
 
             <!-- Mode Switcher -->
-            <div class="dc-mode-switcher mt-3">
+            <div class="dc-mode-switcher mt-2 mt-md-3">
                 <button id="btn-mode-quick" class="dc-mode-btn @(dcMode == "quick" ? "active" : "")"
                         @onclick='() => SwitchMode("quick")'>
                     <i class="ti ti-zap me-1"></i> Quick Calculate
@@ -450,98 +449,100 @@ else
 
                         <!-- 1. Stock Information -->
                         <div class="dc-section">
-                            <div class="dc-section-title">Stock Information</div>
-
+                            <div class="dc-section-title text-gold"><i class="ti ti-blocks text-gold"></i> Stock Information <span class="dc-subtle-optional">(Optional)</span></div> 
                             <!-- Search: the only way Code/Name get set — both fields below are read-only -->
-                            <div class="mb-3">
-                                <label class="form-label small fw-semibold mb-1" style="color: var(--omm-ink-700);">Search Stock</label>
-                                <StockSearchPicker @bind-Code="qcStockSymbol" @bind-Name="qcStockName"
-                                                   OnStockSelected="OnStockPicked" />
-                            </div>
-
-                            <!-- Code / Name — populated only via the search box above -->
-                            <div class="row g-2 mb-3">
-                                <div class="col-5">
-                                    <label class="form-label small fw-semibold text-muted mb-1" for="qc-symbol">
-                                        Stock Code  <br /> <span class="dc-subtle-optional">(Optional)</span>
-                                    </label>
-                                    <input id="qc-symbol" type="text" class="form-control rounded-3 bg-light" readonly
-                                           placeholder="—" value="@qcStockSymbol" />
-                                </div>
-                                <div class="col-7">
-                                    <label class="form-label small fw-semibold text-muted mb-1" for="qc-name">
-                                        Company Name <br /> <span class="dc-subtle-optional">(Optional)</span>
-                                    </label>
-                                    <input id="qc-name" type="text" class="form-control rounded-3 bg-light" readonly
-                                           placeholder="—" value="@qcStockName" />
-                                </div>
-                            </div>
-
-                            <!-- Price + Cost Basis, grouped, both optional and always amendable -->
-                            <div class="row g-2">
-                                <div class="col-6">
-                                    <label class="form-label small fw-semibold" style="color: var(--omm-ink-700);" for="qc-price">
-                                        Current Share Price <br /><span class="dc-subtle-optional">(Optional)</span>
-                                    </label>
-                                    <div class="dc-currency-group">
-                                        <span class="dc-currency-addon">@dcCurrencySymbol</span>
-                                        <input id="qc-price" type="number" class="form-control" min="0" step="0.01"
-                                               placeholder="10.50"
-                                               @bind="qcSharePrice" @bind:event="oninput" />
+ 
+                                    <div class="mb-2 mb-md-3">
+                                        <label class="form-label">Search Stock</label>
+                                        <StockSearchPicker @bind-Code="qcStockSymbol" @bind-Name="qcStockName"
+                                                           OnStockSelected="OnStockPicked" />
                                     </div>
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label small fw-semibold" style="color: var(--omm-ink-700);" for="qc-purchase">
-                                        Purchase Cost Basis <br /><span class="dc-subtle-optional">(Optional)</span>
-                                    </label>
-                                    <div class="dc-currency-group">
-                                        <span class="dc-currency-addon">@dcCurrencySymbol</span>
-                                        <input id="qc-purchase" type="number" class="form-control" min="0" step="0.01"
-                                               placeholder="8.00"
-                                               @bind="qcPurchasePrice" @bind:event="oninput" />
+                                    @if (!string.IsNullOrWhiteSpace(qcStockSymbol))
+                                    {
+                                        <span class="dc-stock-chip mb-2 mb-md-3"><strong>@qcStockSymbol</strong> @qcStockName</span>
+                                    }
+
+                                    <button type="button" class="btn btn-light btn-sm dc-optional-toggle mt-1" @onclick="() => qcShowOptional = !qcShowOptional">
+                                        <i class="ti @(qcShowOptional ? "ti-chevron-up" : "ti-chevron-down")"></i>
+                                        Add price &amp; cost to see Yield %
+                                    </button>
+                                    <div class="dc-optional-field @(qcShowOptional ? "visible" : "")">
+                                        @* price, cost basis, special dividend inputs here, no asterisks *@
+                                        <!-- Price + Cost Basis, grouped, both optional and always amendable -->
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <label class="form-label" for="qc-price">
+                                                    Current Stock Price
+                                                </label>
+                                                <div class="dc-currency-group">
+                                                    <span class="dc-currency-addon">@dcCurrencySymbol</span>
+                                                    <input id="qc-price" type="number" class="form-control" min="0" step="0.01"
+                                                           placeholder="10.50"
+                                                           @bind="qcSharePrice" @bind:event="oninput" />
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="form-label" for="qc-purchase">
+                                                    Purchase Cost
+                                                </label>
+                                                <div class="dc-currency-group">
+                                                    <span class="dc-currency-addon">@dcCurrencySymbol</span>
+                                                    <input id="qc-purchase" type="number" class="form-control" min="0" step="0.01"
+                                                           placeholder="8.00"
+                                                           @bind="qcPurchasePrice" @bind:event="oninput" />
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
 
-                            @if (YieldInputsPartiallyFilled)
-                            {
-                                <div class="dc-inline-alert dc-inline-alert-warning mt-2">
-                                    <i class="ti ti-alert-triangle"></i>
-                                    <span>
-                                        Add @(qcSharePrice > 0 ? "a Purchase Cost Basis" : "a Current Share Price")
-                                        too, both are needed together to show Dividend Yield % / Yield on Cost %.
-                                    </span>
-                                </div>
-                            }
-                            else if (qcSharePrice <= 0 && qcPurchasePrice <= 0)
-                            {
-                                <div class="dc-assumption-note mt-2">Optional — add both to also see Dividend Yield % and Yield on Cost %.</div>
-                            }
 
-                            <hr class="my-3 border-light-subtle" />
 
-                            <!-- Shares Owned: compulsory, sits at the bottom so it reads as the bridge into Dividend Payouts below (the annual dividend calc needs both). -->
-                            <div>
-                                <label class="form-label small fw-semibold" style="color: var(--omm-ink-700);" for="qc-shares">
+                                    <!-- Code / Name — populated only via the search box above
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-4">
+                                            <label class="form-label text-muted mb-1" for="qc-symbol">
+                                                Stock Code
+                                            </label>
+                                            <input id="qc-symbol" type="text" class="form-control rounded-3 bg-light" readonly
+                                                   placeholder="—" value="@qcStockSymbol" />
+                                        </div>
+                                        <div class="col-8">
+                                            <label class="form-label text-muted mb-1" for="qc-name">
+                                                Stock Name 
+                                            </label>
+                                            <input id="qc-name" type="text" class="form-control rounded-3 bg-light" readonly
+                                                   placeholder="—" value="@qcStockName" />
+                                        </div>
+                                    </div> -->
+                                    
+                                    @if (YieldInputsPartiallyFilled)
+                                    {
+                                        <div class="dc-inline-alert dc-inline-alert-warning text-danger mt-2">
+                                            <i class="ti ti-alert-triangle"></i>                      
+                                                <small>
+                                                    Add @(qcSharePrice > 0 ? "a Purchase Cost Basis" : "a Current Stock Price")
+                                                    too, both are needed together to show Dividend Yield % / Yield on Cost %.
+                                                </small>                          
+                                        </div>
+                                    }                       
+                        </div>
+
+                        <!-- 2. Dividend Payouts -->
+                        <div class="dc-section">
+                            <div class="dc-section-title text-gold"><i class="ti ti-pig-money text-gold"></i> Dividend Payouts</div>
+
+                           <!-- Shares Owned: compulsory, sits at the bottom so it reads as the bridge into Dividend Payouts below (the annual dividend calc needs both). -->
+                            <div class="mb-2 mb-md-3">
+                                <label class="form-label" for="qc-shares">
                                     Shares Owned <span class="text-danger">*</span>
                                 </label>
                                 <input id="qc-shares" type="number" class="form-control rounded-3" min="0" step="100"
                                        placeholder="e.g. 1000"
                                        @bind="qcShares" @bind:event="oninput" />
-                                <div class="dc-assumption-note">
-                                    <i class="ti ti-arrow-down" style="font-size: 0.9em;"></i>
-                                    Combined with Dividend Payouts below to calculate your annual income
-                                </div>
                             </div>
-                        </div>
-
-                        <!-- 2. Dividend Payouts -->
-                        <div class="dc-section">
-                            <div class="dc-section-title">Dividend Payouts</div>
-
                             <!-- Shares Owned moved up to "Your Position" — Payout Type is now first here -->
-                            <div class="mb-3">
-                                <label class="form-label small fw-semibold mb-2 d-block" style="color: var(--omm-ink-700);">Payout Type  <span class="text-danger">*</span></label>
+                            <div class="mb-2 mb-md-3">
+                                <label class="form-label">Payout Type  <span class="text-danger">*</span></label>
                                 <div class="dc-segmented" role="group" aria-label="Payout type">
                                     <button type="button" class="dc-segmented-btn @(qcPayoutType == "uniform" ? "active" : "")"
                                             @onclick='() => ChangePayoutType("uniform")'>
@@ -554,8 +555,8 @@ else
                                 </div>
                             </div>
 
-                            <div class="mb-3">
-                                <label class="form-label small fw-semibold mb-1" style="color: var(--omm-ink-700);" for="qc-freq">Dividend Frequency  <span class="text-danger">*</span></label>
+                            <div class="mb-2 mb-md-3">
+                                <label class="form-label" for="qc-freq">Dividend Frequency  <span class="text-danger">*</span></label>
                                 <select id="qc-freq" class="form-select rounded-3" @bind="qcFrequency" @bind:after="OnFrequencyChanged">
                                     <option value="@DividendFrequency.Monthly">Monthly (12 payouts per year)</option>
                                     <option value="@DividendFrequency.Quarterly">Quarterly (4 payouts per year)</option>
@@ -566,8 +567,8 @@ else
 
                             @if (qcPayoutType == "uniform")
                             {
-                                <div class="mb-3">
-                                    <label class="form-label small fw-semibold" style="color: var(--omm-ink-700);" for="qc-dps">
+                                <div class="mb-2 mb-md-3">
+                                    <label class="form-label" for="qc-dps">
                                         Dividend Per Share (@DividendEngine.FrequencyLabel(qcFrequency)) <span class="text-danger">*</span>
                                     </label>
                                     <div class="dc-currency-group">
@@ -581,9 +582,9 @@ else
                             }
                             else
                             {
-                                <div class="mb-3">
+                                <div class="mb-2 mb-md-3">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <label class="form-label small fw-semibold mb-0" style="color: var(--omm-ink-700);">
+                                        <label class="form-label">
                                             Per-Term Dividend Rates (@DividendEngine.FrequencyShortLabel(qcFrequency)) <span class="text-danger">*</span>
                                         </label>
                                         <span class="text-muted" style="font-size: 0.7rem;">Enter term rates</span>
@@ -593,12 +594,12 @@ else
                                         {
                                             var idx = i;
                                             var termLabel = DividendEngine.GetPeriodLabel(qcFrequency, idx);
-                                            <div class="@(qcVariableTerms.Count <= 4 ? "col-6" : "col-4 col-md-3")">
+                                            <div class="@(qcVariableTerms.Count <= 4 ? "col-6" : "col-4")">
                                                 <div class="dc-term-box">
                                                     <div class="dc-term-label">@termLabel</div>
                                                     <div class="dc-currency-group">
                                                         <span class="dc-currency-addon" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; min-width: 32px;">@dcCurrencySymbol</span>
-                                                        <input type="number" class="form-control form-control-sm" min="0" step="0.01"
+                                                        <input type="number" class="form-control form-control-sm" min="0.00" step="0.01"
                                                                placeholder="0.00"
                                                                value="@qcVariableTerms[idx]"
                                                                @oninput="@((ChangeEventArgs e) => UpdateVariableTerm(idx, e.Value?.ToString()))" />
@@ -611,13 +612,13 @@ else
                             }
 
                             <div>
-                                <label class="form-label small fw-semibold" style="color: var(--omm-ink-700);" for="qc-special-dps">
-                                    Special / Bonus Dividend Per Share <span class="text-danger">*</span>
+                                <label class="form-label" for="qc-special-dps">
+                                    Special / Bonus Dividend Per Share  
                                 </label>
                                 <div class="dc-currency-group">
                                     <span class="dc-currency-addon">@dcCurrencySymbol</span>
-                                    <input id="qc-special-dps" type="number" class="form-control" min="0" step="0.01"
-                                           placeholder="0.00 (leave blank if none)"
+                                    <input id="qc-special-dps" type="number" class="form-control" min="0.00" step="0.01"
+                                           placeholder="0.00"
                                            @bind="qcSpecialDividendPerShare" @bind:event="oninput" />
                                 </div>
                                 <div class="dc-assumption-note">One-time extra or special dividend distribution</div>
@@ -632,7 +633,7 @@ else
                 <div class="col-12 col-lg-7">
                     @if (!QcHasResult)
                     {
-                        <div class="card border-0 shadow-sm rounded-4 bg-white h-100 d-flex align-items-center justify-content-center p-5">
+                        <div class="card dc-form-card rounded-4 p-4 bg-white h-100">
                             <div class="dc-empty-state">
                                 <i class="ti ti-chart-bar fs-1 mb-3"></i>
                                 <div class="fw-bold fs-6 mb-1" style="color: var(--omm-ink-800);">Ready to calculate your dividends</div>
@@ -670,7 +671,7 @@ else
                                         <span class="small fw-bold text-dark font-display" style="font-size: 0.78rem;">
                                             <i class="ti ti-calendar-event me-1 text-primary"></i> Payout Distribution Breakdown
                                         </span>
-                                        <span class="text-muted" style="font-size: 0.72rem;">@qcShares.ToString("N0") shares</span>
+                                        <span class="text-muted">@qcShares.ToString("N0") shares</span>
                                     </div>
                                     <div class="row g-2">
                                         @for (int i = 0; i < CurrentQuickCalc.PayoutBreakdown.Count; i++)
@@ -734,7 +735,7 @@ else
                                 {
                                     <div class="dc-metric-row">
                                         <span class="dc-metric-label">Yield on Cost (at cost basis @dcCurrencySymbol@qcPurchasePrice.ToString("N2"))</span>
-                                        <span class="dc-metric-value text-primary fw-bold">@CurrentQuickCalc.YieldOnCost.Value.ToString("F2")%</span>
+                                        <span class="dc-metric-value text-success fw-bold">@CurrentQuickCalc.YieldOnCost.Value.ToString("F2")%</span>
                                     </div>
                                 }
                             </div>
@@ -742,19 +743,19 @@ else
                             <!-- Actions: Save as Mine & Transition to Simulator -->
                             <div class="card border-0 shadow-sm rounded-4 p-4 bg-white dc-animate">
                                 <div class="small fw-semibold mb-3 text-muted text-uppercase" style="letter-spacing: 0.06em; font-size: 0.7rem;">Next Actions</div>
-                                <div class="d-flex flex-wrap gap-2 align-items-center">
+                                <div class="dc-actions d-flex flex-wrap gap-2 align-items-center">
                                     <!-- Save to Mines -->
-                                    <button class="btn-save-mine" @onclick="SaveToMinesAsync">
+                                    <button class="btn-omm-accent" @onclick="SaveToMinesAsync">
                                         <i class="ti ti-device-floppy"></i>
                                         Save as Mine to Track
                                     </button>
 
                                     <!-- Simulator Transitions -->
-                                    <button class="dc-action-link ms-auto" @onclick="CarryToSimulator">
+                                    <button class="btn btn-primary btn-xs ms-auto" @onclick="CarryToSimulator">
                                         <i class="ti ti-trending-up"></i>
                                         Project in Simulator
                                     </button>
-                                    <button class="dc-action-link" @onclick="CarryToSimulatorDrip">
+                                    <button class="btn btn-primary btn-xs" @onclick="CarryToSimulatorDrip">
                                         <i class="ti ti-refresh"></i>
                                         Model with DRIP
                                     </button>
@@ -780,12 +781,12 @@ else
                             <div class="dc-section-title">Stock / Asset</div>
                             <div class="row g-2">
                                 <div class="col-5">
-                                    <label class="form-label small fw-semibold text-muted" for="sim-symbol">Stock Code</label>
+                                    <label class="form-label" for="sim-symbol">Stock Code</label>
                                     <input id="sim-symbol" type="text" class="form-control rounded-3"
                                            placeholder="e.g. 1155.KL" @bind="simStockSymbol" @bind:event="oninput" />
                                 </div>
                                 <div class="col-7">
-                                    <label class="form-label small fw-semibold text-muted" for="sim-name">Company Name</label>
+                                    <label class="form-label" for="sim-name">Company Name</label>
                                     <input id="sim-name" type="text" class="form-control rounded-3"
                                            placeholder="e.g. Maybank" @bind="simStockName" @bind:event="oninput" />
                                 </div>
@@ -795,21 +796,21 @@ else
                         <!-- Investment section -->
                         <div class="dc-section">
                             <div class="dc-section-title">Investment &amp; Capital</div>
-                            <div class="mb-3">
-                                <label class="form-label small fw-semibold" style="color: var(--omm-ink-700);" for="sim-shares">Initial Shares Owned</label>
+                            <div class="mb-2 mb-md-3">
+                                <label class="form-label" for="sim-shares">Initial Shares Owned</label>
                                 <input id="sim-shares" type="number" class="form-control rounded-3" min="0" step="100"
                                        placeholder="e.g. 1000" @bind="simShares" @bind:event="oninput" />
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label small fw-semibold" style="color: var(--omm-ink-700);" for="sim-cur-price">Current Market Share Price</label>
+                            <div class="mb-2 mb-md-3">
+                                <label class="form-label" for="sim-cur-price">Current Market Share Price</label>
                                 <div class="dc-currency-group">
                                     <span class="dc-currency-addon">@dcCurrencySymbol</span>
                                     <input id="sim-cur-price" type="number" class="form-control" min="0" step="0.01"
                                            placeholder="10.50" @bind="simCurrentPrice" @bind:event="oninput" />
                                 </div>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label small fw-semibold" style="color: var(--omm-ink-700);" for="sim-purchase-price">Purchase Price Per Share (Cost Basis)</label>
+                            <div class="mb-2 mb-md-3">
+                                <label class="form-label" for="sim-purchase-price">Purchase Price Per Share (Cost Basis)</label>
                                 <div class="dc-currency-group">
                                     <span class="dc-currency-addon">@dcCurrencySymbol</span>
                                     <input id="sim-purchase-price" type="number" class="form-control" min="0" step="0.01"
@@ -818,7 +819,7 @@ else
                             </div>
                             <div class="row g-2">
                                 <div class="col-8">
-                                    <label class="form-label small fw-semibold" style="color: var(--omm-ink-700);" for="sim-contrib">Recurring Contribution</label>
+                                    <label class="form-label" for="sim-contrib">Recurring Contribution</label>
                                     <div class="dc-currency-group">
                                         <span class="dc-currency-addon">@dcCurrencySymbol</span>
                                         <input id="sim-contrib" type="number" class="form-control" min="0" step="100"
@@ -826,7 +827,7 @@ else
                                     </div>
                                 </div>
                                 <div class="col-4">
-                                    <label class="form-label small fw-semibold" style="color: var(--omm-ink-700);" for="sim-contrib-freq">Frequency</label>
+                                    <label class="form-label" for="sim-contrib-freq">Frequency</label>
                                     <select id="sim-contrib-freq" class="form-select rounded-3" @bind="simContribFrequency">
                                         <option value="@ContributionFrequency.None">None</option>
                                         <option value="@ContributionFrequency.Monthly">Monthly</option>
@@ -840,17 +841,17 @@ else
                         <!-- Dividend section -->
                         <div class="dc-section">
                             <div class="dc-section-title">Dividend Parameters</div>
-                            <div class="mb-3">
-                                <label class="form-label small fw-semibold" style="color: var(--omm-ink-700);" for="sim-dps">Dividend Per Share (per distribution)</label>
+                            <div class="mb-2 mb-md-3">
+                                <label class="form-label" for="sim-dps">Dividend Per Share (per distribution)</label>
                                 <div class="dc-currency-group">
                                     <span class="dc-currency-addon">@dcCurrencySymbol</span>
                                     <input id="sim-dps" type="number" class="form-control" min="0" step="0.01"
                                            placeholder="0.30" @bind="simDividendPerShare" @bind:event="oninput" />
                                 </div>
                             </div>
-                            <div class="row g-2 mb-3">
+                            <div class="row g-2 mb-2 mb-md-3">
                                 <div class="col-6">
-                                    <label class="form-label small fw-semibold" style="color: var(--omm-ink-700);" for="sim-freq">Frequency</label>
+                                    <label class="form-label" for="sim-freq">Frequency</label>
                                     <select id="sim-freq" class="form-select rounded-3" @bind="simFrequency">
                                         <option value="@DividendFrequency.Monthly">Monthly</option>
                                         <option value="@DividendFrequency.Quarterly">Quarterly</option>
@@ -859,7 +860,7 @@ else
                                     </select>
                                 </div>
                                 <div class="col-6">
-                                    <label class="form-label small fw-semibold" style="color: var(--omm-ink-700);" for="sim-div-growth">Div Growth (% p.a.)</label>
+                                    <label class="form-label" for="sim-div-growth">Div Growth (% p.a.)</label>
                                     <div class="dc-currency-group">
                                         <input id="sim-div-growth" type="number" class="form-control" step="0.5"
                                                placeholder="5" @bind="simDividendGrowth" @bind:event="oninput" />
@@ -868,7 +869,7 @@ else
                                 </div>
                             </div>
                             <div class="mb-1">
-                                <label class="form-label small fw-semibold text-muted" for="sim-special-dps">Special Dividend Per Share (Year 1)</label>
+                                <label class="form-label text-muted" for="sim-special-dps">Special Dividend Per Share (Year 1)</label>
                                 <div class="dc-currency-group">
                                     <span class="dc-currency-addon">@dcCurrencySymbol</span>
                                     <input id="sim-special-dps" type="number" class="form-control" min="0" step="0.01"
@@ -882,7 +883,7 @@ else
                             <div class="dc-section-title">Growth &amp; Horizon</div>
                             <div class="row g-2 mb-2">
                                 <div class="col-6">
-                                    <label class="form-label small fw-semibold" style="color: var(--omm-ink-700);" for="sim-price-growth">Price Growth (% p.a.)</label>
+                                    <label class="form-label" for="sim-price-growth">Price Growth (% p.a.)</label>
                                     <div class="dc-currency-group">
                                         <input id="sim-price-growth" type="number" class="form-control" step="0.5"
                                                placeholder="0" @bind="simPriceGrowth" @bind:event="oninput" />
@@ -891,7 +892,7 @@ else
                                     <div class="dc-assumption-note">Defaults to 0%</div>
                                 </div>
                                 <div class="col-6">
-                                    <label class="form-label small fw-semibold" style="color: var(--omm-ink-700);" for="sim-years">Investment Period</label>
+                                    <label class="form-label" for="sim-years">Investment Period</label>
                                     <div class="dc-currency-group">
                                         <input id="sim-years" type="number" class="form-control" min="1" max="100" step="1"
                                                placeholder="10" @bind="simYears" @bind:event="oninput" />
@@ -946,7 +947,7 @@ else
                             {
                                 <div class="row g-2 mt-1">
                                     <div class="col-6">
-                                        <label class="form-label small fw-semibold text-muted" for="sim-div-tax">Dividend Tax Rate</label>
+                                        <label class="form-label text-muted" for="sim-div-tax">Dividend Tax Rate</label>
                                         <div class="dc-currency-group">
                                             <input id="sim-div-tax" type="number" class="form-control" min="0" max="100" step="1"
                                                    placeholder="15" @bind="simDividendTaxRate" @bind:event="oninput" />
@@ -954,7 +955,7 @@ else
                                         </div>
                                     </div>
                                     <div class="col-6">
-                                        <label class="form-label small fw-semibold text-muted" for="sim-cgt">Capital Gains Tax Rate</label>
+                                        <label class="form-label text-muted" for="sim-cgt">Capital Gains Tax Rate</label>
                                         <div class="dc-currency-group">
                                             <input id="sim-cgt" type="number" class="form-control" min="0" max="100" step="1"
                                                    placeholder="10" @bind="simCapGainsTaxRate" @bind:event="oninput" />
@@ -1145,6 +1146,7 @@ else
     [Parameter] public string? ToolSlug { get; set; }
     [Parameter] public string BasePath { get; set; } = "/tools";
     private string? activeTool;
+    private bool qcShowOptional;
 
     // URL slug <-> internal tool key. Add a line here for every new tool.
     private static readonly Dictionary<string, string> SlugToTool = new()

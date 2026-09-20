@@ -1,7 +1,6 @@
 :root {
     --omm-font-sans: 'Inter', system-ui, -apple-system, sans-serif;
     --omm-font-display: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-
     /* Ink / Neutral Palette */
     --omm-ink-950: #08090c;
     --omm-ink-900: #0d0e13;
@@ -13,34 +12,31 @@
     --omm-ink-300: #d1d5db;
     --omm-ink-200: #e5e7eb;
     --omm-ink-100: #f3f4f6;
-    --omm-ink-50:  #f9fafb;
-
+    --omm-ink-50: #f9fafb;
+    --omm-ink-0: #ffffff;
     /* Clay / Gold Accent */
     --omm-clay-500: #c5843a;
     --omm-clay-600: #b0702c;
     --omm-clay-100: #fdf5eb;
     --omm-gold-500: #d4a838;
-
     /* Semantic Status */
     --omm-mine-green: #10b981;
     --omm-mine-green-bg: #ecfdf5;
     --omm-mine-green-border: #a7f3d0;
-
     --omm-burden-red: #ef4444;
     --omm-burden-red-bg: #fef2f2;
     --omm-burden-red-border: #fecaca;
-
     --omm-warning-yellow: #f59e0b;
     --omm-warning-bg: #fffbeb;
     --omm-warning-border: #fde68a;
-
     --omm-blue: #3b82f6;
     --omm-blue-bg: #eff6ff;
     --omm-blue-border: #bfdbfe;
-
     --omm-radius-lg: 16px;
     --omm-radius-md: 12px;
     --omm-radius-sm: 8px;
+    --omm-focus-border: #86b7fe; /* Bootstrap blue */
+    --omm-focus-ring: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
 }
 
 /* Remove browser default, replace with consistent visible ring */
@@ -63,9 +59,10 @@ h1:focus {
 .min-w-0 {
     min-width: 0;
 }
+
 body {
     font-family: var(--omm-font-sans);
-    background-color: var(--omm-ink-50);
+    background-color: #e3eefbf5; /*var(--omm-ink-50);*/
     color: var(--omm-ink-900);
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     margin: 0;
@@ -83,6 +80,14 @@ h1, h2, h3, h4, h5, h6, .font-display {
     font-weight: 700;
     letter-spacing: -0.025em;
 }
+
+
+.form-label {
+    font-size: 0.75rem; /* Or use 14px, or var(--bs-body-font-size-sm) */
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
 
 /* Custom Gradients */
 .gradient-hero {
@@ -338,7 +343,10 @@ h1, h2, h3, h4, h5, h6, .font-display {
     background-color: var(--omm-ink-100);
 }
 
-
+/* Create the custom utility class */
+.text-gold {
+    color: var(--omm-gold-500) !important;
+}
 
 /* Badges */
 .badge-pill-mine {
@@ -444,9 +452,9 @@ h1, h2, h3, h4, h5, h6, .font-display {
 }
 /* Tabler Icon Helper */
 i.ti {
-    font-size: 1.2em;
-    vertical-align: -0.15em;
-    line-height: 1;
+    font-size: 1.25em;
+    vertical-align: -0.05em;
+    font-weight: 500;
 }
 
 /* Nav & Sidebar styling */
@@ -520,12 +528,17 @@ i.ti {
     background-color: var(--omm-ink-50) !important;
 }
 
+
 /* ── Dividend Calculator ──────────────────────────────────────────────────── */
+
+
+
+
 
 /* Mode Switcher */
 .dc-mode-switcher {
     display: inline-flex;
-    background: var(--omm-ink-100);
+    background: var(--omm-ink-0);
     border-radius: 14px;
     padding: 4px;
     gap: 2px;
@@ -615,6 +628,8 @@ i.ti {
     padding: 0.65rem 0;
     border-bottom: 1px solid var(--omm-ink-100);
     font-size: 0.875rem;
+    gap: 1rem;
+    align-items: flex-start;
 }
 
 .dc-metric-row:last-child {
@@ -623,74 +638,36 @@ i.ti {
 
 .dc-metric-label {
     color: var(--omm-ink-500);
+    flex: 1 1 auto;
 }
 
 .dc-metric-value {
+    flex: 0 1 auto;
+    text-align: right;
     font-weight: 600;
     color: var(--omm-ink-900);
-}
-
-/* Optional reveal toggle */
-.dc-optional-toggle {
-    background: none;
-    border: none;
-    padding: 0;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--omm-ink-500);
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    transition: color 0.15s ease;
-    font-family: var(--omm-font-sans);
-}
-
-.dc-optional-toggle:hover {
-    color: var(--omm-ink-900);
-}
-
-.dc-optional-field {
-    overflow: hidden;
-    max-height: 0;
-    opacity: 0;
-    transition: max-height 0.3s ease, opacity 0.25s ease, margin-top 0.2s ease;
-    margin-top: 0;
-}
-
-.dc-optional-field.visible {
-    max-height: 120px;
-    opacity: 1;
-    margin-top: 0.75rem;
 }
 
 /* Quick action links */
 .dc-action-link {
-    background: none;
-    border: none;
-    padding: 0.55rem 0;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--omm-blue);
-    cursor: pointer;
+    border: none;     
+    font-size: 0.75rem;   
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    transition: all 0.15s ease;
-    font-family: var(--omm-font-sans);
-    text-decoration: none;
+   
 }
 
-.dc-action-link:hover {
-    color: var(--omm-ink-900);
-    gap: 0.5rem;
-}
+    .dc-action-link:hover {
+ 
+    }
 
 /* Simulator section headers */
 .dc-section {
-    border-bottom: 1px solid var(--omm-ink-100);
+    border-bottom: 1px solid var(--omm-ink-200);
     padding-bottom: 1.25rem;
     margin-bottom: 1.25rem;
+
 }
 
 .dc-section:last-child {
@@ -700,11 +677,11 @@ i.ti {
 }
 
 .dc-section-title {
-    font-size: 0.75rem;
-    letter-spacing: 0.08em;
+    font-size: 0.9rem;
+    letter-spacing: 0.02em;
     text-transform: uppercase;
     font-weight: 700;
-    color: var(--omm-ink-400);
+    color: var(--omm-ink-700);
     margin-bottom: 0.875rem;
     font-family: var(--omm-font-sans);
 }
@@ -823,7 +800,7 @@ i.ti {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.5rem 0;
+    padding: 0.5rem 0.5rem;
 }
 
 .dc-toggle-label {
@@ -926,7 +903,7 @@ i.ti {
 
 /* Responsive */
 @media (max-width: 767px) {
-    .dc-mode-switcher { width: 100%; justify-content: center; }
+    .dc-mode-switcher { width: 100%; justify-content: center; gap:8px;}
     .dc-mode-btn { flex: 1; text-align: center; }
     .dc-hero-value { font-size: 2.25rem; }
     .dc-projection-table-wrapper { overflow-x: auto; }
@@ -969,7 +946,7 @@ i.ti {
     border: none !important;
     box-shadow: none !important;
     border-radius: 0 !important;
-    padding: 0.5rem 0.75rem !important;
+    /* padding: 0.5rem 0.75rem !important; */
     font-size: 0.92rem;
     font-weight: 500;
     color: var(--omm-ink-900);
@@ -1024,6 +1001,29 @@ i.ti {
     margin-left: 0.25rem;
 }
 
+ 
+/* Optional reveal toggle */
+.dc-optional-toggle {  
+    border: none;
+    font-size: 0.8rem;
+    cursor: pointer; 
+    align-items: center;
+}
+ 
+.dc-optional-field {
+    /* overflow: hidden; */
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.3s ease, opacity 0.25s ease, margin-top 0.2s ease;
+    margin-top: 0;
+}
+
+    .dc-optional-field.visible {
+        min-height: 100px;
+        opacity: 1;
+        margin-top: 0.55rem;
+    }
+
 /* Variable terms grid */
 .dc-term-box {
     background: #ffffff;
@@ -1060,6 +1060,66 @@ i.ti {
     background: #ddd6fe;
     color: #4c1d95;
 }
+/* Create a custom extra-small button class */
+.btn-xs {
+    --bs-btn-padding-y: .15rem;
+    --bs-btn-padding-x: .4rem;
+    --bs-btn-font-size: .75rem;
+    --bs-btn-border-radius: .2rem;
+}
+
+/* 1. Warm the page, add depth under the cards */
+.dc-page {
+    background: linear-gradient(180deg, #fdf8ee 0%, var(--omm-ink-50) 360px);
+}
+
+.dc-form-card {
+    border: 1px solid var(--omm-ink-200);
+    box-shadow: 0 10px 30px rgba(13, 14, 19, 0.07);
+}
+
+/* Neutral currency prefix (RM) */
+.dc-currency-addon {
+    background: var(--omm-ink-100);
+    color: var(--omm-ink-700);
+    border-right-color: var(--omm-ink-200);
+}
+
+/* 3. Selected stock chip: on-brand instead of Bootstrap yellow */
+.dc-stock-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .3rem .8rem;
+    border-radius: 999px;
+    background: var(--omm-clay-100);
+    border: 1px solid #f0dcc0;
+    color: var(--omm-clay-600);
+    font-size: .8rem;
+    font-weight: 600;
+}
+
+    .dc-stock-chip strong {
+        color: var(--omm-ink-900);
+        font-family: ui-monospace, monospace;
+    }
+
+/* 4. Optional toggle: quiet text link, no box */
+.dc-optional-toggle {
+     
+}
+
+    .dc-optional-toggle:hover {
+        
+    }
+
+/* 5. Segmented control: stronger active state */
+.dc-segmented-btn.active {
+    background: var(--omm-ink-900);
+    color: #fff;
+}
+
+ 
 
 /* Robust search box (flex-based, no absolute positioning) */
 .search-input-group {
@@ -1068,18 +1128,12 @@ i.ti {
     gap: 0.5rem;
     border: 1px solid var(--omm-ink-300);
     border-radius: var(--omm-radius-md);
-    background-color: var(--omm-ink-50);
     padding: 0 0.85rem;
     min-width: 0;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-    .search-input-group:focus-within {
-        border-color: var(--omm-ink-900);
-        box-shadow: 0 0 0 3px rgba(13,14,19,0.08);
-        background-color: #ffffff;
-    }
-
+ 
     .search-input-group i {
         color: var(--omm-ink-400);
         flex-shrink: 0;
@@ -1106,6 +1160,23 @@ i.ti {
         flex-shrink: 0;
     }
 
+    .form-control:focus,
+    .form-select:focus,
+    .form-check-input:focus,
+    .omm-input:focus,
+    .dc-currency-group:focus-within,
+    .search-input-group:focus-within {
+        border-color: var(--omm-focus-border);
+        box-shadow: var(--omm-focus-ring);
+        outline: 0;
+    }
+    /* The inner input inside a wrapper must not draw its own ring (fixes the double box on search) */
+    .search-input-group input:focus,
+    .search-input-group input:focus-visible,
+    .dc-currency-group input:focus {
+        outline: 0 !important;
+        box-shadow: none !important;
+    }
 /* =========================================================
    Stealth / Privacy "Cafe" Mode
    ========================================================= */
@@ -1199,3 +1270,36 @@ body.omm-stealth-mode .stealth-target:hover {
     flex-shrink: 0;
 }
 
+/* Mobile: stack the actions full width, one clear primary */
+@media (max-width: 575.98px) {
+    .dc-mode-btn
+    {
+        padding: 0.25rem;
+    }
+
+    .dc-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+        .dc-actions .btn-save-mine,
+        .dc-actions .btn-omm-accent,
+        .dc-actions .dc-action-link {
+            width: 100%;
+            justify-content: center;
+            margin-left: 0 !important; /* cancels ms-auto */
+        }
+
+        .dc-actions .dc-action-link {
+            padding: 0.65rem 1rem;
+            background: #fff;
+            color: var(--omm-ink-700);
+            border: 1px solid var(--omm-ink-200);
+            border-radius: var(--omm-radius-md);
+        }
+
+            .dc-actions .dc-action-link:hover {
+                border-color: var(--omm-clay-500);
+                color: var(--omm-clay-600);
+            }
+}

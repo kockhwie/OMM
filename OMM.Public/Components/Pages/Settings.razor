@@ -45,20 +45,20 @@
 
             <div class="d-flex flex-column gap-3">
                 <div>
-                    <label class="form-label small fw-semibold text-dark">Miner Name</label>
+                    <label class="form-label text-dark">Miner Name</label>
                     <input type="text" class="form-control rounded-3" @bind="profile.Name" />
                 </div>
                 <div>
-                    <label class="form-label small fw-semibold text-dark">Email Address</label>
+                    <label class="form-label text-dark">Email Address</label>
                     <input type="email" class="form-control rounded-3" @bind="profile.Email" />
                 </div>
                 <div class="row g-2">
                     <div class="col-6">
-                        <label class="form-label small fw-semibold text-dark">Country</label>
+                        <label class="form-label text-dark">Country</label>
                         <input type="text" class="form-control rounded-3 bg-light" value="@profile.Country" readonly />
                     </div>
                     <div class="col-6">
-                        <label class="form-label small fw-semibold text-dark">Member Since</label>
+                        <label class="form-label text-dark">Member Since</label>
                         <input type="text" class="form-control rounded-3 bg-light" value="@profile.JoinedDate" readonly />
                     </div>
                 </div>
@@ -81,7 +81,7 @@
 
             <div class="d-flex flex-column gap-3">
                 <div>
-                    <label class="form-label small fw-semibold text-dark">Primary Base Currency</label>
+                    <label class="form-label text-dark">Primary Base Currency</label>
                     <select class="form-select rounded-3" @bind="profile.Currency">
                         <option value="MYR">MYR (RM) - Malaysian Ringgit</option>
                         <option value="SGD">SGD (S$) - Singapore Dollar</option>
@@ -90,7 +90,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="form-label small fw-semibold text-dark">Display Language</label>
+                    <label class="form-label text-dark">Display Language</label>
                     <select class="form-select rounded-3" @bind="profile.Language">
                         <option value="English">English</option>
                         <option value="Bahasa Malaysia">Bahasa Malaysia</option>

@@ -166,11 +166,11 @@ else
                     }
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-semibold text-dark">Mine Name *</label>
+                            <label class="form-label text-dark">Mine Name *</label>
                             <input type="text" class="form-control rounded-3" placeholder="e.g. EPF / KWSP, Maybank Shares" @bind="newMine.Name" />
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-semibold text-dark">Institution / Issuer</label>
+                            <label class="form-label text-dark">Institution / Issuer</label>
                             <select class="form-select rounded-3" @bind="newMine.Institution">
                                 <option value="">Select an institution</option>
                                 @foreach (var institution in institutions)
@@ -180,7 +180,7 @@ else
                             </select>
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-semibold text-dark">Category *</label>
+                            <label class="form-label text-dark">Category *</label>
                             <select class="form-select rounded-3" @bind="newMine.Category">
                                 @foreach (var cat in Enum.GetValues<MineCategory>())
                                 {
@@ -189,7 +189,7 @@ else
                             </select>
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-semibold text-dark">Asset Type *</label>
+                            <label class="form-label text-dark">Asset Type *</label>
                             <select class="form-select rounded-3" @bind="newMine.Type">
                                 @foreach (var typ in Enum.GetValues<MineType>())
                                 {
@@ -198,19 +198,19 @@ else
                             </select>
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-semibold text-dark">Current Market Value (RM) *</label>
+                            <label class="form-label text-dark">Current Market Value (RM) *</label>
                             <input type="number" class="form-control rounded-3" step="100" @bind="newMine.CurrentValue" />
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-semibold text-dark">Purchase Cost (RM)</label>
+                            <label class="form-label text-dark">Purchase Cost (RM)</label>
                             <input type="number" class="form-control rounded-3" step="100" @bind="newMine.PurchaseCost" />
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-semibold text-dark">Est. Monthly Passive Income (RM)</label>
+                            <label class="form-label text-dark">Est. Monthly Passive Income (RM)</label>
                             <input type="number" class="form-control rounded-3" step="50" @bind="newMine.MonthlyIncome" />
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-semibold text-dark">Holdings / Details</label>
+                            <label class="form-label text-dark">Holdings / Details</label>
                             <input type="text" class="form-control rounded-3" placeholder="e.g. 1,000 shares, 50 grams" @bind="newMine.Holdings" />
                         </div>
                     </div>

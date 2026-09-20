@@ -215,11 +215,11 @@ else
                     }
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-semibold text-dark">Burden Name *</label>
+                            <label class="form-label text-dark">Burden Name *</label>
                             <input type="text" class="form-control rounded-3" placeholder="e.g. Condo Mortgage, PTPTN Loan" @bind="newBurden.Name" />
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-semibold text-dark">Burden Type *</label>
+                            <label class="form-label text-dark">Burden Type *</label>
                             <select class="form-select rounded-3" @bind="newBurden.Type">
                                 @foreach (var typ in Enum.GetValues<BurdenType>())
                                 {
@@ -228,23 +228,23 @@ else
                             </select>
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-semibold text-dark">Remaining Principal Balance (RM) *</label>
+                            <label class="form-label text-dark">Remaining Principal Balance (RM) *</label>
                             <input type="number" class="form-control rounded-3" step="100" @bind="newBurden.Balance" />
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-semibold text-dark">Original Principal Amount (RM) *</label>
+                            <label class="form-label text-dark">Original Principal Amount (RM) *</label>
                             <input type="number" class="form-control rounded-3" step="100" @bind="newBurden.OriginalAmount" />
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-semibold text-dark">Interest Rate (% p.a.) *</label>
+                            <label class="form-label text-dark">Interest Rate (% p.a.) *</label>
                             <input type="number" class="form-control rounded-3" step="0.1" @bind="newBurden.InterestRate" />
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-semibold text-dark">Monthly Repayment (RM) *</label>
+                            <label class="form-label text-dark">Monthly Repayment (RM) *</label>
                             <input type="number" class="form-control rounded-3" step="50" @bind="newBurden.MonthlyPayment" />
                         </div>
                         <div class="col-12">
-                            <label class="form-label small fw-semibold text-dark">Linked Collateral / Mine (Optional)</label>
+                            <label class="form-label text-dark">Linked Collateral / Mine (Optional)</label>
                             <select class="form-select rounded-3" @bind="newBurden.LinkedMineId">
                                 <option value="">— No linked mine (Standalone loan) —</option>
                                 @foreach (var mine in allMines)

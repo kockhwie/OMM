@@ -6,7 +6,7 @@
 <div class="position-relative">
     <div class="search-input-group">
         <i class="ti ti-search"></i>
-        <input type="text" autocomplete="off"
+        <input type="text" autocomplete="off" class="form-control"
                placeholder="@Placeholder"
                value="@searchText"
                @oninput="@(e => OnInput(e.Value?.ToString()))"
@@ -15,7 +15,7 @@
                @onfocusout="OnFocusOut" />
         @if (HasSelection)
         {
-            <button type="button" class="btn-clear btn btn-sm btn-link text-muted p-0"
+            <button type="button" class="btn-clear btn btn-sm text-muted p-0"
                     @onmousedown:preventDefault="true" @onmousedown="Clear" aria-label="Clear selected stock">
                 <i class="ti ti-x"></i>
             </button>
@@ -79,7 +79,7 @@
         if (string.IsNullOrWhiteSpace(code) && string.IsNullOrWhiteSpace(name)) return "";
         if (string.IsNullOrWhiteSpace(code)) return name;
         if (string.IsNullOrWhiteSpace(name)) return code;
-        return $"{code} — {name}";
+        return $"{code} - {name}";
     }
 
     private void OnFocus()

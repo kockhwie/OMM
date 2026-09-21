@@ -1282,6 +1282,11 @@ body.omm-stealth-mode .stealth-target:hover {
 
 /* Mobile: stack the actions full width, one clear primary */
 @media (max-width: 575.98px) {
+    .nav-tab-content {
+        font-size: 1.05rem;
+        line-height: 1.5;
+    }
+
     .dc-mode-btn
     {
         padding: 0.25rem;

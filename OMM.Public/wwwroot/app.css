@@ -1403,9 +1403,15 @@ body.omm-stealth-mode .stealth-target:hover {
 }
 
 @media (max-width: 575.98px) {
+    html {
+        font-size: 103.12%; /* approximately 16.5px */
+        letter-spacing: -0.01em;
+    }
+
     .nav-tab-content {
-        font-size: 1.05rem;
+        font-size: 1.02rem;
         line-height: 1.20;
+        letter-spacing: -0.01em;
     }
 }
 

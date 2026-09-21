@@ -4,11 +4,15 @@
     <div class="container-xl d-flex align-items-center justify-content-between py-2">
         <Logo Href="/" />
 
-        <NavLink class="omm-navlink" href="/tools">Financial Tools</NavLink>
-        <NavLink class="omm-navlink" href="/learn">Learn</NavLink>
-        <a class="omm-navlink" href="/#about">About</a>
+        <!-- desktop links -->
+        <nav class="d-none d-lg-flex align-items-center gap-1">
+            <a href="/tools" class="nav-link px-3 py-2 text-secondary fw-semibold text-nowrap" style="font-size: 0.9rem;">Financial Tools</a>
+            <a href="/learn" class="nav-link px-3 py-2 text-secondary fw-semibold text-nowrap" style="font-size: 0.9rem;">Learn</a>
+            <a href="#about" class="nav-link px-3 py-2 text-secondary fw-semibold text-nowrap" style="font-size: 0.9rem;">About</a>
+        </nav>
 
-        <div class="d-none d-md-flex align-items-center gap-2">
+        <!-- desktop auth buttons -->
+        <div class="d-none d-lg-flex align-items-center gap-2">
             <AuthorizeView>
                 <Authorized>
                     <a href="/dashboard" class="btn btn-omm-primary">
@@ -41,9 +45,11 @@
         </button>
     </div>
 
+    <!-- hamburger -->
+    <button class="btn btn-sm d-lg-none border-0 text-dark" @onclick="ToggleMobileMenu" aria-label="Toggle menu">
     @if (isMobileMenuOpen)
     {
-        <div class="d-md-none bg-white border-top px-4 py-3 shadow-sm">
+        <div class="d-lg-none bg-white border-top px-4 py-3 shadow-sm">
             <div class="d-flex flex-column gap-2">
                 <NavLink class="omm-navlink" href="/tools">Financial Tools</NavLink>
                 <NavLink class="omm-navlink" href="/learn">Learn</NavLink>

@@ -8,7 +8,7 @@
    Burdens.razor, Income.razor via the same class name — it was referenced
    everywhere but never actually defined, so this fixes those pages too) ── */
 .animate-fade-up {
-    padding: 14px 0px;
+    padding: 0px 0px 14px 0px;
     animation: omm-fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 

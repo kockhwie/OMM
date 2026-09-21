@@ -83,14 +83,15 @@ body {
 }
 
 .omm-public-page {
-    padding-top: clamp(2rem, 3vw, 4rem);
-    padding-bottom: clamp(3rem, 5vw, 6rem);
+    padding-top: clamp(1rem, 2.5vw, 2rem);
+    padding-bottom: clamp(3rem, 6vw, 6rem);
 }
 
 h1, h2, h3, h4, h5, h6, .font-display {
     font-family: var(--omm-font-display);
     font-weight: 700;
     letter-spacing: -0.025em;
+    line-height: 1.0;
 }
 
 
@@ -258,7 +259,6 @@ h1, h2, h3, h4, h5, h6, .font-display {
 }
 
 @media (max-width: 575.98px) {
- 
     .omm-home-hero {
         padding-top: 21px;
         padding-bottom: 20px;
@@ -544,10 +544,6 @@ i.ti {
 
 
 /* ── Dividend Calculator ──────────────────────────────────────────────────── */
-
-
-
-
 
 /* Mode Switcher */
 .dc-mode-switcher {
@@ -1402,154 +1398,168 @@ body.omm-stealth-mode .stealth-target:hover {
     border-top: 1px solid #ffffff;
     border-bottom-right-radius: 0.5rem;
     border-bottom-left-radius: 0.5rem;
+    border-top-right-radius: 0.25rem;
     font-size: 0.85rem;
 }
+
 .nav-item {
-    font-size: 16px;
     font-weight: 600;
     letter-spacing: -0.01rem;
     margin: 0px;
 }
+
 .nav-link {
-    padding: 0.25rem 0.85rem;
+    font-size: 0.75rem;
+    padding: 0.4rem 0.8rem 0.2rem 0.8rem;
+    background-color: #ffffff25;
+    box-shadow: inset 1px 5px 20px #ffffffb4;
 }
 
-.nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active {
-    padding: 0.25rem 0.85rem;
-    border-top-right-radius: 0.55rem;
+.nav-tabs .nav-item.show .nav-link {
+     
+    border-top-right-radius: 0.5rem;
     border-top-left-radius: 0.5rem;
 }
 
-    @media (hover: hover) and (pointer: fine) {
-        .omm-tab:not(.is-active):hover {
-            background: var(--omm-ink-50);
-            border-color: var(--omm-ink-500);
-            color: var(--omm-ink-900);
-        }
+.nav-tabs .nav-link.active {
+    font-weight: 700;
+    font-size: 0.8rem;
+    /*border-top: 3px solid rgb(65, 255, 0, 0.80);*/
+    border-top-right-radius: 0.5rem;
+    border-top-left-radius: 0.5rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .omm-tab:not(.is-active):hover {
+        background: var(--omm-ink-50);
+        border-color: var(--omm-ink-500);
+        color: var(--omm-ink-900);
+    }
+}
+
+@media (max-width: 575.98px) {
+    .omm-tabs.is-block-mobile {
+        display: grid;
+        width: 100%;
+    }
+}
+
+/* ---------- Nav links with active indicator ---------- */
+.omm-navlink {
+    position: relative;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--omm-ink-800);
+    text-decoration: none;
+    border-radius: var(--omm-radius-sm);
+    transition: color 0.15s ease;
+}
+
+    .omm-navlink::after {
+        content: "";
+        position: absolute;
+        left: 0.9rem;
+        right: 0.9rem;
+        bottom: 2px;
+        height: 2px;
+        border-radius: 2px;
+        background: var(--omm-indicator);
+        transform: scaleX(0);
+        opacity: 0.5;
+        transition: transform 0.2s ease, opacity 0.2s ease;
     }
 
-    @media (max-width: 575.98px) {
-        .omm-tabs.is-block-mobile {
-            display: grid;
-            width: 100%;
-        }
-    }
-    /* ---------- Nav links with active indicator ---------- */
-    .omm-navlink {
-        position: relative;
-        padding: 0.5rem 0.9rem;
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: var(--omm-ink-800);
-        text-decoration: none;
-        border-radius: var(--omm-radius-sm);
-        transition: color 0.15s ease;
-    }
-
-        .omm-navlink::after {
-            content: "";
-            position: absolute;
-            left: 0.9rem;
-            right: 0.9rem;
-            bottom: 2px;
-            height: 2px;
-            border-radius: 2px;
-            background: var(--omm-indicator);
-            transform: scaleX(0);
-            opacity: 0.5;
-            transition: transform 0.2s ease, opacity 0.2s ease;
-        }
-
-    @media (hover: hover) and (pointer: fine) {
-        .omm-navlink:hover {
-            color: var(--omm-ink-900);
-        }
-
-            .omm-navlink:hover::after {
-                transform: scaleX(1);
-            }
-    }
-
-    .omm-navlink.active {
+@media (hover: hover) and (pointer: fine) {
+    .omm-navlink:hover {
         color: var(--omm-ink-900);
     }
 
-        .omm-navlink.active::after {
+        .omm-navlink:hover::after {
             transform: scaleX(1);
-            opacity: 1;
         }
+}
 
-    .omm-navlink:focus-visible {
+.omm-navlink.active {
+    color: var(--omm-ink-900);
+}
+
+    .omm-navlink.active::after {
+        transform: scaleX(1);
+        opacity: 1;
+    }
+
+.omm-navlink:focus-visible {
+    outline: 0;
+    box-shadow: var(--omm-focus-ring);
+}
+/* ---------- Tabs: real button group (replaces the sliding pill) ---------- */
+
+
+@media (hover: hover) and (pointer: fine) {
+    .omm-tab:not(.is-active):hover {
+        background: var(--omm-ink-50);
+        border-color: var(--omm-ink-500);
+        color: var(--omm-ink-900);
+    }
+}
+
+ 
+/* ---------- Text link (back links, quiet actions) ---------- */
+.omm-link {
+    color: var(--omm-link);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+}
+
+    .omm-link:active {
+        color: var(--omm-link-hover);
+    }
+
+    .omm-link:focus-visible {
+        outline: 0;
+        box-shadow: var(--omm-focus-ring);
+        border-radius: 4px;
+    }
+
+@media (hover: hover) and (pointer: fine) {
+    .omm-link:hover {
+        color: var(--omm-link-hover);
+    }
+}
+/* ---------- Shared button behavior ---------- */
+.btn-omm-primary, .btn-omm-secondary, .btn-omm-accent, .btn-omm-ghost {
+    text-decoration: none; /* fixes the underlined "Log in" */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+    .btn-omm-primary:active, .btn-omm-secondary:active,
+    .btn-omm-accent:active, .btn-omm-ghost:active {
+        transform: scale(0.97);
+    }
+
+    .btn-omm-primary:focus-visible, .btn-omm-secondary:focus-visible,
+    .btn-omm-accent:focus-visible, .btn-omm-ghost:focus-visible {
         outline: 0;
         box-shadow: var(--omm-focus-ring);
     }
-    /* ---------- Tabs: real button group (replaces the sliding pill) ---------- */
 
-
-    @media (hover: hover) and (pointer: fine) {
-        .omm-tab:not(.is-active):hover {
-            background: var(--omm-ink-50);
-            border-color: var(--omm-ink-500);
-            color: var(--omm-ink-900);
-        }
+    .btn-omm-primary:disabled, .btn-omm-secondary:disabled,
+    .btn-omm-accent:disabled, .btn-omm-ghost:disabled {
+        opacity: 0.5;
+        pointer-events: none;
     }
+/* ---------- Small button size ---------- */
+.btn-omm-sm {
+    padding: 0.35rem 0.8rem;
+    font-size: 0.8rem;
+    border-radius: var(--omm-radius-sm);
+}
 
- 
-    /* ---------- Text link (back links, quiet actions) ---------- */
-    .omm-link {
-        color: var(--omm-link);
-        text-decoration: underline;
-        text-decoration-thickness: 1px;
-        text-underline-offset: 3px;
-    }
-
-        .omm-link:active {
-            color: var(--omm-link-hover);
-        }
-
-        .omm-link:focus-visible {
-            outline: 0;
-            box-shadow: var(--omm-focus-ring);
-            border-radius: 4px;
-        }
-
-    @media (hover: hover) and (pointer: fine) {
-        .omm-link:hover {
-            color: var(--omm-link-hover);
-        }
-    }
-    /* ---------- Shared button behavior ---------- */
+@media (pointer: coarse) {
     .btn-omm-primary, .btn-omm-secondary, .btn-omm-accent, .btn-omm-ghost {
-        text-decoration: none; /* fixes the underlined "Log in" */
-        touch-action: manipulation;
-        -webkit-tap-highlight-color: transparent;
+        min-height: var(--omm-touch-min);
     }
-
-        .btn-omm-primary:active, .btn-omm-secondary:active,
-        .btn-omm-accent:active, .btn-omm-ghost:active {
-            transform: scale(0.97);
-        }
-
-        .btn-omm-primary:focus-visible, .btn-omm-secondary:focus-visible,
-        .btn-omm-accent:focus-visible, .btn-omm-ghost:focus-visible {
-            outline: 0;
-            box-shadow: var(--omm-focus-ring);
-        }
-
-        .btn-omm-primary:disabled, .btn-omm-secondary:disabled,
-        .btn-omm-accent:disabled, .btn-omm-ghost:disabled {
-            opacity: 0.5;
-            pointer-events: none;
-        }
-    /* ---------- Small button size ---------- */
-    .btn-omm-sm {
-        padding: 0.35rem 0.8rem;
-        font-size: 0.8rem;
-        border-radius: var(--omm-radius-sm);
-    }
-
-    @media (pointer: coarse) {
-        .btn-omm-primary, .btn-omm-secondary, .btn-omm-accent, .btn-omm-ghost {
-            min-height: var(--omm-touch-min);
-        }
-    }
+}

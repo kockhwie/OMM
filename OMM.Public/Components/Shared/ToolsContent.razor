@@ -397,10 +397,10 @@ else
         <!-- ═══════════════════════════════════════════════════════════════════
              STOCK & SHARE DIVIDEND CALCULATOR
         ════════════════════════════════════════════════════════════════════ -->
-        <div class="mb-2 mb-md-3 animate-fade-up">
+        <div class="mb-1 mb-md-2 animate-fade-up">
             <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-2">
                 <div>
-                    <h1 class="h3 fw-bold font-display mt-2 mb-1">Stock Dividend Calculator</h1>
+                    <h1 class="h3 fw-bold font-display mt-3 mb-1">Stock Dividend Calculator</h1>
                 </div>
                 @if (savedNotification)
                 {
@@ -413,15 +413,23 @@ else
 
             <!-- Mode Switcher -->
             <div>
-                <ul class="nav nav-tabs">
-                  <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="#"><i class="ti ti-zap"></i> Quick Calculate</a>
-                  </li>
-                  <li class="nav-item">
-                    <a class="nav-link" href="#">Investment Simulator</a>
-                  </li>
-                </ul>
-                <div class="text-muted mt-0 mb-2 p-3 nav-tab-content">
+                <nav class="nav nav-tabs" aria-label="Dividend calculator modes">
+                    <a id="btn-mode-quick"
+                       class="nav-link @(dcMode == "quick" ? "active" : "")"
+                       href="#quick-calculate"
+                       @onclick:preventDefault="true"
+                       @onclick='() => SwitchMode("quick")'>
+                        <i class="ti ti-zap me-1"></i> Quick Calculate
+                    </a>
+                    <a id="btn-mode-simulator"
+                       class="nav-link @(dcMode == "simulator" ? "active" : "")"
+                       href="#investment-simulator"
+                       @onclick:preventDefault="true"
+                       @onclick='() => SwitchMode("simulator")'>
+                        Investment Simulator
+                    </a>
+                </nav>
+                <div class="text-muted p-3 nav-tab-content">
                     @if (dcMode == "quick")
                     {
                         <span>Quick dividend, yield and income calculations with fixed or variable quarterly/monthly payouts.</span>

@@ -37,6 +37,17 @@
     --omm-radius-sm: 8px;
     --omm-focus-border: #86b7fe; /* Bootstrap blue */
     --omm-focus-ring: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    --omm-tab-track: var(--omm-ink-100);
+    --omm-tab-track-border: var(--omm-ink-200);
+    --omm-tab-active-bg: var(--omm-ink-900);
+    --omm-tab-active-fg: #ffffff;
+    --omm-tab-idle-fg: var(--omm-ink-600);
+    --omm-link: var(--omm-ink-600);
+    --omm-link-hover: var(--omm-clay-600);
+    --omm-indicator: var(--omm-clay-500); /* nav underline */
+    --omm-touch-min: 44px;
+    --omm-link: #0b5ed7;
+    --omm-link-hover: #084298;
 }
 
 /* Remove browser default, replace with consistent visible ring */
@@ -62,7 +73,8 @@ h1:focus {
 
 body {
     font-family: var(--omm-font-sans);
-    background-color: #e3eefbf5; /*var(--omm-ink-50);*/
+    background: #E3EEFBF5;
+    background: linear-gradient(191deg,rgba(227, 238, 251, 1) 0%, rgba(176, 221, 255, 1) 100%);
     color: var(--omm-ink-900);
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     margin: 0;
@@ -71,8 +83,8 @@ body {
 }
 
 .omm-public-page {
-    padding-top: clamp(2rem, 4vw, 4rem);
-    padding-bottom: clamp(3rem, 6vw, 6rem);
+    padding-top: clamp(2rem, 3vw, 4rem);
+    padding-bottom: clamp(3rem, 5vw, 6rem);
 }
 
 h1, h2, h3, h4, h5, h6, .font-display {
@@ -88,12 +100,14 @@ h1, h2, h3, h4, h5, h6, .font-display {
     margin-bottom: 0.25rem;
 }
 
+.card-header {
+    border-top-left-radius: 15px !important;
+    border-top-right-radius: 15px !important;
+}
 
 /* Custom Gradients */
 .gradient-hero {
-    background-image: 
-        radial-gradient(ellipse 60% 50% at 50% 0%, rgba(212,168,56,0.12), transparent 60%),
-        radial-gradient(ellipse 80% 60% at 100% 100%, rgba(16,185,129,0.06), transparent);
+    background-image: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(212,168,56,0.12), transparent 60%), radial-gradient(ellipse 80% 60% at 100% 100%, rgba(16,185,129,0.06), transparent);
 }
 
 .gradient-dark {
@@ -682,7 +696,7 @@ i.ti {
     text-transform: uppercase;
     font-weight: 700;
     color: var(--omm-ink-700);
-    margin-bottom: 0.875rem;
+    margin: 0.25rem;
     font-family: var(--omm-font-sans);
 }
 
@@ -1284,9 +1298,9 @@ body.omm-stealth-mode .stealth-target:hover {
 
         .dc-actions .btn-save-mine,
         .dc-actions .btn-omm-accent,
-        .dc-actions .dc-action-link {
+        .dc-actions .dc-action-link,
+        .dc-actions .btn-omm-secondary {
             width: 100%;
-            justify-content: center;
             margin-left: 0 !important; /* cancels ms-auto */
         }
 
@@ -1303,3 +1317,239 @@ body.omm-stealth-mode .stealth-target:hover {
                 color: var(--omm-clay-600);
             }
 }
+
+
+.omm-tabs {
+    --n: 2; /* number of tabs */
+    --i: 0; /* active index, set from Blazor */
+    position: relative;
+    display: inline-grid;
+    grid-template-columns: repeat(var(--n), 1fr);
+    gap: 6px;
+    padding: 0;
+    background: none;
+    border: 0;    
+    border-radius: var(--omm-radius-md); 
+}
+
+    .omm-tabs::before { /* the moving selected pill */
+        content: "";
+        position: absolute;
+        display: none;
+        top: 4px;
+        bottom: 4px;
+        left: 4px;
+        width: calc((100% - 8px) / var(--n));
+        transform: translateX(calc(var(--i) * 100%));
+        background: var(--omm-tab-active-bg);
+        border-radius: calc(var(--omm-radius-md) - 4px);
+        box-shadow: 0 2px 6px rgba(13, 14, 19, 0.25);
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .omm-tabs.is-block {
+        display: grid;
+        width: 100%;
+    }
+
+
+.omm-tab {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    min-height: 40px;
+    padding: 0.5rem 1.25rem;
+    /*border: 1px solid var(--omm-ink-300);*/
+    background: #ffffff;
+    border-radius: calc(var(--omm-radius-md) - 4px);
+    /*box-shadow: 0 1px 2px rgba(13, 14, 19, 0.06);*/
+    font: 600 0.7rem var(--omm-font-sans);
+    white-space: nowrap;
+    cursor: pointer;
+    border: 1px solid var(--omm-ink-300);
+    color: var(--omm-ink-800);
+    box-shadow: 0 1px 2px rgba(13, 14, 19, 0.06);
+    /*transition: color 0.2s ease;*/
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+    .omm-tab.is-active {
+        /*background: var(--omm-tab-active-bg);*/
+        background: var(--omm-mine-green);
+        border-color: var(--omm-mine-green-bg);
+        color: #fff;
+        box-shadow: 0 2px 6px var(--omm-mine-green-border);
+    }
+ 
+
+.omm-tab:not(.is-active):active {
+    color: var(--omm-ink-100);
+}
+    /* touch feedback */
+    .omm-tab:focus-visible {
+        outline: 0;
+        box-shadow: var(--omm-focus-ring);
+    }
+
+.nav-tab-content {
+    background-color: #fff;
+    border: 1px solid #e9ecef;
+    border-top: 1px solid #ffffff;
+    border-bottom-right-radius: 0.5rem;
+    border-bottom-left-radius: 0.5rem;
+    font-size: 0.85rem;
+}
+.nav-item {
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.01rem;
+    margin: 0px;
+}
+.nav-link {
+    padding: 0.25rem 0.85rem;
+}
+
+.nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active {
+    padding: 0.25rem 0.85rem;
+    border-top-right-radius: 0.55rem;
+    border-top-left-radius: 0.5rem;
+}
+
+    @media (hover: hover) and (pointer: fine) {
+        .omm-tab:not(.is-active):hover {
+            background: var(--omm-ink-50);
+            border-color: var(--omm-ink-500);
+            color: var(--omm-ink-900);
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .omm-tabs.is-block-mobile {
+            display: grid;
+            width: 100%;
+        }
+    }
+    /* ---------- Nav links with active indicator ---------- */
+    .omm-navlink {
+        position: relative;
+        padding: 0.5rem 0.9rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--omm-ink-800);
+        text-decoration: none;
+        border-radius: var(--omm-radius-sm);
+        transition: color 0.15s ease;
+    }
+
+        .omm-navlink::after {
+            content: "";
+            position: absolute;
+            left: 0.9rem;
+            right: 0.9rem;
+            bottom: 2px;
+            height: 2px;
+            border-radius: 2px;
+            background: var(--omm-indicator);
+            transform: scaleX(0);
+            opacity: 0.5;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+
+    @media (hover: hover) and (pointer: fine) {
+        .omm-navlink:hover {
+            color: var(--omm-ink-900);
+        }
+
+            .omm-navlink:hover::after {
+                transform: scaleX(1);
+            }
+    }
+
+    .omm-navlink.active {
+        color: var(--omm-ink-900);
+    }
+
+        .omm-navlink.active::after {
+            transform: scaleX(1);
+            opacity: 1;
+        }
+
+    .omm-navlink:focus-visible {
+        outline: 0;
+        box-shadow: var(--omm-focus-ring);
+    }
+    /* ---------- Tabs: real button group (replaces the sliding pill) ---------- */
+
+
+    @media (hover: hover) and (pointer: fine) {
+        .omm-tab:not(.is-active):hover {
+            background: var(--omm-ink-50);
+            border-color: var(--omm-ink-500);
+            color: var(--omm-ink-900);
+        }
+    }
+
+ 
+    /* ---------- Text link (back links, quiet actions) ---------- */
+    .omm-link {
+        color: var(--omm-link);
+        text-decoration: underline;
+        text-decoration-thickness: 1px;
+        text-underline-offset: 3px;
+    }
+
+        .omm-link:active {
+            color: var(--omm-link-hover);
+        }
+
+        .omm-link:focus-visible {
+            outline: 0;
+            box-shadow: var(--omm-focus-ring);
+            border-radius: 4px;
+        }
+
+    @media (hover: hover) and (pointer: fine) {
+        .omm-link:hover {
+            color: var(--omm-link-hover);
+        }
+    }
+    /* ---------- Shared button behavior ---------- */
+    .btn-omm-primary, .btn-omm-secondary, .btn-omm-accent, .btn-omm-ghost {
+        text-decoration: none; /* fixes the underlined "Log in" */
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+        .btn-omm-primary:active, .btn-omm-secondary:active,
+        .btn-omm-accent:active, .btn-omm-ghost:active {
+            transform: scale(0.97);
+        }
+
+        .btn-omm-primary:focus-visible, .btn-omm-secondary:focus-visible,
+        .btn-omm-accent:focus-visible, .btn-omm-ghost:focus-visible {
+            outline: 0;
+            box-shadow: var(--omm-focus-ring);
+        }
+
+        .btn-omm-primary:disabled, .btn-omm-secondary:disabled,
+        .btn-omm-accent:disabled, .btn-omm-ghost:disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+    /* ---------- Small button size ---------- */
+    .btn-omm-sm {
+        padding: 0.35rem 0.8rem;
+        font-size: 0.8rem;
+        border-radius: var(--omm-radius-sm);
+    }
+
+    @media (pointer: coarse) {
+        .btn-omm-primary, .btn-omm-secondary, .btn-omm-accent, .btn-omm-ghost {
+            min-height: var(--omm-touch-min);
+        }
+    }

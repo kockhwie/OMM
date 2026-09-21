@@ -4,11 +4,9 @@
     <div class="container-xl d-flex align-items-center justify-content-between py-2">
         <Logo Href="/" />
 
-        <nav class="d-none d-md-flex align-items-center gap-1">
-            <a href="/tools" class="nav-link px-3 py-2 text-secondary fw-semibold" style="font-size: 0.9rem;">Financial Tools</a>
-            <a href="/learn" class="nav-link px-3 py-2 text-secondary fw-semibold" style="font-size: 0.9rem;">Learn</a>
-            <a href="#about" class="nav-link px-3 py-2 text-secondary fw-semibold" style="font-size: 0.9rem;">About</a>
-        </nav>
+        <NavLink class="omm-navlink" href="/tools">Financial Tools</NavLink>
+        <NavLink class="omm-navlink" href="/learn">Learn</NavLink>
+        <a class="omm-navlink" href="/#about">About</a>
 
         <div class="d-none d-md-flex align-items-center gap-2">
             <AuthorizeView>
@@ -27,7 +25,7 @@
                     </form>
                 </Authorized>
                 <NotAuthorized>
-                    <a href="/Account/Login?returnUrl=%2Fdashboard" class="btn-omm-ghost">
+                    <a href="/Account/Login?returnUrl=%2Fdashboard" class="btn btn-light">
                         Log in
                     </a>
                     <a href="/dashboard" class="btn btn-omm-primary">
@@ -47,9 +45,9 @@
     {
         <div class="d-md-none bg-white border-top px-4 py-3 shadow-sm">
             <div class="d-flex flex-column gap-2">
-                <a href="/tools" @onclick="ToggleMobileMenu" class="text-dark text-decoration-none py-2 fw-medium">Financial Tools</a>
-                <a href="/learn" @onclick="ToggleMobileMenu" class="text-dark text-decoration-none py-2 fw-medium">Learn</a>
-                <a href="#about" @onclick="ToggleMobileMenu" class="text-dark text-decoration-none py-2 fw-medium">About</a>
+                <NavLink class="omm-navlink" href="/tools">Financial Tools</NavLink>
+                <NavLink class="omm-navlink" href="/learn">Learn</NavLink>
+                <a class="omm-navlink" href="/#about">About</a>
                 <hr class="my-2" />
                 <AuthorizeView>
                     <Authorized>

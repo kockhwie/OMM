@@ -6,7 +6,7 @@
 
 @if (activeTool == null)
 {
-    <div class="mb-4 animate-fade-up">
+    <div class="mb-2 mb-md-3 animate-fade-up">
         <h1 class="h3 fw-bold text-dark font-display mb-1">Financial Tools</h1>
         <p class="text-muted small mb-0">Practical calculators calibrated for Malaysian financial instruments and mining strategy</p>
     </div>
@@ -126,7 +126,7 @@
                     <div class="rounded-3 bg-dark text-warning p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
                         <i class="ti ti-chart-bar fs-4"></i>
                     </div>
-                    <span class="badge bg-light text-dark border">Dividend</span>                </div>
+                    <span class="badge bg-light text-dark border">Dividend</span></div>
                 <h3 class="h6 fw-bold text-dark font-display mb-2">Stock Dividend Calculator</h3>
                 <p class="text-muted small mb-3 flex-grow-1" style="line-height: 1.5;">
                     Instantly calculate dividend income with fixed or variable payouts, then model DRIP and long-term portfolio growth.
@@ -142,18 +142,16 @@
 else
 {
     <!-- Back to Tools Header -->
-    <div class="mb-2 mb-md-3 animate-fade-up">
-        <button class="btn btn-link text-muted p-0 small text-decoration-none d-inline-flex align-items-center gap-1"
-                @onclick="HandleBackToTools">
-            <i class="ti ti-arrow-left"></i>
-            <span>Back to all tools</span>
+    <div class="animate-fade-up">
+        <button type="button" class="btn-omm-secondary btn-omm-sm" @onclick="HandleBackToTools">
+            <i class="ti ti-arrow-left"></i> Back to all tools
         </button>
     </div>
 
     @if (activeTool == "fd")
     {
         <!-- Fixed Deposit Calculator -->
-        <div class="mb-4 animate-fade-up">
+        <div class="mb-2 mb-md-3 animate-fade-up">
             <h1 class="h3 fw-bold text-dark font-display mb-1">Fixed Deposit &amp; Cash Yield Calculator</h1>
             <p class="text-muted small mb-0">Estimate total maturity proceeds and annualized cashflow</p>
         </div>
@@ -234,7 +232,7 @@ else
     else if (activeTool == "freedom")
     {
         <!-- Freedom Ratio Simulator -->
-        <div class="mb-4 animate-fade-up">
+        <div class="mb-2 mb-md-3 animate-fade-up">
             <h1 class="h3 fw-bold text-dark font-display mb-1">Freedom Ratio Simulator</h1>
             <p class="text-muted small mb-0">Model your passive income coverage and time to financial freedom</p>
         </div>
@@ -320,7 +318,7 @@ else
     else if (activeTool == "emergency")
     {
         <!-- Emergency Fund Planner -->
-        <div class="mb-4 animate-fade-up">
+        <div class="mb-2 mb-md-3  animate-fade-up">
             <h1 class="h3 fw-bold text-dark font-display mb-1">Emergency Fund Safety Gauge</h1>
             <p class="text-muted small mb-0">Assess your financial runway and liquidity reserves</p>
         </div>
@@ -399,11 +397,10 @@ else
         <!-- ═══════════════════════════════════════════════════════════════════
              STOCK & SHARE DIVIDEND CALCULATOR
         ════════════════════════════════════════════════════════════════════ -->
-        <div class="mb-4 animate-fade-up">
+        <div class="mb-2 mb-md-3 animate-fade-up">
             <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-2">
                 <div>
-                    <h1 class="h3 fw-bold font-display mb-1" style="color: var(--omm-ink-900);">Stock Dividend Calculator</h1>
-                    
+                    <h1 class="h3 fw-bold font-display mt-2 mb-1">Stock Dividend Calculator</h1>
                 </div>
                 @if (savedNotification)
                 {
@@ -415,26 +412,28 @@ else
             </div>
 
             <!-- Mode Switcher -->
-            <div class="dc-mode-switcher mt-2 mt-md-3">
-                <button id="btn-mode-quick" class="dc-mode-btn @(dcMode == "quick" ? "active" : "")"
-                        @onclick='() => SwitchMode("quick")'>
-                    <i class="ti ti-zap me-1"></i> Quick Calculate
-                </button>
-                <button id="btn-mode-simulator" class="dc-mode-btn @(dcMode == "simulator" ? "active" : "")"
-                        @onclick='() => SwitchMode("simulator")'>
-                    <i class="ti ti-chart-dots me-1"></i> Investment Simulator
-                </button>
+            <div>
+                <ul class="nav nav-tabs">
+                  <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="#"><i class="ti ti-zap"></i> Quick Calculate</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="#">Investment Simulator</a>
+                  </li>
+                </ul>
+                <div class="text-muted mt-0 mb-2 p-3 nav-tab-content">
+                    @if (dcMode == "quick")
+                    {
+                        <span>Quick dividend, yield and income calculations with fixed or variable quarterly/monthly payouts.</span>
+                    }
+                    else
+                    {
+                        <span>Model dividend growth, DRIP reinvestment, recurring investments and long-term multi-year scenarios.</span>
+                    }
+ 
+                </div>
+                
             </div>
-            <p class="text-muted mt-2 mb-0" style="font-size: 0.78rem;">
-                @if (dcMode == "quick")
-                {
-                    <span>Quick dividend, yield and income calculations with fixed or variable quarterly/monthly payouts.</span>
-                }
-                else
-                {
-                    <span>Model dividend growth, DRIP reinvestment, recurring investments and long-term multi-year scenarios.</span>
-                }
-            </p>
         </div>
 
         @if (dcMode == "quick")
@@ -445,57 +444,53 @@ else
             <div class="row g-4 dc-animate">
                 <!-- LEFT: Inputs Form -->
                 <div class="col-12 col-lg-5">
-                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
-
-                        <!-- 1. Stock Information -->
-                        <div class="dc-section">
-                            <div class="dc-section-title text-gold"><i class="ti ti-blocks text-gold"></i> Stock Information <span class="dc-subtle-optional">(Optional)</span></div> 
-                            <!-- Search: the only way Code/Name get set — both fields below are read-only -->
- 
+                    <div class="card border-0 rounded-4"> 
+                        <div class="card-header bg-dark">  
+                            <div class="dc-section-title text-gold"><i class="ti ti-blocks text-gold"></i> Stock Information <span class="dc-subtle-optional">(Optional)</span></div>
+                        </div>
+                        <div class="card-body">
+                                <div class="dc-section">                             
+                                    <!-- Search: the only way Code/Name get set — both fields below are read-only --> 
                                     <div class="mb-2 mb-md-3">
                                         <label class="form-label">Search Stock</label>
                                         <StockSearchPicker @bind-Code="qcStockSymbol" @bind-Name="qcStockName"
-                                                           OnStockSelected="OnStockPicked" />
+                                                            OnStockSelected="OnStockPicked" />
                                     </div>
                                     @if (!string.IsNullOrWhiteSpace(qcStockSymbol))
                                     {
-                                        <span class="dc-stock-chip mb-2 mb-md-3"><strong>@qcStockSymbol</strong> @qcStockName</span>
+                                        <div class="mb-2">
+                                            <span class="dc-stock-chip mb-2 mb-md-3"><strong>@qcStockSymbol</strong> @qcStockName</span>
+                                        </div>
                                     }
 
-                                    <button type="button" class="btn btn-light btn-sm dc-optional-toggle mt-1" @onclick="() => qcShowOptional = !qcShowOptional">
+                                    <button type="button" class="btn-omm-secondary btn-omm-sm" @onclick="() => qcShowOptional = !qcShowOptional">
                                         <i class="ti @(qcShowOptional ? "ti-chevron-up" : "ti-chevron-down")"></i>
                                         Add price &amp; cost to see Yield %
                                     </button>
+
                                     <div class="dc-optional-field @(qcShowOptional ? "visible" : "")">
-                                        @* price, cost basis, special dividend inputs here, no asterisks *@
-                                        <!-- Price + Cost Basis, grouped, both optional and always amendable -->
+                                        <!-- Price + Cost, grouped, both optional and always amendable -->
                                         <div class="row g-2">
                                             <div class="col-6">
-                                                <label class="form-label" for="qc-price">
-                                                    Current Stock Price
-                                                </label>
+                                                <label class="form-label" for="qc-price">Current Stock Price</label>
                                                 <div class="dc-currency-group">
                                                     <span class="dc-currency-addon">@dcCurrencySymbol</span>
                                                     <input id="qc-price" type="number" class="form-control" min="0" step="0.01"
-                                                           placeholder="10.50"
-                                                           @bind="qcSharePrice" @bind:event="oninput" />
+                                                            placeholder="10.50"
+                                                            @bind="qcSharePrice" @bind:event="oninput" />
                                                 </div>
                                             </div>
                                             <div class="col-6">
-                                                <label class="form-label" for="qc-purchase">
-                                                    Purchase Cost
-                                                </label>
+                                                <label class="form-label" for="qc-purchase">Purchase Cost</label>
                                                 <div class="dc-currency-group">
                                                     <span class="dc-currency-addon">@dcCurrencySymbol</span>
                                                     <input id="qc-purchase" type="number" class="form-control" min="0" step="0.01"
-                                                           placeholder="8.00"
-                                                           @bind="qcPurchasePrice" @bind:event="oninput" />
+                                                            placeholder="8.00"
+                                                            @bind="qcPurchasePrice" @bind:event="oninput" />
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-
-
 
                                     <!-- Code / Name — populated only via the search box above
                                     <div class="row g-2 mb-3">
@@ -504,14 +499,14 @@ else
                                                 Stock Code
                                             </label>
                                             <input id="qc-symbol" type="text" class="form-control rounded-3 bg-light" readonly
-                                                   placeholder="—" value="@qcStockSymbol" />
+                                                    placeholder="—" value="@qcStockSymbol" />
                                         </div>
                                         <div class="col-8">
                                             <label class="form-label text-muted mb-1" for="qc-name">
                                                 Stock Name 
                                             </label>
                                             <input id="qc-name" type="text" class="form-control rounded-3 bg-light" readonly
-                                                   placeholder="—" value="@qcStockName" />
+                                                    placeholder="—" value="@qcStockName" />
                                         </div>
                                     </div> -->
                                     
@@ -525,109 +520,112 @@ else
                                                 </small>                          
                                         </div>
                                     }                       
+                                </div>
+                            </div> 
+                    </div>
+
+                    <div class="card border-0 rounded-4 mt-3">
+                        <div class="card-header bg-dark">  
+                            <div class="dc-section-title text-gold"><i class="ti ti-pig-money text-gold"></i> Dividend Payouts </div>
                         </div>
 
-                        <!-- 2. Dividend Payouts -->
-                        <div class="dc-section">
-                            <div class="dc-section-title text-gold"><i class="ti ti-pig-money text-gold"></i> Dividend Payouts</div>
-
-                           <!-- Shares Owned: compulsory, sits at the bottom so it reads as the bridge into Dividend Payouts below (the annual dividend calc needs both). -->
-                            <div class="mb-2 mb-md-3">
-                                <label class="form-label" for="qc-shares">
-                                    Shares Owned <span class="text-danger">*</span>
-                                </label>
-                                <input id="qc-shares" type="number" class="form-control rounded-3" min="0" step="100"
-                                       placeholder="e.g. 1000"
-                                       @bind="qcShares" @bind:event="oninput" />
-                            </div>
-                            <!-- Shares Owned moved up to "Your Position" — Payout Type is now first here -->
-                            <div class="mb-2 mb-md-3">
-                                <label class="form-label">Payout Type  <span class="text-danger">*</span></label>
-                                <div class="dc-segmented" role="group" aria-label="Payout type">
-                                    <button type="button" class="dc-segmented-btn @(qcPayoutType == "uniform" ? "active" : "")"
-                                            @onclick='() => ChangePayoutType("uniform")'>
-                                        Fixed Rate
-                                    </button>
-                                    <button type="button" class="dc-segmented-btn @(qcPayoutType == "variable" ? "active" : "")"
-                                            @onclick='() => ChangePayoutType("variable")'>
-                                        Variable Terms
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="mb-2 mb-md-3">
-                                <label class="form-label" for="qc-freq">Dividend Frequency  <span class="text-danger">*</span></label>
-                                <select id="qc-freq" class="form-select rounded-3" @bind="qcFrequency" @bind:after="OnFrequencyChanged">
-                                    <option value="@DividendFrequency.Monthly">Monthly (12 payouts per year)</option>
-                                    <option value="@DividendFrequency.Quarterly">Quarterly (4 payouts per year)</option>
-                                    <option value="@DividendFrequency.SemiAnnually">Semi-annually (2 payouts per year)</option>
-                                    <option value="@DividendFrequency.Annually">Annually (1 payout per year)</option>
-                                </select>
-                            </div>
-
-                            @if (qcPayoutType == "uniform")
-                            {
+                        <div class="card-body">
+                            <div class="dc-section">
+                                <!-- Shares Owned: compulsory, sits at the bottom so it reads as the bridge into  below (the annual dividend calc needs both). -->
                                 <div class="mb-2 mb-md-3">
-                                    <label class="form-label" for="qc-dps">
-                                        Dividend Per Share (@DividendEngine.FrequencyLabel(qcFrequency)) <span class="text-danger">*</span>
+                                    <label class="form-label" for="qc-shares">
+                                        Shares Owned <span class="text-danger">*</span>
+                                    </label>
+                                    <input id="qc-shares" type="number" class="form-control rounded-3" min="0" step="100"
+                                           placeholder="e.g. 1000"
+                                           @bind="qcShares" @bind:event="oninput" />
+                                </div>
+                                <!-- Shares Owned moved up to "Your Position" — Payout Type is now first here -->
+                                <div class="mb-2 mb-md-3">
+                                    <label class="form-label" for="qc-payout-type">
+                                        Payout Type <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="omm-tabs is-block" role="group" aria-label="Payout type"
+                                     style="--i:@(qcPayoutType == "uniform" ? 0 : 1)">
+                                        <button type="button" class="omm-tab @(qcPayoutType == "uniform" ? "is-active" : "")"
+                                                aria-pressed="@(qcPayoutType == "uniform" ? "true" : "false")"
+                                                @onclick='() => ChangePayoutType("uniform")'>Fixed Rate</button>
+                                        <button type="button" class="omm-tab @(qcPayoutType == "variable" ? "is-active" : "")"
+                                                aria-pressed="@(qcPayoutType == "variable" ? "true" : "false")"
+                                                @onclick='() => ChangePayoutType("variable")'>Variable Terms</button>
+                                    </div>
+                                </div>
+                                <div class="mb-2 mb-md-3">
+                                    <label class="form-label" for="qc-freq">Dividend Frequency  <span class="text-danger">*</span></label>
+                                    <select id="qc-freq" class="form-select rounded-3" @bind="qcFrequency" @bind:after="OnFrequencyChanged">
+                                        <option value="@DividendFrequency.Monthly">Monthly (12 payouts per year)</option>
+                                        <option value="@DividendFrequency.Quarterly">Quarterly (4 payouts per year)</option>
+                                        <option value="@DividendFrequency.SemiAnnually">Semi-annually (2 payouts per year)</option>
+                                        <option value="@DividendFrequency.Annually">Annually (1 payout per year)</option>
+                                    </select>
+                                </div>
+
+                                @if (qcPayoutType == "uniform")
+                                {
+                                    <div class="mb-2 mb-md-3">
+                                        <label class="form-label" for="qc-dps">
+                                            Dividend Per Share (@DividendEngine.FrequencyLabel(qcFrequency)) <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="dc-currency-group">
+                                            <span class="dc-currency-addon">@dcCurrencySymbol</span>
+                                            <input id="qc-dps" type="number" class="form-control" min="0" step="0.01"
+                                                   placeholder="0.30"
+                                                   @bind="qcDividendPerShare" @bind:event="oninput" />
+                                        </div>
+                                        <div class="dc-assumption-note">Amount paid per share for each @DividendEngine.FrequencyLabel(qcFrequency) distribution</div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="mb-2 mb-md-3">
+                                        <div class="justify-content-between align-items-center">
+                                            <label class="form-label">
+                                                Per-Term Dividend Rates (@DividendEngine.FrequencyShortLabel(qcFrequency)) <span class="text-danger">*</span>
+                                            </label>
+                                        </div>
+                                        <div class="row g-2">
+                                            @for (int i = 0; i < qcVariableTerms.Count; i++)
+                                            {
+                                                var idx = i;
+                                                var termLabel = DividendEngine.GetPeriodLabel(qcFrequency, idx);
+                                                <div class="@(qcVariableTerms.Count <= 4 ? "col-6" : "col-4")">
+                                                    <div class="dc-term-box">
+                                                        <div class="dc-term-label">@termLabel</div>
+                                                        <div class="dc-currency-group">
+                                                            <span class="dc-currency-addon" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; min-width: 32px;">@dcCurrencySymbol</span>
+                                                            <input type="number" class="form-control form-control-sm" min="0.00" step="0.01"
+                                                                   placeholder="0.00"
+                                                                   value="@qcVariableTerms[idx]"
+                                                                   @oninput="@((ChangeEventArgs e) => UpdateVariableTerm(idx, e.Value?.ToString()))" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+
+                                <div>
+                                    <label class="form-label" for="qc-special-dps">
+                                        Special / Bonus Dividend Per Share  
                                     </label>
                                     <div class="dc-currency-group">
                                         <span class="dc-currency-addon">@dcCurrencySymbol</span>
-                                        <input id="qc-dps" type="number" class="form-control" min="0" step="0.01"
-                                               placeholder="0.30"
-                                               @bind="qcDividendPerShare" @bind:event="oninput" />
+                                        <input id="qc-special-dps" type="number" class="form-control" min="0.00" step="0.01"
+                                               placeholder="0.00"
+                                               @bind="qcSpecialDividendPerShare" @bind:event="oninput" />
                                     </div>
-                                    <div class="dc-assumption-note">Amount paid per share for each @DividendEngine.FrequencyLabel(qcFrequency) distribution</div>
+                                    <div class="dc-assumption-note">One-time extra or special dividend distribution</div>
                                 </div>
-                            }
-                            else
-                            {
-                                <div class="mb-2 mb-md-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <label class="form-label">
-                                            Per-Term Dividend Rates (@DividendEngine.FrequencyShortLabel(qcFrequency)) <span class="text-danger">*</span>
-                                        </label>
-                                        <span class="text-muted" style="font-size: 0.7rem;">Enter term rates</span>
-                                    </div>
-                                    <div class="row g-2">
-                                        @for (int i = 0; i < qcVariableTerms.Count; i++)
-                                        {
-                                            var idx = i;
-                                            var termLabel = DividendEngine.GetPeriodLabel(qcFrequency, idx);
-                                            <div class="@(qcVariableTerms.Count <= 4 ? "col-6" : "col-4")">
-                                                <div class="dc-term-box">
-                                                    <div class="dc-term-label">@termLabel</div>
-                                                    <div class="dc-currency-group">
-                                                        <span class="dc-currency-addon" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; min-width: 32px;">@dcCurrencySymbol</span>
-                                                        <input type="number" class="form-control form-control-sm" min="0.00" step="0.01"
-                                                               placeholder="0.00"
-                                                               value="@qcVariableTerms[idx]"
-                                                               @oninput="@((ChangeEventArgs e) => UpdateVariableTerm(idx, e.Value?.ToString()))" />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        }
-                                    </div>
-                                </div>
-                            }
-
-                            <div>
-                                <label class="form-label" for="qc-special-dps">
-                                    Special / Bonus Dividend Per Share  
-                                </label>
-                                <div class="dc-currency-group">
-                                    <span class="dc-currency-addon">@dcCurrencySymbol</span>
-                                    <input id="qc-special-dps" type="number" class="form-control" min="0.00" step="0.01"
-                                           placeholder="0.00"
-                                           @bind="qcSpecialDividendPerShare" @bind:event="oninput" />
-                                </div>
-                                <div class="dc-assumption-note">One-time extra or special dividend distribution</div>
                             </div>
                         </div>
-
-                    </div>
+                    </div> 
                 </div>
-
 
                 <!-- RIGHT: Live Results -->
                 <div class="col-12 col-lg-7">
@@ -649,17 +647,17 @@ else
                                 <div class="dc-hero-label">
                                     @(!string.IsNullOrWhiteSpace(qcStockName) ? $"{qcStockName} ({qcStockSymbol}) - " : "")Annual Dividend
                                 </div>
-                                <div class="dc-hero-value">@dcCurrencySymbol@CurrentQuickCalc.AnnualDividend.ToString("N2")</div>
+                                <div class="dc-hero-value">@dcCurrencySymbol @CurrentQuickCalc.AnnualDividend.ToString("N2")</div>
                                 <div class="dc-hero-sub">
                                     @if (qcSpecialDividendPerShare > 0)
                                     {
-                                        <span>Regular: @dcCurrencySymbol@CurrentQuickCalc.RegularAnnualDividend.ToString("N2")</span>
-                                        <span>&nbsp;+ Special: @dcCurrencySymbol@CurrentQuickCalc.SpecialDividendTotal.ToString("N2")</span>
+                                        <span>Regular: @dcCurrencySymbol @CurrentQuickCalc.RegularAnnualDividend.ToString("N2")</span>
+                                        <span>&nbsp;+ Special: @dcCurrencySymbol @CurrentQuickCalc.SpecialDividendTotal.ToString("N2")</span>
                                         <span>&nbsp;·&nbsp;</span>
                                     }
-                                    <span>@dcCurrencySymbol@CurrentQuickCalc.PerPaymentDividend.ToString("N2")</span> avg/@DividendEngine.FrequencyLabel(qcFrequency)
+                                    <span>@dcCurrencySymbol @CurrentQuickCalc.PerPaymentDividend.ToString("N2")</span> avg/@DividendEngine.FrequencyLabel(qcFrequency)
                                     &nbsp;·&nbsp;
-                                    ≈ <span>@dcCurrencySymbol@CurrentQuickCalc.MonthlyEquivalent.ToString("N2")</span> /mo
+                                    ≈ <span>@dcCurrencySymbol @CurrentQuickCalc.MonthlyEquivalent.ToString("N2")</span> /mo
                                 </div>
                             </div>
 
@@ -684,9 +682,9 @@ else
                                                         @DividendEngine.GetPeriodLabel(qcFrequency, i)
                                                     </div>
                                                     <div class="fw-bold text-dark font-display" style="font-size: 0.9rem;">
-                                                        @dcCurrencySymbol@termPayout.ToString("N0")
+                                                        @dcCurrencySymbol @termPayout.ToString("N0")
                                                     </div>
-                                                    <small class="text-muted" style="font-size: 0.68rem;">@dcCurrencySymbol@termDps.ToString("N3")/sh</small>
+                                                    <small class="text-muted" style="font-size: 0.68rem;">@dcCurrencySymbol @termDps.ToString("N3")/sh</small>
                                                 </div>
                                             </div>
                                         }
@@ -698,9 +696,9 @@ else
                                                         Special Div
                                                     </div>
                                                     <div class="fw-bold text-warning-emphasis font-display" style="font-size: 0.9rem;">
-                                                        @dcCurrencySymbol@CurrentQuickCalc.SpecialDividendTotal.ToString("N0")
+                                                        @dcCurrencySymbol @CurrentQuickCalc.SpecialDividendTotal.ToString("N0")
                                                     </div>
-                                                    <small class="text-muted" style="font-size: 0.68rem;">@dcCurrencySymbol@qcSpecialDividendPerShare.ToString("N3")/sh</small>
+                                                    <small class="text-muted" style="font-size: 0.68rem;">@dcCurrencySymbol @qcSpecialDividendPerShare.ToString("N3")/sh</small>
                                                 </div>
                                             </div>
                                         }
@@ -717,7 +715,7 @@ else
                                 <div class="dc-metric-row">
                                     <span class="dc-metric-label">Annualized Dividend / Share</span>
                                     <span class="dc-metric-value">
-                                        @dcCurrencySymbol@((CurrentQuickCalc.AnnualDividend / (qcShares > 0 ? qcShares : 1)).ToString("N4"))
+                                        @dcCurrencySymbol @((CurrentQuickCalc.AnnualDividend / (qcShares > 0 ? qcShares : 1)).ToString("N4"))
                                     </span>
                                 </div>
                                 <div class="dc-metric-row">
@@ -727,14 +725,14 @@ else
                                 @if (qcSharePrice > 0 && CurrentQuickCalc.DividendYield.HasValue)
                                 {
                                     <div class="dc-metric-row">
-                                        <span class="dc-metric-label">Estimated Dividend Yield (at @dcCurrencySymbol@qcSharePrice.ToString("N2"))</span>
+                                        <span class="dc-metric-label">Estimated Dividend Yield (at @dcCurrencySymbol @qcSharePrice.ToString("N2"))</span>
                                         <span class="dc-metric-value text-success fw-bold">@CurrentQuickCalc.DividendYield.Value.ToString("F2")%</span>
                                     </div>
                                 }
                                 @if (qcPurchasePrice > 0 && CurrentQuickCalc.YieldOnCost.HasValue)
                                 {
                                     <div class="dc-metric-row">
-                                        <span class="dc-metric-label">Yield on Cost (at cost basis @dcCurrencySymbol@qcPurchasePrice.ToString("N2"))</span>
+                                        <span class="dc-metric-label">Yield on Cost (at cost basis @dcCurrencySymbol @qcPurchasePrice.ToString("N2"))</span>
                                         <span class="dc-metric-value text-success fw-bold">@CurrentQuickCalc.YieldOnCost.Value.ToString("F2")%</span>
                                     </div>
                                 }
@@ -751,7 +749,7 @@ else
                                     </button>
 
                                     <!-- Simulator Transitions -->
-                                    <button class="btn btn-primary btn-xs ms-auto" @onclick="CarryToSimulator">
+                                    <button class="btn btn-primary btn-xs" @onclick="CarryToSimulator">
                                         <i class="ti ti-trending-up"></i>
                                         Project in Simulator
                                     </button>
@@ -764,6 +762,8 @@ else
                         </div>
                     }
                 </div>
+ 
+ 
             </div>
         }
         else
@@ -988,21 +988,21 @@ else
                             <div class="col-12">
                                 <div class="dc-sim-metric highlight shadow-sm">
                                     <div class="dc-sim-metric-label">Projected Portfolio Value</div>
-                                    <div class="dc-sim-metric-value">@dcCurrencySymbol@CurrentSimResult.FinalPortfolioValue.ToString("N0")</div>
+                                    <div class="dc-sim-metric-value">@dcCurrencySymbol @CurrentSimResult.FinalPortfolioValue.ToString("N0")</div>
                                     <div class="dc-sim-metric-sub">After @simYears year@(simYears != 1 ? "s" : "")</div>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="dc-sim-metric">
                                     <div class="dc-sim-metric-label">Annual Dividend Income</div>
-                                    <div class="dc-sim-metric-value">@dcCurrencySymbol@CurrentSimResult.FinalAnnualDividend.ToString("N0")</div>
+                                    <div class="dc-sim-metric-value">@dcCurrencySymbol @CurrentSimResult.FinalAnnualDividend.ToString("N0")</div>
                                     <div class="dc-sim-metric-sub">Year @simYears @(simTaxEnabled ? "(net after tax)" : "(gross)")</div>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="dc-sim-metric">
                                     <div class="dc-sim-metric-label">Total Dividends Received</div>
-                                    <div class="dc-sim-metric-value">@dcCurrencySymbol@CurrentSimResult.TotalDividendsNet.ToString("N0")</div>
+                                    <div class="dc-sim-metric-value">@dcCurrencySymbol @CurrentSimResult.TotalDividendsNet.ToString("N0")</div>
                                     <div class="dc-sim-metric-sub">@(simTaxEnabled ? "Net, after estimated tax" : "Gross, cumulative")</div>
                                 </div>
                             </div>
@@ -1030,7 +1030,7 @@ else
                             <div class="col-6">
                                 <div class="dc-sim-metric">
                                     <div class="dc-sim-metric-label">Total Capital Invested</div>
-                                    <div class="dc-sim-metric-value">@dcCurrencySymbol@(CurrentSimResult.InitialInvestment + CurrentSimResult.TotalContributions).ToString("N0")</div>
+                                    <div class="dc-sim-metric-value">@dcCurrencySymbol @(CurrentSimResult.InitialInvestment + CurrentSimResult.TotalContributions).ToString("N0")</div>
                                     <div class="dc-sim-metric-sub">Initial + regular contributions</div>
                                 </div>
                             </div>
@@ -1104,10 +1104,10 @@ else
                                                 <tr>
                                                     <td><span class="badge bg-light text-dark border">Yr @row.Year</span></td>
                                                     <td style="text-align:right;">@row.Shares.ToString("N2")</td>
-                                                    <td style="text-align:right;">@dcCurrencySymbol@row.DividendPerShare.ToString("N4")</td>
-                                                    <td style="text-align:right;">@dcCurrencySymbol@row.AnnualDividendNet.ToString("N2")</td>
-                                                    <td style="text-align:right;">@dcCurrencySymbol@row.SharePrice.ToString("N2")</td>
-                                                    <td class="highlight-col" style="text-align:right;">@dcCurrencySymbol@row.PortfolioValue.ToString("N0")</td>
+                                                    <td style="text-align:right;">@dcCurrencySymbol @row.DividendPerShare.ToString("N4")</td>
+                                                    <td style="text-align:right;">@dcCurrencySymbol @row.AnnualDividendNet.ToString("N2")</td>
+                                                    <td style="text-align:right;">@dcCurrencySymbol @row.SharePrice.ToString("N2")</td>
+                                                    <td class="highlight-col" style="text-align:right;">@dcCurrencySymbol @row.PortfolioValue.ToString("N0")</td>
                                                     <td style="text-align:right; color: @(row.TotalReturn >= 0 ? "var(--omm-mine-green)" : "var(--omm-burden-red)");">
                                                         @row.TotalReturn.ToString("F1")%
                                                     </td>

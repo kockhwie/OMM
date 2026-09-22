@@ -1,0 +1,76 @@
+﻿<nav class="calc-nav mb-4 animate-fade-up" aria-label="Calculator quick-nav">
+
+    @* ── Desktop / Tablet (md+): scrollable pill strip ──────────────────── *@
+    <div class="calc-nav-strip d-none d-md-flex">
+        @foreach (var calc in _calculators)
+        {
+            <a href="@($"{BasePath}/{calc.Slug}")"
+               class="calc-nav-pill @(ActiveSlug == calc.Slug ? "active" : "")">
+                <i class="ti @calc.Icon"></i>
+                <span>@calc.ShortName</span>
+            </a>
+        }
+        <a href="@BasePath" class="calc-nav-pill calc-nav-hub">
+            <i class="ti ti-layout-grid"></i>
+            <span>All Tools</span>
+        </a>
+    </div>
+
+    @* ── Mobile: current calculator name + expand toggle ────────────────── *@
+    <div class="d-md-none">
+        <button class="calc-nav-mobile-btn w-100"
+                @onclick="ToggleMobile"
+                type="button"
+                aria-expanded="@mobileOpen.ToString().ToLower()">
+            <i class="ti @(_active?.Icon ?? "ti-layout-grid")"></i>
+            <span class="flex-grow-1 text-start fw-semibold">
+                @(_active?.ShortName ?? "Calculators")
+            </span>
+            <i class="ti @(mobileOpen ? "ti-chevron-up" : "ti-chevron-down")"></i>
+        </button>
+
+        @if (mobileOpen)
+        {
+            <div class="calc-nav-mobile-list animate-fade-up">
+                @foreach (var calc in _calculators)
+                {
+                    <a href="@($"{BasePath}/{calc.Slug}")"
+                       class="calc-nav-mobile-item @(ActiveSlug == calc.Slug ? "active" : "")"
+                       @onclick="Close">
+                        <i class="ti @calc.Icon"></i>
+                        <span>@calc.Name</span>
+                    </a>
+                }
+                <a href="@BasePath" class="calc-nav-mobile-item calc-nav-hub-item" @onclick="Close">
+                    <i class="ti ti-layout-grid"></i>
+                    <span>View All Tools</span>
+                </a>
+            </div>
+        }
+    </div>
+
+</nav>
+
+@code {
+    [Parameter] public string BasePath   { get; set; } = "/tools";
+    [Parameter] public string? ActiveSlug { get; set; }
+
+    private bool mobileOpen;
+    private void ToggleMobile() => mobileOpen = !mobileOpen;
+    private void Close()        => mobileOpen = false;
+
+    private CalcEntry? _active => _calculators.FirstOrDefault(c => c.Slug == ActiveSlug);
+
+    // ── Add a new entry here whenever a new calculator is introduced ──────
+    private static readonly CalcEntry[] _calculators =
+    [
+        new("fd-calculator",       "FD & Cash Yield", "Fixed Deposit & Cash Yield",  "ti-calculator"),
+        new("freedom-ratio",       "Freedom Ratio",   "Freedom Ratio Simulator",     "ti-bolt"),
+        new("emergency-fund",      "Emergency Fund",  "Emergency Fund Safety Gauge", "ti-shield-check"),
+        new("debt-payoff",         "Debt Payoff",     "Debt Payoff Accelerator",     "ti-trending-down"),
+        new("compound-growth",     "Compound Growth", "Compound Growth Simulator",   "ti-chart-line"),
+        new("dividend-calculator", "Dividends",       "Stock Dividend Calculator",   "ti-chart-bar"),
+    ];
+
+    private record CalcEntry(string Slug, string ShortName, string Name, string Icon);
+}

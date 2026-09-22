@@ -1,0 +1,126 @@
+﻿/* ═══════════════════════════════════════════════════════════════════════════
+   CalculatorNav — scoped styles
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Pill strip (md+) ──────────────────────────────────────────────────── */
+.calc-nav-strip {
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.calc-nav-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 2rem;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #555;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+    line-height: 1.5;
+}
+
+.calc-nav-pill:hover {
+    background: #f8f9fa;
+    border-color: #cbd5e1;
+    color: #111;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+    text-decoration: none;
+}
+
+.calc-nav-pill.active {
+    background: #111;
+    border-color: #111;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.calc-nav-hub {
+    color: #888;
+    border-style: dashed;
+}
+
+.calc-nav-hub:hover {
+    color: #444;
+}
+
+/* ── Mobile toggle button ──────────────────────────────────────────────── */
+.calc-nav-mobile-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    font-size: 0.875rem;
+    color: #111;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.calc-nav-mobile-btn:hover,
+.calc-nav-mobile-btn:focus {
+    background: #f8f9fa;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    outline: none;
+}
+
+/* ── Mobile dropdown list ──────────────────────────────────────────────── */
+.calc-nav-mobile-list {
+    margin-top: 0.4rem;
+    border-radius: 0.75rem;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.calc-nav-mobile-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #444;
+    text-decoration: none;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.1s ease;
+}
+
+.calc-nav-mobile-item:last-child {
+    border-bottom: none;
+}
+
+.calc-nav-mobile-item:hover {
+    background: #f8f9fa;
+    color: #111;
+    text-decoration: none;
+}
+
+.calc-nav-mobile-item.active {
+    background: #f0f4ff;
+    color: #111;
+    font-weight: 600;
+}
+
+.calc-nav-hub-item {
+    background: #fafafa;
+    color: #888;
+    font-size: 0.8rem;
+    font-weight: 400;
+    border-top: 1px solid #e2e8f0;
+}
+
+.calc-nav-hub-item:hover {
+    color: #444;
+}

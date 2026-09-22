@@ -1,12 +1,72 @@
 @page "/tools"
 @page "/tools/{ToolSlug}"
 @layout MainLayout
+@inject IMineService MineService
+@using OMM.Public.Services
+@using OMM.Public.Components.Shared.Tools
 
 <PublicPageShell>
-    <ToolsContent ToolSlug="@ToolSlug" BasePath="/tools" />
+    @if (string.IsNullOrEmpty(ToolSlug))
+    {
+        <ToolsContent BasePath="/tools" />
+    }
+    else
+    {
+        <CalculatorNav BasePath="/tools" ActiveSlug="@ToolSlug" />
+
+        @switch (ToolSlug)
+        {
+            case "fd-calculator":
+                <CalculatorFd UserCurrency="@userCurrency" CurrencySymbol="@currencySymbol" />
+                break;
+            case "freedom-ratio":
+                <CalculatorFreedom UserCurrency="@userCurrency" CurrencySymbol="@currencySymbol" />
+                break;
+            case "emergency-fund":
+                <CalculatorEmergencyFund UserCurrency="@userCurrency" CurrencySymbol="@currencySymbol" />
+                break;
+            case "debt-payoff":
+                <CalculatorDebtPayoff UserCurrency="@userCurrency" CurrencySymbol="@currencySymbol" />
+                break;
+            case "compound-growth":
+                <CalculatorCompoundGrowth UserCurrency="@userCurrency" CurrencySymbol="@currencySymbol" />
+                break;
+            case "dividend-calculator":
+                <CalculatorDividend UserCurrency="@userCurrency" CurrencySymbol="@currencySymbol" />
+                break;
+            default:
+                <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white animate-fade-up">
+                    <i class="ti ti-alert-circle fs-1 text-muted mb-3"></i>
+                    <h3 class="h5 fw-bold text-dark mb-2">Calculator Not Found</h3>
+                    <p class="text-muted small mb-4">That calculator doesn't exist yet — check back soon.</p>
+                    <a href="/tools" class="btn btn-dark btn-sm rounded-3 px-3">Back to Tools</a>
+                </div>
+                break;
+        }
+    }
 </PublicPageShell>
 
 @code {
-    [Parameter]
-    public string? ToolSlug { get; set; }
+    [Parameter] public string? ToolSlug { get; set; }
+
+    private string HubPath => "/tools";
+    private string userCurrency = "MYR";
+    private string currencySymbol = "RM";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var profile = await MineService.GetMinerProfileAsync();
+            if (profile != null && !string.IsNullOrWhiteSpace(profile.Currency))
+            {
+                userCurrency = profile.Currency;
+                currencySymbol = FormatHelper.GetCurrencySymbol(userCurrency);
+            }
+        }
+        catch
+        {
+            // fallback to MYR
+        }
+    }
 }

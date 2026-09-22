@@ -1,0 +1,92 @@
+@using OMM.Public.Services
+
+<div class="mb-2 mb-md-3 animate-fade-up">
+    <h1 class="h3 fw-bold text-dark font-display mb-1">Fixed Deposit &amp; Cash Yield Calculator</h1>
+    <p class="text-muted small mb-0">Estimate total maturity proceeds and annualized cashflow</p>
+</div>
+
+<div class="row g-4 animate-fade-up">
+    <!-- Inputs -->
+    <div class="col-12 col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+            <h3 class="h6 fw-bold text-dark font-display mb-4">Placement Parameters</h3>
+            
+            <div class="mb-3">
+                <label class="form-label text-dark">Principal Amount</label>
+                <div class="dc-currency-group">
+                    <span class="dc-currency-addon">@CurrencySymbol</span>
+                    <input type="number" class="form-control" step="1000" @bind="fdPrincipal" @bind:event="oninput" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label text-dark">Interest Rate (% p.a.)</label>
+                <div class="dc-currency-group">
+                    <input type="number" class="form-control" step="0.05" @bind="fdRate" @bind:event="oninput" />
+                    <span class="dc-currency-suffix">%</span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label class="form-label text-dark mb-0">Tenure: <span class="text-primary fw-bold">@fdTenureMonths months</span></label>
+                    <span class="text-muted small">(@(fdTenureMonths >= 12 ? $"{fdTenureMonths / 12} yr {(fdTenureMonths % 12 > 0 ? $"{fdTenureMonths % 12} mo" : "")}" : $"{fdTenureMonths} mo"))</span>
+                </div>
+                <input type="range" class="form-range" min="1" max="60" @bind="fdTenureMonths" @bind:event="oninput" />
+                <div class="d-flex justify-content-between small text-muted">
+                    <span>1 mo</span>
+                    <span>12 mo (1 yr)</span>
+                    <span>36 mo (3 yr)</span>
+                    <span>60 mo (5 yr)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div class="col-12 col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+            <h3 class="h6 fw-bold text-dark font-display mb-4">Maturity Yield Breakdown</h3>
+
+            <div class="p-4 rounded-4 bg-dark text-white text-center mb-3">
+                <span class="text-uppercase text-white-50 fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.05em;">Total Maturity Proceeds</span>
+                <div class="fs-2 fw-bold text-warning font-display my-1">
+                    @FormatHelper.FormatCurrency(FdMaturityValue, UserCurrency)
+                </div>
+                <small class="text-white-50">Principal + Total Interest Earned</small>
+            </div>
+
+            <div class="d-flex flex-column gap-2 small">
+                <div class="d-flex justify-content-between py-2 border-bottom border-light-subtle">
+                    <span class="text-muted">Initial Principal</span>
+                    <span class="fw-semibold text-dark">@FormatHelper.FormatCurrency(fdPrincipal, UserCurrency)</span>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom border-light-subtle">
+                    <span class="text-muted">Total Interest Profit</span>
+                    <span class="fw-bold text-success">@FormatHelper.FormatCurrency(FdTotalInterest, UserCurrency)</span>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom border-light-subtle">
+                    <span class="text-muted">Effective Monthly Passive Equivalent</span>
+                    <span class="fw-bold text-dark">@FormatHelper.FormatCurrency(FdMonthlyEquivalent, UserCurrency) / month</span>
+                </div>
+                <div class="d-flex justify-content-between py-2">
+                    <span class="text-muted">Effective Annualized Return</span>
+                    <span class="fw-semibold text-dark">@fdRate.ToString("F2")% p.a.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string UserCurrency { get; set; } = "MYR";
+    [Parameter] public string CurrencySymbol { get; set; } = "RM";
+
+    private decimal fdPrincipal = 50000m;
+    private decimal fdRate = 3.85m;
+    private int fdTenureMonths = 12;
+
+    private decimal FdMaturityValue => fdPrincipal * (decimal)Math.Pow((double)(1m + (fdRate / 100m)), (double)fdTenureMonths / 12.0);
+    private decimal FdTotalInterest => FdMaturityValue - fdPrincipal;
+    private decimal FdMonthlyEquivalent => fdTenureMonths > 0 ? FdTotalInterest / fdTenureMonths : 0;
+}

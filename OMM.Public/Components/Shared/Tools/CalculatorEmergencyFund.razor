@@ -1,0 +1,84 @@
+@using OMM.Public.Services
+
+<div class="mb-2 mb-md-3 animate-fade-up">
+    <h1 class="h3 fw-bold text-dark font-display mb-1">Emergency Fund Safety Gauge</h1>
+    <p class="text-muted small mb-0">Assess your financial runway and liquidity reserves</p>
+</div>
+
+<div class="row g-4 animate-fade-up">
+    <div class="col-12 col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+            <h3 class="h6 fw-bold text-dark font-display mb-4">Living Outflows</h3>
+            
+            <div class="mb-3">
+                <label class="form-label text-dark">Monthly Essential Living Expenses</label>
+                <div class="dc-currency-group">
+                    <span class="dc-currency-addon">@CurrencySymbol</span>
+                    <input type="number" class="form-control" step="200" @bind="efMonthlyExpense" @bind:event="oninput" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label text-dark">Current Liquid Cash &amp; Deposits</label>
+                <div class="dc-currency-group">
+                    <span class="dc-currency-addon">@CurrencySymbol</span>
+                    <input type="number" class="form-control" step="1000" @bind="efCurrentCash" @bind:event="oninput" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label text-dark">Target Runway Coverage</label>
+                <select class="form-select rounded-3" @bind="efTargetMonths">
+                    <option value="3">3 Months (Standard Employee)</option>
+                    <option value="6">6 Months (Recommended Balanced Buffer)</option>
+                    <option value="9">9 Months (Single Income / Family)</option>
+                    <option value="12">12 Months (Business Owner / Freelancer)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+            <h3 class="h6 fw-bold text-dark font-display mb-4">Runway Status</h3>
+
+            @{
+                var efTargetFund = efMonthlyExpense * efTargetMonths;
+                var efMonthsCurrent = efMonthlyExpense > 0 ? Math.Round(efCurrentCash / efMonthlyExpense, 1) : 0;
+                var efProgress = efTargetFund > 0 ? (int)Math.Clamp((efCurrentCash / efTargetFund) * 100m, 0, 100) : 0;
+                var efShortfall = efTargetFund - efCurrentCash;
+            }
+
+            <div class="p-4 rounded-4 bg-light border border-light-subtle text-center mb-3">
+                <span class="text-uppercase text-muted fw-semibold" style="font-size: 0.7rem;">Current Runway</span>
+                <div class="fs-1 fw-bold text-dark font-display my-1">
+                    @efMonthsCurrent Months
+                </div>
+                <ProgressBar Percentage="@efProgress" Variant="gold" Height="8px" />
+                <small class="text-muted mt-2 d-block">Target: @efTargetMonths Months (@FormatHelper.FormatCurrency(efTargetFund, UserCurrency))</small>
+            </div>
+
+            <div class="d-flex flex-column gap-2 small">
+                <div class="d-flex justify-content-between py-2 border-bottom border-light-subtle">
+                    <span class="text-muted">Target Buffer Amount</span>
+                    <span class="fw-semibold text-dark">@FormatHelper.FormatCurrency(efTargetFund, UserCurrency)</span>
+                </div>
+                <div class="d-flex justify-content-between py-2">
+                    <span class="text-muted">Buffer Shortfall</span>
+                    <span class="fw-bold @(efShortfall > 0 ? "text-danger" : "text-success")">
+                        @(efShortfall > 0 ? FormatHelper.FormatCurrency(efShortfall, UserCurrency) : "Buffer fully funded! 🎉")
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string UserCurrency { get; set; } = "MYR";
+    [Parameter] public string CurrencySymbol { get; set; } = "RM";
+
+    private decimal efMonthlyExpense = 4500m;
+    private decimal efCurrentCash = 25000m;
+    private int efTargetMonths = 6;
+}

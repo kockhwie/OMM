@@ -1,0 +1,94 @@
+@using OMM.Public.Services
+
+<div class="mb-2 mb-md-3 animate-fade-up">
+    <h1 class="h3 fw-bold text-dark font-display mb-1">Freedom Ratio Simulator</h1>
+    <p class="text-muted small mb-0">Model your passive income coverage and time to financial freedom</p>
+</div>
+
+<div class="row g-4 animate-fade-up">
+    <div class="col-12 col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+            <h3 class="h6 fw-bold text-dark font-display mb-4">Cashflow Assumptions</h3>
+            
+            <div class="mb-3">
+                <label class="form-label text-dark">Monthly Recurring Living Expenses</label>
+                <div class="dc-currency-group">
+                    <span class="dc-currency-addon">@CurrencySymbol</span>
+                    <input type="number" class="form-control" step="250" @bind="simExpenses" @bind:event="oninput" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label text-dark">Current Monthly Passive Income</label>
+                <div class="dc-currency-group">
+                    <span class="dc-currency-addon">@CurrencySymbol</span>
+                    <input type="number" class="form-control" step="100" @bind="simPassive" @bind:event="oninput" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label text-dark">Monthly Savings Invested into Mines</label>
+                <div class="dc-currency-group">
+                    <span class="dc-currency-addon">@CurrencySymbol</span>
+                    <input type="number" class="form-control" step="250" @bind="simMonthlySaving" @bind:event="oninput" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label text-dark">Assumed Average Mine Yield (% p.a.)</label>
+                <div class="dc-currency-group">
+                    <input type="number" class="form-control" step="0.5" @bind="simYield" @bind:event="oninput" />
+                    <span class="dc-currency-suffix">%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+            <h3 class="h6 fw-bold text-dark font-display mb-4">Projected Milestones</h3>
+
+            @{
+                var currentRatio = simExpenses > 0 ? (simPassive / simExpenses) * 100m : 0;
+                var targetPassiveNeeded = simExpenses - simPassive;
+                var additionalCapitalNeeded = simYield > 0 && targetPassiveNeeded > 0 ? (targetPassiveNeeded * 12m) / (simYield / 100m) : 0;
+                var monthsToFreedom = simMonthlySaving > 0 && additionalCapitalNeeded > 0 ? (int)Math.Ceiling(additionalCapitalNeeded / simMonthlySaving) : 0;
+            }
+
+            <div class="p-4 rounded-4 bg-success-subtle border border-success-subtle text-center mb-3">
+                <span class="text-uppercase text-muted fw-semibold" style="font-size: 0.7rem;">Current Freedom Score</span>
+                <div class="fs-1 fw-bold text-success font-display my-1">
+                    @Math.Round(currentRatio, 1)%
+                </div>
+                <ProgressBar Percentage="@currentRatio" Variant="mine" Height="10px" />
+            </div>
+
+            <div class="d-flex flex-column gap-2 small">
+                <div class="d-flex justify-content-between py-2 border-bottom border-light-subtle">
+                    <span class="text-muted">Passive Gap to 100% Freedom</span>
+                    <span class="fw-bold text-danger">@(targetPassiveNeeded > 0 ? FormatHelper.FormatCurrency(targetPassiveNeeded, UserCurrency) : $"{CurrencySymbol}0") / mo</span>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom border-light-subtle">
+                    <span class="text-muted">Capital Required at @simYield% yield</span>
+                    <span class="fw-bold text-dark">@FormatHelper.FormatCurrency(additionalCapitalNeeded, UserCurrency)</span>
+                </div>
+                <div class="d-flex justify-content-between py-2">
+                    <span class="text-muted">Estimated Time to 100% Freedom</span>
+                    <span class="fw-bold text-dark">
+                        @(monthsToFreedom > 0 ? $"{monthsToFreedom / 12} years {monthsToFreedom % 12} months" : "Achieved / Instant")
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string UserCurrency { get; set; } = "MYR";
+    [Parameter] public string CurrencySymbol { get; set; } = "RM";
+
+    private decimal simExpenses = 4500m;
+    private decimal simPassive = 1200m;
+    private decimal simMonthlySaving = 2000m;
+    private decimal simYield = 6.0m;
+}

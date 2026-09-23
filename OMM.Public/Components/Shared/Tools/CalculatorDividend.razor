@@ -86,7 +86,7 @@
                                         <!-- Price + Cost, grouped, both optional and always amendable -->
                                         <div class="row g-2">
                                             <div class="col-6">
-                                                <label class="form-label" for="qc-price">Current Stock Price</label>
+                                                <label class="form-label" for="qc-price">Current Share Price</label>
                                                 <div class="dc-currency-group">
                                                     <span class="dc-currency-addon">@dcCurrencySymbol</span>
                                                     <input id="qc-price" type="number" class="form-control" min="0" step="0.01"
@@ -95,7 +95,7 @@
                                                 </div>
                                             </div>
                                             <div class="col-6">
-                                                <label class="form-label" for="qc-purchase">Purchase Cost</label>
+                                    <label class="form-label" for="qc-purchase">Purchase Price Per Share</label>
                                                 <div class="dc-currency-group">
                                                     <span class="dc-currency-addon">@dcCurrencySymbol</span>
                                                     <input id="qc-purchase" type="number" class="form-control" min="0" step="0.01"
@@ -129,7 +129,7 @@
                                         <div class="dc-inline-alert dc-inline-alert-warning text-danger mt-2">
                                             <i class="ti ti-alert-triangle"></i>                      
                                                 <small>
-                                                    Add @(qcSharePrice > 0 ? "a Purchase Cost Basis" : "a Current Stock Price")
+                                                    Add @(qcSharePrice > 0 ? "a Purchase Price Basis" : "a Current Share Price")
                                                     too, both are needed together to show Dividend Yield % / Yield on Cost %.
                                                 </small>                          
                                         </div>
@@ -415,7 +415,7 @@
                                     <div class="dc-optional-field @(qcShowOptional ? "visible" : "")">                                        
                                         <div class="row g-2">
                                             <div class="col-6">
-                                                <label class="form-label" for="qc-price">Current Stock Price</label>
+                                                <label class="form-label" for="qc-price">Current Share Price</label>
                                                 <div class="dc-currency-group">
                                                     <span class="dc-currency-addon">@dcCurrencySymbol</span>
                                                     <input id="qc-price" type="number" class="form-control" min="0" step="0.01"
@@ -424,7 +424,7 @@
                                                 </div>
                                             </div>
                                             <div class="col-6">
-                                                <label class="form-label" for="qc-purchase">Purchase Cost</label>
+                                                <label class="form-label" for="qc-purchase">Purchase Price</label>
                                                 <div class="dc-currency-group">
                                                     <span class="dc-currency-addon">@dcCurrencySymbol</span>
                                                     <input id="qc-purchase" type="number" class="form-control" min="0" step="0.01"
@@ -440,7 +440,7 @@
                                         <div class="dc-inline-alert dc-inline-alert-warning text-danger mt-2">
                                             <i class="ti ti-alert-triangle"></i>                      
                                                 <small>
-                                                    Add @(qcSharePrice > 0 ? "a Purchase Cost Basis" : "a Current Stock Price")
+                                                    Add @(qcSharePrice > 0 ? "a Purchase Price Basis" : "a Current Share Price")
                                                     too, both are needed together to show Dividend Yield % / Yield on Cost %.
                                                 </small>                          
                                         </div>
@@ -451,10 +451,10 @@
 
                     <div class="card border-0 rounded-4">
 
-                        <!-- Advanced section -->
+                        <!-- Advanced section --> 
 
                         <div class="card-header bg-dark">  
-                            <div class="dc-section-title text-gold"><i class="ti ti-pig-money text-gold"></i> Investment &amp; Capital</div>
+                            <div class="dc-section-title text-gold"><i class="ti ti-home-dollar text-gold"></i> Investment &amp; Capital</div>
                         </div>
                         <div class="card-body">
                             <div class="dc-section"> 
@@ -554,7 +554,7 @@
                         <div class="card border-0 rounded-4">
                         <!-- Growth section -->
                         <div class="card-header bg-dark">  
-                            <div class="dc-section-title text-gold"><i class="ti ti-pig-money text-gold"></i> Growth &amp; Horizon</div>
+                            <div class="dc-section-title text-gold"><i class="ti ti-trending-up-down text-gold"></i> Growth &amp; Horizon</div>
                         </div>
                         <div class="card-body">
                             <div class="dc-section">
@@ -584,12 +584,11 @@
                         <div class="card border-0 rounded-4">
                         <!-- Reinvestment (DRIP) section -->
                             <div class="card-header bg-dark">  
-                                <div class="dc-section-title text-gold"><i class="ti ti-pig-money text-gold"></i> Reinvestment (DRIP)</div>
+                                <div class="dc-section-title text-gold"><i class="ti ti-clock-dollar text-gold"></i> Reinvestment (DRIP)</div>
                             </div>
                             <div class="dc-section">
                                 <div class="card-body">
-                                    <div class="dc-toggle-row">
-                                 
+                                    <div class="dc-toggle-row">                                 
                                         <div>
                                             <div class="dc-toggle-label">Reinvest dividends (DRIP)</div>
                                             <div class="dc-toggle-sub">Auto-compound dividend payouts into new shares</div>
@@ -618,10 +617,11 @@
                             <div class="card border-0 rounded-4">
                             <!-- Tax section -->
                                 <div class="card-header bg-dark">  
-                                    <div class="dc-section-title text-gold"><i class="ti ti-pig-money text-gold"></i> Estimated Tax (Optional)</div>
+                                    <div class="dc-section-title text-gold"><i class="ti ti-receipt-tax text-gold"></i> Estimated Tax (Optional)</div>
                                 </div>
                                 <div class="dc-section">
-                                    <div class="dc-toggle-row mb-2">
+                                    <div class="card-body">
+                                    <div class="dc-toggle-row">
                                         <div>
                                             <div class="dc-toggle-label">Include estimated tax withholding</div>
                                             <div class="dc-toggle-sub">For net after-tax income modeling</div>
@@ -652,6 +652,7 @@
                                             </div>
                                         </div>
                                     }
+                                </div>
                                 </div>
                         </div>
                 </div>

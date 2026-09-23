@@ -290,6 +290,11 @@ public static class DividendEngine
         int paymentsPerYear = PaymentsPerYear(input.DividendFrequency);
         int contributionsPerYear = (int)input.ContributionFrequency;
 
+        // Practical cap: ~1 trillion shares — beyond this the numbers are not meaningful
+        const decimal MaxShares = 1_000_000_000_000m;
+        // Cap for cumulative monetary totals (~1 quadrillion)
+        const decimal MaxMonetary = 1_000_000_000_000_000m;
+
         // Working state
         decimal shares = input.InitialShares;
         decimal sharePrice = input.CurrentSharePrice > 0 ? input.CurrentSharePrice : 1m;
@@ -357,13 +362,13 @@ public static class DividendEngine
                 yearDividendNet += netDiv;
 
                 // DRIP: reinvest net dividend into additional shares
-                if (input.DripEnabled && sharePrice > 0 && netDiv > 0)
+                if (input.DripEnabled && sharePrice > 0 && netDiv > 0 && shares < MaxShares)
                 {
                     decimal newShares = input.AllowFractionalShares
-                        ? netDiv / sharePrice
-                        : Math.Floor(netDiv / sharePrice);
-                    shares += newShares;
-                    yearSharesBoughtDrip += newShares;
+                        ? SafeDivide(netDiv, sharePrice)
+                        : Math.Floor(SafeDivide(netDiv, sharePrice));
+                    shares = Math.Min(shares + newShares, MaxShares);
+                    yearSharesBoughtDrip = Math.Min(yearSharesBoughtDrip + newShares, MaxShares);
                 }
 
                 // No-DRIP comparison: accumulate cash dividends on no-drip shares
@@ -371,23 +376,25 @@ public static class DividendEngine
                 decimal netDivNoDrip = input.TaxEnabled
                     ? grossDivNoDrip - CalculateTax(grossDivNoDrip, input.DividendTaxRate)
                     : grossDivNoDrip;
-                totalCashDividends += netDivNoDrip;
+                totalCashDividends = Math.Min(totalCashDividends + netDivNoDrip, MaxMonetary);
             }
 
             // Step 4: Process recurring contributions (spread through year)
             if (contributionsPerYear > 0 && input.RecurringContribution > 0 && sharePrice > 0)
             {
                 decimal contributionThisYear = input.RecurringContribution * contributionsPerYear;
-                totalContributions += contributionThisYear;
-                decimal newSharesFromContrib = contributionThisYear / sharePrice;
-                shares += input.AllowFractionalShares
-                    ? newSharesFromContrib
-                    : Math.Floor(newSharesFromContrib);
+                totalContributions = Math.Min(totalContributions + contributionThisYear, MaxMonetary);
+                decimal newSharesFromContrib = SafeDivide(contributionThisYear, sharePrice);
+                shares = Math.Min(
+                    shares + (input.AllowFractionalShares
+                        ? newSharesFromContrib
+                        : Math.Floor(newSharesFromContrib)),
+                    MaxShares);
             }
 
-            cumulativeDividendsGross += yearDividendGross;
-            cumulativeDividendsNet += yearDividendNet;
-            cumulativeSharesDrip += yearSharesBoughtDrip;
+            cumulativeDividendsGross = Math.Min(cumulativeDividendsGross + yearDividendGross, MaxMonetary);
+            cumulativeDividendsNet = Math.Min(cumulativeDividendsNet + yearDividendNet, MaxMonetary);
+            cumulativeSharesDrip = Math.Min(cumulativeSharesDrip + yearSharesBoughtDrip, MaxShares);
 
             decimal portfolioValue = shares * sharePrice;
             decimal totalInvested = initialInvestment + totalContributions;
@@ -454,6 +461,16 @@ public static class DividendEngine
     public static bool IsValidNonNegative(decimal value) => value >= 0m && value < 1_000_000_000m;
     public static bool IsValidPercentage(decimal value) => value >= -100m && value <= 500m;
     public static bool IsValidYears(int years) => years >= 1 && years <= 100;
+
+    // Safe division to avoid decimal overflow. Returns 0 if denominator is zero.
+    private static decimal SafeDivide(decimal numerator, decimal denominator)
+    {
+        if (denominator == 0m) return 0m;
+        // If the result would exceed decimal.MaxValue, clamp to MaxValue.
+        if (numerator > decimal.MaxValue * denominator)
+            return decimal.MaxValue;
+        return numerator / denominator;
+    }
 
     /// <summary>Format a decimal for safe display (never NaN/Infinity).</summary>
     public static string SafeFormat(decimal? value, string format = "N2")

@@ -82,3 +82,9 @@ In Blazor (.NET 8+), parameters passed across an SSR-to-interactive boundary (a 
 - **Do NOT automatically execute `git commit` or `git push`.** Always present completed changes to the user for review first.
 - The `OMM.Integration.Tests` project uses `WebApplicationFactory` to boot the live Kestrel pipeline in-process in the `Integration` environment. It validates real HTTP requests against critical routes in both `OMM.Admin` and `OMM.Public`.
 
+---
+
+## Public form standard
+
+For new or refactored Public forms, follow `docs/ui-form-standards.md` and reuse the shared form primitives before creating component-specific spacing, typography, borders, or radii.
+

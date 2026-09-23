@@ -119,7 +119,7 @@ app.UseHttpsRedirection();
 app.UseAntiforgery();
 
 app.MapStaticAssets();
-app.MapRazorComponents<App>()
+app.MapRazorComponents<OMM.Public.Components.App>()
     .AddInteractiveServerRenderMode();
 
 app.MapDatabaseHealthCheck();
@@ -128,5 +128,3 @@ app.MapDatabaseHealthCheck();
 app.MapAdditionalIdentityEndpoints();
 
 app.Run();
-
-public partial class Program { }

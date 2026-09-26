@@ -26,6 +26,8 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddScoped<IMineService, MockMineService>();
+builder.Services.AddScoped<IMinerProfileService, MinerProfileService>();
+builder.Services.AddScoped<PublicMemberMigrationService>();
 builder.Services.AddMemoryCache();
 builder.Services.AddDatabaseAvailability();
 builder.Services.AddDatabaseAlerting(builder.Configuration);
@@ -55,7 +57,7 @@ if (!string.IsNullOrWhiteSpace(googleClientId) && !string.IsNullOrWhiteSpace(goo
 builder.Services.AddAuthorizationBuilder(); // Non-Admin
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString ?? string.Empty, npgsqlOptions =>
         npgsqlOptions.EnableRetryOnFailure(
             maxRetryCount: 3,
@@ -108,7 +110,15 @@ else
 
 await using (var scope = app.Services.CreateAsyncScope())
 {
-    //await IdentitySeedData.SeedAsync(scope.ServiceProvider, app.Configuration);
+    var profileMigration = scope.ServiceProvider.GetRequiredService<PublicMemberMigrationService>();
+    try
+    {
+        await profileMigration.EnsureMinerProfilesAsync();
+    }
+    catch (Exception exception)
+    {
+        app.Logger.LogError(exception, "Unable to ensure Public miner profiles for existing Identity users.");
+    }
 }
 
 // Configure the HTTP request pipeline.

@@ -1,8 +1,8 @@
 @page "/settings"
 @layout DashboardLayout
 @attribute [Authorize]
-@inject IMineService MineService
-@inject NavigationManager Navigation
+@using OMM.Public.Services
+@inject IMinerProfileService ProfileService
 
 <PageTitle>Settings & Preferences — OhMyMine</PageTitle>
 
@@ -11,7 +11,11 @@
     <p class="text-muted small mb-0">Manage your miner profile, localization parameters, and data settings</p>
 </div>
 
-@if (savedNotification)
+@if (loading)
+{
+    <div class="alert alert-info">Loading your profile settings…</div>
+}
+else if (savedNotification)
 {
     <div class="alert alert-success alert-dismissible fade show rounded-4 border-0 shadow-sm d-flex align-items-center gap-2 mb-4 animate-fade-up" role="alert">
         <i class="ti ti-circle-check fs-4"></i>
@@ -46,20 +50,26 @@
             <div class="d-flex flex-column gap-3">
                 <div>
                     <label class="form-label text-dark">Miner Name</label>
-                    <input type="text" class="form-control rounded-3" @bind="profile.Name" />
+                    <input type="text" class="form-control rounded-3" @bind="displayName" maxlength="200" />
                 </div>
                 <div>
                     <label class="form-label text-dark">Email Address</label>
-                    <input type="email" class="form-control rounded-3" @bind="profile.Email" />
+                    <input type="email" class="form-control rounded-3 bg-light" value="@profile?.Email" readonly />
                 </div>
                 <div class="row g-2">
                     <div class="col-6">
                         <label class="form-label text-dark">Country</label>
-                        <input type="text" class="form-control rounded-3 bg-light" value="@profile.Country" readonly />
+                        <select class="form-select rounded-3" @bind="countryId">
+                            <option value="">Choose country</option>
+                            @foreach (var country in countries)
+                            {
+                                <option value="@country.Id">@country.Name</option>
+                            }
+                        </select>
                     </div>
                     <div class="col-6">
                         <label class="form-label text-dark">Member Since</label>
-                        <input type="text" class="form-control rounded-3 bg-light" value="@profile.JoinedDate" readonly />
+                        <input type="text" class="form-control rounded-3 bg-light" value="@profile?.CreatedAt.ToString("yyyy-MM-dd")" readonly />
                     </div>
                 </div>
             </div>
@@ -82,16 +92,18 @@
             <div class="d-flex flex-column gap-3">
                 <div>
                     <label class="form-label text-dark">Primary Base Currency</label>
-                    <select class="form-select rounded-3" @bind="profile.Currency">
-                        <option value="MYR">MYR (RM) - Malaysian Ringgit</option>
-                        <option value="SGD">SGD (S$) - Singapore Dollar</option>
-                        <option value="USD">USD ($) - US Dollar</option>
-                        <option value="EUR">EUR (€) - Euro</option>
+                    <select class="form-select rounded-3" @bind="currencyId">
+                        <option value="">Choose currency</option>
+                        @foreach (var currency in currencies)
+                        {
+                            <option value="@currency.Id">@currency.Code - @currency.Name</option>
+                        }
                     </select>
                 </div>
                 <div>
                     <label class="form-label text-dark">Display Language</label>
-                    <select class="form-select rounded-3" @bind="profile.Language">
+                    <select class="form-select rounded-3" @bind="language">
+                        <option value="">Choose language</option>
                         <option value="English">English</option>
                         <option value="Bahasa Malaysia">Bahasa Malaysia</option>
                         <option value="Chinese">中文 (简体)</option>
@@ -185,7 +197,7 @@
 
 <!-- Save Button Bar -->
 <div class="d-flex justify-content-end mb-5 animate-fade-up">
-    <button class="btn btn-primary px-4 py-2 rounded-3 fw-semibold shadow-sm" @onclick="SavePreferences">
+    <button class="btn btn-primary px-4 py-2 rounded-3 fw-semibold shadow-sm" @onclick="SavePreferences" disabled="@loading">
         Save All Changes
     </button>
 </div>
@@ -207,25 +219,57 @@
 </div>
 
 @code {
-    private MinerProfile profile = new();
+    private MinerProfileView? profile;
+    private IReadOnlyList<ProfileCurrencyOption> currencies = [];
+    private IReadOnlyList<ProfileCountryOption> countries = [];
+    private string? displayName;
+    private int? countryId;
+    private int? currencyId;
+    private string? language;
+    private bool loading = true;
     private bool savedNotification = false;
     private string? inputError;
 
     protected override async Task OnInitializedAsync()
     {
-        profile = await MineService.GetMinerProfileAsync();
+        profile = await ProfileService.GetCurrentAsync() ?? await ProfileService.CreateIfMissingAsync();
+        currencies = await ProfileService.GetCurrencyOptionsAsync();
+        countries = await ProfileService.GetCountryOptionsAsync();
+        LoadForm();
+        loading = false;
     }
 
-    private void SavePreferences()
+    private async Task SavePreferences()
     {
-        inputError = PublicInputValidator.GetDisplayTextError("Miner name", profile.Name);
+        inputError = PublicInputValidator.GetDisplayTextError("Miner name", displayName ?? string.Empty);
         if (inputError is not null)
         {
             savedNotification = false;
             return;
         }
 
+        try
+        {
+            profile = await ProfileService.UpdateCurrentAsync(
+                new MinerProfileUpdate(displayName, countryId, currencyId, language));
+            LoadForm();
+        }
+        catch (ArgumentException exception)
+        {
+            inputError = exception.Message;
+            savedNotification = false;
+            return;
+        }
+
         savedNotification = true;
+    }
+
+    private void LoadForm()
+    {
+        displayName = profile?.DisplayName;
+        countryId = profile?.CountryId;
+        currencyId = profile?.CurrencyId;
+        language = profile?.Language;
     }
 
     private void ExportData()

@@ -103,27 +103,27 @@ Commit with `feat(public): add member data schema and currency master data` afte
 - Consumes: `MinerProfileEntity`, `Currency`, authenticated `ApplicationUser`, and Task 1 migration.
 - Produces: `IMinerProfileService.GetCurrentAsync()`, `CreateIfMissingAsync()`, and `UpdateCurrentAsync(MinerProfileUpdate update)`; all methods derive the owner from the current authenticated principal.
 
-- [ ] **Step 1: Write failing profile ownership and registration tests**
+- [x] **Step 1: Write failing profile ownership and registration tests**
 
 Cover: new registered user gets one profile, existing Identity users can receive a profile without financial records, profile reads return only the current user, and updating a submitted profile ID cannot target another user.
 
-- [ ] **Step 2: Run tests and verify expected failures**
+- [x] **Step 2: Run tests and verify expected failures**
 
-Run the focused profile tests with explicit permission. Expected result: missing service/entity behavior failures.
+Run the focused profile tests with explicit permission. The implementation was completed before the focused test command was run in this slice; the final focused run passes 4/4. No pre-implementation red test result is claimed.
 
-- [ ] **Step 3: Implement the profile service**
+- [x] **Step 3: Implement the profile service**
 
 Use `IDbContextFactory<ApplicationDbContext>` and the authenticated user accessor. Create profile rows with Identity email and safe incomplete onboarding state; do not fabricate a display name, currency, country, or financial values. Use Currency FK values from the database only.
 
-- [ ] **Step 4: Wire registration and external registration**
+- [x] **Step 4: Wire registration and external registration**
 
 After successful Identity creation and external-login linking, create the profile in the same logical workflow. Ensure a duplicate retry does not create a second profile. Do not create Mine, Income, Expense, Burden, Goal, or Notification rows.
 
-- [ ] **Step 5: Rework Settings as profile setup**
+- [x] **Step 5: Rework Settings as profile setup**
 
 Load and save the current database profile. Use database Currency options. Show incomplete setup state and validation errors; do not use `MockMineService` or hardcoded country/currency defaults as persisted data.
 
-- [ ] **Step 6: Verify and build**
+- [x] **Step 6: Verify and build**
 
 Run approved profile tests and `dotnet build OMM.Public/OMM.Public.csproj --no-restore`.
 

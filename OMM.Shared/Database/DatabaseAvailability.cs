@@ -86,42 +86,21 @@ public sealed class DatabaseAvailabilityMonitorOptions
     public int ProbeTimeoutSeconds { get; set; } = 10;
 }
 
-public sealed class DatabaseAvailabilityMonitor : BackgroundService
+public sealed class DatabaseAvailabilityMonitor(
+    IServiceProvider serviceProvider,
+    DatabaseAvailability availability,
+    ILogger<DatabaseAvailabilityMonitor> logger,
+    IOptions<DatabaseAvailabilityMonitorOptions>? options = null,
+    Func<CancellationToken, Task<IAsyncDisposable>>? connectionFactory = null) : BackgroundService
 {
-    private readonly IServiceProvider _serviceProvider;
-    private readonly DatabaseAvailability _availability;
-    private readonly ILogger<DatabaseAvailabilityMonitor> _logger;
-    private readonly IOptions<DatabaseAvailabilityMonitorOptions> _options;
-    private readonly Func<CancellationToken, Task<IAsyncDisposable>>? _connectionFactory;
-
-    public DatabaseAvailabilityMonitor(
-        IServiceProvider serviceProvider,
-        DatabaseAvailability availability,
-        ILogger<DatabaseAvailabilityMonitor> logger,
-        IOptions<DatabaseAvailabilityMonitorOptions>? options = null)
-        : this(serviceProvider, availability, logger, options, null)
-    {
-    }
-
-    public DatabaseAvailabilityMonitor(
-        IServiceProvider serviceProvider,
-        DatabaseAvailability availability,
-        ILogger<DatabaseAvailabilityMonitor> logger,
-        IOptions<DatabaseAvailabilityMonitorOptions>? options,
-        Func<CancellationToken, Task<IAsyncDisposable>>? connectionFactory)
-    {
-        _serviceProvider = serviceProvider;
-        _availability = availability;
-        _logger = logger;
-        _options = options ?? Options.Create(new DatabaseAvailabilityMonitorOptions());
-        _connectionFactory = connectionFactory;
-    }
+    private readonly IOptions<DatabaseAvailabilityMonitorOptions> _options =
+        options ?? Options.Create(new DatabaseAvailabilityMonitorOptions());
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         // If the application started in degraded mode, perform an early probe after early probe delay
         // to rapidly recover if the database was simply waking up (e.g. Neon cold start).
-        if (!_availability.IsAvailable)
+        if (!availability.IsAvailable)
         {
             try
             {
@@ -137,7 +116,7 @@ public sealed class DatabaseAvailabilityMonitor : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogDebug(ex, "Early database probe completed; scheduled monitoring will continue.");
+                logger.LogDebug(ex, "Early database probe completed; scheduled monitoring will continue.");
             }
         }
 
@@ -160,7 +139,7 @@ public sealed class DatabaseAvailabilityMonitor : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error in database availability monitor.");
+                logger.LogError(ex, "Unexpected error in database availability monitor.");
             }
         }
     }
@@ -172,13 +151,13 @@ public sealed class DatabaseAvailabilityMonitor : BackgroundService
             using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             timeoutCts.CancelAfter(TimeSpan.FromSeconds(_options.Value.ProbeTimeoutSeconds));
 
-            if (_connectionFactory is not null)
+            if (connectionFactory is not null)
             {
-                await using var connection = await _connectionFactory(timeoutCts.Token);
+                await using var connection = await connectionFactory(timeoutCts.Token);
             }
             else
             {
-                var dataSource = _serviceProvider.GetService<NpgsqlDataSource>();
+                var dataSource = serviceProvider.GetService<NpgsqlDataSource>();
                 if (dataSource is null)
                 {
                     return;
@@ -191,9 +170,9 @@ public sealed class DatabaseAvailabilityMonitor : BackgroundService
                 await command.ExecuteScalarAsync(timeoutCts.Token);
             }
 
-            if (_availability.MarkAvailable())
+            if (availability.MarkAvailable())
             {
-                _logger.LogInformation("Database connection restored. Database marked available.");
+                logger.LogInformation("Database connection restored. Database marked available.");
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -202,18 +181,18 @@ public sealed class DatabaseAvailabilityMonitor : BackgroundService
         }
         catch (Exception ex) when (IsDatabaseException(ex))
         {
-            if (_availability.MarkUnavailable())
+            if (availability.MarkUnavailable())
             {
-                _logger.LogError(ex, "Database connection failed during background probe. Database marked unavailable.");
+                logger.LogError(ex, "Database connection failed during background probe. Database marked unavailable.");
             }
             else
             {
-                _logger.LogDebug("Database probe failed; database remains unavailable.");
+                logger.LogDebug("Database probe failed; database remains unavailable.");
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error during database availability probe.");
+            logger.LogError(ex, "Unexpected error during database availability probe.");
         }
     }
 

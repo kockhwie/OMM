@@ -2,6 +2,8 @@ namespace OMM.Public.Models;
 
 public class DashboardSummary
 {
+    public bool HasMixedCurrencies { get; set; }
+    public string Currency { get; set; } = string.Empty;
     public decimal TotalMines { get; set; }
     public decimal TotalBurdens { get; set; }
     public decimal NetWealth { get; set; }

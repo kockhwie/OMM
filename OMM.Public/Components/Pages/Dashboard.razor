@@ -1,14 +1,14 @@
 @page "/dashboard"
 @layout DashboardLayout
 @attribute [Authorize]
-@inject IMineService MineService
+@inject DashboardQueryService DashboardQuery
 @inject INotificationService NotificationService
 @inject IJSRuntime JS
 @namespace OMM.Public.Components.Pages
 
 <PageTitle>Mine Board Overview - OhMyMine</PageTitle>
 
-@if (summary == null || profile == null)
+@if (snapshot == null)
 {
     <div class="d-flex justify-content-center align-items-center py-5">
         <div class="spinner-border text-warning" role="status">
@@ -24,25 +24,42 @@ else
         <h1 class="h3 font-display fw-bold text-dark mb-0">Mine Board Overview</h1>
     </div>
 
+    @if (IsZeroData)
+    {
+        <div class="mb-4">
+            <DashboardEmptyState />
+        </div>
+    }
+    else if (ProfileNeedsSetup)
+    {
+        <div class="omm-card p-4 mb-4 border-warning-subtle">
+            <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                <div>
+                    <h2 class="h5 fw-bold text-dark mb-1">Complete your profile</h2>
+                    <p class="text-muted mb-0">Add your country and base currency so your dashboard can present your records correctly.</p>
+                </div>
+                <a class="btn btn-outline-dark rounded-3" href="/settings">Complete profile</a>
+            </div>
+        </div>
+    }
+
     <!-- Key Metrics Grid -->
     <div class="row g-3 mb-4">
         <!-- Net Wealth -->
         <div class="col-sm-6 col-xl-3">
             <MetricCard Title="Net Wealth"
-                        Value="@FormatHelper.FormatCurrency(summary.NetWealth)"
-                        NumericTarget="@summary.NetWealth"
-                        CounterPrefix="RM "
+                        Value="@FormatSummaryAmount(summary.NetWealth)"
+                        NumericTarget="@(summary.HasMixedCurrencies ? null : summary.NetWealth)"
                         Icon="ti-sparkles"
                         Variant="gold"
-                        Subtitle="@($"{FormatHelper.FormatCurrency(summary.TotalMines)} mines − {FormatHelper.FormatCurrency(summary.TotalBurdens)} burdens")" />
+                        Subtitle="@($"{FormatSummaryAmount(summary.TotalMines)} mines − {FormatSummaryAmount(summary.TotalBurdens)} burdens")" />
         </div>
 
         <!-- Total Mines -->
         <div class="col-sm-6 col-xl-3">
             <MetricCard Title="Total Mines"
-                        Value="@FormatHelper.FormatCurrency(summary.TotalMines)"
-                        NumericTarget="@summary.TotalMines"
-                        CounterPrefix="RM "
+                        Value="@FormatSummaryAmount(summary.TotalMines)"
+                        NumericTarget="@(summary.HasMixedCurrencies ? null : summary.TotalMines)"
                         Icon="ti-shovel"
                         Variant="mine"
                         Subtitle="@($"{allMines?.Count ?? 0} active wealth mines")" />
@@ -51,20 +68,18 @@ else
         <!-- Passive Income -->
         <div class="col-sm-6 col-xl-3">
             <MetricCard Title="Passive / month"
-                        Value="@FormatHelper.FormatCurrency(summary.PassiveIncomeMonthly)"
-                        NumericTarget="@summary.PassiveIncomeMonthly"
-                        CounterPrefix="RM "
+                        Value="@FormatSummaryAmount(summary.PassiveIncomeMonthly)"
+                        NumericTarget="@(summary.HasMixedCurrencies ? null : summary.PassiveIncomeMonthly)"
                         Icon="ti-trending-up"
                         Variant="mine"
-                        Subtitle="@($"vs {FormatHelper.FormatCurrency(summary.RecurringExpensesMonthly)} recurring exp.")" />
+                        Subtitle="@($"vs {FormatSummaryAmount(summary.RecurringExpensesMonthly)} recurring exp.")" />
         </div>
 
         <!-- Total Growth -->
         <div class="col-sm-6 col-xl-3">
             <MetricCard Title="Total Growth"
-                        Value="@FormatHelper.FormatCurrency(summary.TotalGrowth)"
-                        NumericTarget="@summary.TotalGrowth"
-                        CounterPrefix="RM "
+                        Value="@FormatSummaryAmount(summary.TotalGrowth)"
+                        NumericTarget="@(summary.HasMixedCurrencies ? null : summary.TotalGrowth)"
                         Icon="@(summary.TotalGrowth >= 0 ? "ti-trending-up" : "ti-trending-down")"
                         Variant="@(summary.TotalGrowth >= 0 ? "mine" : "burden")"
                         Trend="@FormatHelper.FormatPercent(summary.TotalGrowthPct)"
@@ -84,9 +99,16 @@ else
 
         <!-- Asset Allocation & Burden Breakdown Donut -->
         <div class="col-12 col-lg-7 col-xl-8">
-            <WealthBreakdownChart Mines="@allMines" 
-                                  TotalMines="@summary.TotalMines" 
-                                  TotalBurdens="@summary.TotalBurdens" />
+            @if (HasNoMinesAndBurdens)
+            {
+                <DashboardSectionEmptyState Icon="ti-chart-donut" Title="Your wealth picture starts here" Description="Add a mine or burden to see your asset and liability breakdown." Href="/mines" ActionText="Add a mine" />
+            }
+            else
+            {
+                <WealthBreakdownChart Mines="@allMines"
+                                      TotalMines="@summary.TotalMines"
+                                      TotalBurdens="@summary.TotalBurdens" />
+            }
         </div>
     </div>
 
@@ -102,7 +124,7 @@ else
                     </a>
                 </div>
 
-                @if (topMines != null)
+                @if (topMines is { Count: > 0 })
                 {
                     <div class="d-flex flex-column gap-2">
                         @foreach (var mine in topMines)
@@ -117,7 +139,7 @@ else
                                         <div class="text-muted text-truncate" style="font-size: 0.75rem;">@mine.Category · @mine.Type</div>
                                     </div>
                                     <div class="text-end">
-                                        <div class="fw-bold" style="font-size: 0.9rem;">@FormatHelper.FormatCurrency(mine.CurrentValue)</div>
+                                        <div class="fw-bold" style="font-size: 0.9rem;">@FormatHelper.FormatCurrency(mine.CurrentValue, mine.Currency)</div>
                                         <div class="@(mine.Growth >= 0 ? "text-success" : "text-danger") fw-semibold" style="font-size: 0.75rem;">
                                             @FormatHelper.FormatPercent(mine.GrowthPct)
                                         </div>
@@ -127,6 +149,10 @@ else
                             </a>
                         }
                     </div>
+                }
+                else
+                {
+                    <DashboardSectionEmptyState Icon="ti-shovel" Title="No mines yet" Description="Your first mine gives the dashboard something real to track." Href="/mines" ActionText="Add a mine" />
                 }
             </div>
 
@@ -184,6 +210,11 @@ else
                             </div>
                         }
                     }
+
+                    @if ((notifications?.Count ?? 0) == 0 && (upcomingMaturities?.Count ?? 0) == 0)
+                    {
+                        <DashboardSectionEmptyState Icon="ti-bell" Title="Nothing needs your attention yet" Description="Notifications will appear when your saved data creates a useful reminder." Href="/mines" ActionText="Review your mines" />
+                    }
                 </div>
             </div>
         </div>
@@ -199,7 +230,7 @@ else
                     </a>
                 </div>
 
-                @if (goals != null)
+                @if (goals is { Count: > 0 })
                 {
                     <div class="d-flex flex-column gap-3">
                         @foreach (var goal in goals.Take(3))
@@ -220,6 +251,10 @@ else
                         }
                     </div>
                 }
+                else
+                {
+                    <DashboardSectionEmptyState Icon="ti-target-arrow" Title="Set your first goal" Description="Turn your next financial milestone into something you can track." Href="/goals" ActionText="Add a goal" />
+                }
             </div>
 
             <!-- Burdens Card -->
@@ -231,7 +266,7 @@ else
                     </a>
                 </div>
 
-                @if (burdens != null)
+                @if (burdens is { Count: > 0 })
                 {
                     <div class="d-flex flex-column gap-3">
                         @foreach (var b in burdens.Take(3))
@@ -247,8 +282,8 @@ else
                                     </div>
                                 </div>
                                 <div class="text-end">
-                                    <div class="fw-bold" style="font-size: 0.85rem;">@FormatHelper.FormatCurrency(b.Balance)</div>
-                                    <div class="text-muted" style="font-size: 0.725rem;">@FormatHelper.FormatCurrency(b.MonthlyPayment)/mo</div>
+                                    <div class="fw-bold" style="font-size: 0.85rem;">@FormatHelper.FormatCurrency(b.Balance, b.Currency)</div>
+                                    <div class="text-muted" style="font-size: 0.725rem;">@FormatHelper.FormatCurrency(b.MonthlyPayment, b.Currency)/mo</div>
                                 </div>
                             </div>
                         }
@@ -257,9 +292,13 @@ else
                     <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
                         <span class="text-muted" style="font-size: 0.775rem;">Total monthly debt service</span>
                         <span class="fw-bold text-dark" style="font-size: 0.9rem;">
-                            @FormatHelper.FormatCurrency(burdens.Sum(b => b.MonthlyPayment))
+                            @FormatSummaryAmount(burdens.Sum(b => b.MonthlyPayment))
                         </span>
                     </div>
+                }
+                else
+                {
+                    <DashboardSectionEmptyState Icon="ti-shield-check" Title="No burdens recorded" Description="Add your loans or obligations when you are ready to see the full picture." Href="/burdens" ActionText="Add a burden" />
                 }
             </div>
         </div>
@@ -267,8 +306,9 @@ else
 }
 
 @code {
-    private DashboardSummary? summary;
-    private MinerProfile? profile;
+    private DashboardSnapshot? snapshot;
+    private DashboardSummary summary = new();
+    private MinerProfile profile = new();
     private List<Mine>? allMines;
     private List<Mine>? topMines;
     private List<Burden>? burdens;
@@ -276,16 +316,27 @@ else
     private List<Notification>? notifications;
     private List<(Mine Mine, SubMine SubMine)>? upcomingMaturities;
 
+    private bool IsZeroData => (allMines?.Count ?? 0) == 0
+        && (burdens?.Count ?? 0) == 0
+        && (goals?.Count ?? 0) == 0
+        && (snapshot?.IncomeRecords.Count ?? 0) == 0
+        && (snapshot?.Expenses.Count ?? 0) == 0;
+
+    private bool HasNoMinesAndBurdens => (allMines?.Count ?? 0) == 0 && (burdens?.Count ?? 0) == 0;
+
+    private bool ProfileNeedsSetup => string.IsNullOrWhiteSpace(profile.Currency)
+        || string.IsNullOrWhiteSpace(profile.Country);
+
     protected override async Task OnInitializedAsync()
     {
-        summary = await MineService.GetDashboardSummaryAsync();
-        profile = await MineService.GetMinerProfileAsync();
-        allMines = await MineService.GetMinesAsync();
+        snapshot = await DashboardQuery.GetSnapshotAsync();
+        summary = snapshot.Summary;
+        profile = snapshot.Profile;
+        allMines = snapshot.Mines.ToList();
         topMines = allMines.OrderByDescending(m => m.CurrentValue).Take(4).ToList();
-        burdens = await MineService.GetBurdensAsync();
-        goals = await MineService.GetGoalsAsync();
-        await NotificationService.GenerateAsync();
-        notifications = (await NotificationService.GetAsync()).ToList();
+        burdens = snapshot.Burdens.ToList();
+        goals = snapshot.Goals.ToList();
+        notifications = snapshot.Notifications.ToList();
 
         upcomingMaturities = allMines
             .Where(m => m.SubMines != null)
@@ -327,6 +378,10 @@ else
         }
         return 14;
     }
+
+    private string FormatSummaryAmount(decimal amount) => summary.HasMixedCurrencies
+        ? "Multiple currencies"
+        : FormatHelper.FormatCurrency(amount, summary.Currency);
 
     private async Task MarkNotificationRead(string id)
     {

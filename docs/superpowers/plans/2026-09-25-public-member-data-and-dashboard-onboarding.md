@@ -264,25 +264,27 @@ Commit with `feat(public): persist member notifications`.
 - Consumes: database-backed member data and frequency/currency rules from Tasks 1–5.
 - Produces: a single null-safe dashboard read model containing profile, summary, chart data, top mines, upcoming positions, notifications, goals, and burdens for the current user.
 
-- [ ] **Step 1: Write failing pure calculation tests**
+- [x] **Step 1: Write failing pure calculation tests**
 
 Cover all-zero data, mine-only data, burden-only data, income-only data, annual/monthly/one-off normalization, zero expense denominator, negative growth, and mixed currencies. For mixed currencies, assert that conversion is not performed until an approved FX source/rule exists; the dashboard must not sum incompatible currencies silently.
 
-- [ ] **Step 2: Run tests and verify expected failures**
+- [x] **Step 2: Run tests and verify expected failures**
 
 Run the focused calculation tests with explicit permission; expected failures must be calculation/model failures.
 
-- [ ] **Step 3: Implement the calculation/read-model layer**
+- [x] **Step 3: Implement the calculation/read-model layer**
 
 Query only current-user records. Return zero collections and zero metrics for empty data. Refuse or clearly separate mixed-currency totals until a database-backed FX conversion design exists; do not use hardcoded exchange rates.
 
-- [ ] **Step 4: Rewire Dashboard.razor to the read model**
+- [x] **Step 4: Rewire Dashboard.razor to the read model**
 
 Remove direct mock/service aggregation from the component. Keep presentation-only formatting and navigation. Ensure the populated view uses only the returned database-backed read model.
 
-- [ ] **Step 5: Verify and build**
+- [x] **Step 5: Verify and build**
 
 Run approved calculation tests and `dotnet build OMM.Public/OMM.Public.csproj --no-restore`.
+
+Focused dashboard and regression tests passed 21/21; the Public project build passed with 0 warnings and 0 errors. No commit has been created.
 
 - [ ] **Step 6: Commit**
 
@@ -314,17 +316,19 @@ Cover a brand-new profile with no financial records, partial records, configured
 
 Run focused integration tests with explicit permission; expected failures must be missing empty-state markup or incorrect current rendering.
 
-- [ ] **Step 3: Implement the primary onboarding card**
+- [x] **Step 3: Implement the primary onboarding card**
 
 Use the approved copy such as “Let’s start to build your mines” and provide buttons inside the relevant cards. Profile setup should be suggested when incomplete; Mines, Income, Burdens, and Goals should each be actionable.
 
-- [ ] **Step 4: Implement section-level empty states**
+- [x] **Step 4: Implement section-level empty states**
 
 Replace blank `foreach` containers with explanation plus one primary action. Preserve zero metric cards, but label them as starting values and avoid claiming financial progress.
 
-- [ ] **Step 5: Verify populated and partial states**
+- [x] **Step 5: Verify populated and partial states**
 
 Run the approved rendering tests, manually inspect the zero-data route with a disposable database account, and build the Public project.
+
+Reusable empty-state components and zero/partial dashboard branches are implemented. The Public build passed with 0 warnings and 0 errors, and the existing focused regression suite passed 21/21. Browser-rendering tests and live disposable-account inspection remain open because this repository does not currently include a browser test harness.
 
 - [ ] **Step 6: Commit**
 

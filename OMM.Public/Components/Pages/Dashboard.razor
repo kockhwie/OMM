@@ -2,6 +2,7 @@
 @layout DashboardLayout
 @attribute [Authorize]
 @inject IMineService MineService
+@inject INotificationService NotificationService
 @inject IJSRuntime JS
 @namespace OMM.Public.Components.Pages
 
@@ -153,6 +154,13 @@ else
                                         <div class="fw-semibold text-dark" style="font-size: 0.85rem;">@n.Title</div>
                                         <div class="text-muted mt-1" style="font-size: 0.775rem; line-height: 1.4;">@n.Body</div>
                                     </div>
+                                    <div class="ms-auto d-flex gap-2">
+                                        @if (!n.Read)
+                                        {
+                                            <button class="btn btn-sm btn-link text-muted p-0" @onclick="() => MarkNotificationRead(n.Id)">Read</button>
+                                        }
+                                        <button class="btn btn-sm btn-link text-muted p-0" @onclick="() => DismissNotification(n.Id)">Dismiss</button>
+                                    </div>
                                 </div>
                             </div>
                         }
@@ -276,7 +284,8 @@ else
         topMines = allMines.OrderByDescending(m => m.CurrentValue).Take(4).ToList();
         burdens = await MineService.GetBurdensAsync();
         goals = await MineService.GetGoalsAsync();
-        notifications = await MineService.GetNotificationsAsync();
+        await NotificationService.GenerateAsync();
+        notifications = (await NotificationService.GetAsync()).ToList();
 
         upcomingMaturities = allMines
             .Where(m => m.SubMines != null)
@@ -317,5 +326,17 @@ else
             return Math.Max(0, diff);
         }
         return 14;
+    }
+
+    private async Task MarkNotificationRead(string id)
+    {
+        await NotificationService.MarkReadAsync(id);
+        notifications = (await NotificationService.GetAsync()).ToList();
+    }
+
+    private async Task DismissNotification(string id)
+    {
+        await NotificationService.DismissAsync(id);
+        notifications = (await NotificationService.GetAsync()).ToList();
     }
 }

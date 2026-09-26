@@ -146,23 +146,23 @@ Commit with `feat(public): persist miner profiles`.
 - Consumes: Task 1 entities and Task 2 current-user/profile services.
 - Produces: database-backed mine CRUD, position CRUD, and mapping to the existing UI models without trusting submitted owner IDs.
 
-- [ ] **Step 1: Write failing mine/position persistence and ownership tests**
+- [x] **Step 1: Write failing mine/position persistence and ownership tests**
 
 Cover add/read/update/delete, one-to-many positions, soft-delete exclusion, current-user scoping, foreign-key currency validation, and attempted cross-user route access.
 
-- [ ] **Step 2: Run tests and verify expected failures**
+- [x] **Step 2: Run tests and verify expected failures**
 
 Run the focused tests with explicit permission; expected failures must be missing database service behavior.
 
-- [ ] **Step 3: Implement queries and mutations**
+- [x] **Step 3: Implement queries and mutations**
 
 Every query filters by authenticated `UserId` and `IsDeleted == false`. Every mutation loads the target with the current owner filter before changing it. Save mine and position changes atomically. Map Institution/Stock references through existing master data where the current UI requires them; stop and discuss if a required field has no approved database source.
 
-- [ ] **Step 4: Rewire Mines and MineDetail**
+- [x] **Step 4: Rewire Mines and MineDetail**
 
 Replace all `IMineService` calls that currently reach mock lists with database operations. Preserve existing validation and institution/stock lookup behavior. Render an honest empty list with an Add Mine action.
 
-- [ ] **Step 5: Verify and build**
+- [x] **Step 5: Verify and build**
 
 Run approved focused tests and `dotnet build OMM.Public/OMM.Public.csproj --no-restore`.
 
@@ -186,25 +186,25 @@ Commit with `feat(public): persist user mines and positions`.
 - Consumes: Tasks 1–3 entities, current-user scope, profile Currency default, and existing validation rules.
 - Produces: user-scoped CRUD for Burden, IncomeRecord, Expense, Goal, and GoalMine relationships; frequency normalization for monthly/annual/one-off records.
 
-- [ ] **Step 1: Write failing tests for zero, partial, multi-currency, and ownership cases**
+- [x] **Step 1: Write failing tests for zero, partial, multi-currency, and ownership cases**
 
 Cover a user with no records, only income, only expenses, a burden linked to a mine, a goal linked to multiple mines, one-off/annual/monthly normalization, profile-currency defaults, and foreign-currency records.
 
-- [ ] **Step 2: Run tests and verify expected failures**
+- [x] **Step 2: Run tests and verify expected failures**
 
 Run the focused tests with explicit permission; expected failures must identify missing database-backed operations.
 
-- [ ] **Step 3: Implement database-backed record operations**
+- [x] **Step 3: Implement database-backed record operations**
 
 Use Currency foreign keys for every financial record. Never copy a currency code as the source of truth. Store each record’s frequency and calculate monthly equivalents in a tested calculation layer. Preserve soft-delete and owner filtering.
 
-- [ ] **Step 4: Rewire member pages**
+- [x] **Step 4: Rewire member pages**
 
 Replace mock-backed lists and mutations. Add honest empty states and direct Add actions. For expenses, do not reuse burden fields or the old hardcoded `4950` value.
 
-- [ ] **Step 5: Verify and build**
+- [x] **Step 5: Verify and build**
 
-Run approved focused tests and `dotnet build OMM.Public/OMM.Public.csproj --no-restore`.
+Focused ownership/profile tests passed 16/16 and `dotnet build OMM.Public/OMM.Public.csproj --no-restore` passed with 0 warnings and 0 errors. No commit has been created.
 
 - [ ] **Step 6: Commit**
 
@@ -223,23 +223,25 @@ Commit with `feat(public): persist member financial records`.
 - Consumes: persisted Mines, MinePositions, Goals, and record freshness from Tasks 1–4.
 - Produces: persisted system notification creation, current-user notification reads, and explicit read/dismiss mutations with `ReadAt`/`DismissedAt`.
 
-- [ ] **Step 1: Write failing notification persistence tests**
+- [x] **Step 1: Write failing notification persistence tests**
 
 Cover generation from a real maturity date or goal condition, no generation from empty data, duplicate prevention, user ownership, persistence across reload, and read/dismiss state. Assert that no automatic X-day read behavior is active.
 
-- [ ] **Step 2: Run tests and verify expected failures**
+- [x] **Step 2: Run tests and verify expected failures**
 
 Run focused tests with explicit permission; expected failures must identify missing persistence/generation behavior.
 
-- [ ] **Step 3: Implement notification generation and persistence**
+- [x] **Step 3: Implement notification generation and persistence**
 
 Generate only from database records and use deterministic keys so repeated dashboard loads do not duplicate notifications. Keep future auto-read policy out of this implementation.
 
-- [ ] **Step 4: Rewire the dashboard notification section**
+- [x] **Step 4: Rewire the dashboard notification section**
 
 Show persisted notifications, a database-backed empty state, and read/dismiss actions. Remove all mock notification content.
 
-- [ ] **Step 5: Verify and build**
+- [x] **Step 5: Verify and build**
+
+Focused tests passed 18/18 and `dotnet build OMM.Public/OMM.Public.csproj --no-restore` passed with 0 warnings and 0 errors. No commit has been created.
 
 Run approved focused tests and `dotnet build OMM.Public/OMM.Public.csproj --no-restore`.
 

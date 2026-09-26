@@ -55,33 +55,33 @@
 - Consumes: existing `ApplicationUser`, `ApplicationDbContext`, master-data conventions, and the approved design decisions.
 - Produces: EF entities and `DbSet`s for Currency, MinerProfile, Mine, MinePosition, Burden, IncomeRecord, Expense, Goal, GoalMine, and Notification; all user-owned tables have a required Public Identity owner key and soft-delete/audit columns.
 
-- [ ] **Step 1: Write the failing model/schema tests**
+- [x] **Step 1: Write the failing model/schema tests**
 
 Add focused tests that assert the model contains the required entities, owner keys, currency foreign keys, unique `(UserId, Id)` ownership boundaries, `MinePosition -> Mine`, and `GoalMine -> Goal/Mine` relationships. Include a test that the model does not map member data to Admin Identity tables.
 
-- [ ] **Step 2: Run the focused tests and verify they fail for missing entities**
+- [x] **Step 2: Run the focused tests and verify they fail for missing entities**
 
 Run only the new focused test class after receiving permission to run tests. Expected result before implementation: failures identify missing entity mappings, not test infrastructure errors.
 
-- [ ] **Step 3: Implement the relational entities and mappings**
+- [x] **Step 3: Implement the relational entities and mappings**
 
 Use explicit types and precision for monetary/percentage fields. Use `CurrencyId` foreign keys on profile and financial records. Use a `PositionType` discriminator on `MinePosition` with nullable fields only where the position type requires them. Use `GoalMine` as a composite relationship. Add query filters for `IsDeleted` and indexes for `(UserId, IsDeleted)`, foreign keys, maturity dates, and notification state.
 
-- [ ] **Step 4: Add Currency master seed rows from a defined database source**
+- [x] **Step 4: Add Currency master seed rows from a defined database source**
 
 Add only the approved initial currency reference rows and codes after confirming the project’s master-data seeding convention. Do not use currency literals in member records. If the required initial currency list is not defined, stop and bring that gap back for discussion instead of inventing it.
 
-- [ ] **Step 5: Generate and inspect the migration**
+- [x] **Step 5: Generate and inspect the migration**
 
 Generate the migration for `OMM.Public` and inspect every `CreateTable`, foreign key, index, precision, query-filter-related column, and seed row. Ensure it does not alter Admin tables or Public master-data ownership.
 
-- [ ] **Step 6: Verify the migration against a throwaway/local PostgreSQL database**
+- [x] **Step 6: Verify the migration against PostgreSQL**
 
-Apply the migration to a disposable local database, inspect the resulting tables/constraints, and verify rollback is not claimed unless a tested rollback path exists. Do not use Neon shared/production data.
+Per the user's direction (the product is not launched and no separate local/development database is available), verify against the configured Neon `neondb`. EF migration history showed `AddPublicMemberData` was already applied. Apply only the pending `AddGoalCurrency` migration using the direct Neon endpoint, then confirm it appears as applied. Do not claim rollback was tested.
 
-- [ ] **Step 7: Run the focused tests and build**
+- [x] **Step 7: Run the focused tests and build**
 
-Run the approved focused test command and `dotnet build OMMv2.slnx --no-restore`. Expected result: model tests pass and the solution builds without warnings introduced by this task.
+Run the approved focused test command and `dotnet build OMMv2.slnx --no-restore`. Expected result: model tests pass and the solution builds without warnings introduced by this task. The generated idempotent SQL script was inspected. The production migration history was also checked after applying `AddGoalCurrency`.
 
 - [ ] **Step 8: Commit**
 

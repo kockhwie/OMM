@@ -148,6 +148,7 @@ public partial class ApplicationDbContext
             entity.Property(e => e.Status).HasMaxLength(32).IsRequired();
             entity.Property(e => e.Target).HasPrecision(18, 2);
             entity.Property(e => e.Current).HasPrecision(18, 2);
+            entity.HasOne(e => e.Currency).WithMany().HasForeignKey(e => e.CurrencyId).OnDelete(DeleteBehavior.Restrict);
         });
     }
 

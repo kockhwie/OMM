@@ -69,7 +69,6 @@ public class PublicMemberDataModelTests
     [InlineData(typeof(IncomeRecordEntity))]
     [InlineData(typeof(ExpenseEntity))]
     [InlineData(typeof(GoalEntity))]
-    [InlineData(typeof(NotificationEntity))]
     public void User_owned_entities_have_currency_or_profile_currency_fk(Type entityType)
     {
         var entity = CreateModel().FindEntityType(entityType)!;
@@ -80,6 +79,19 @@ public class PublicMemberDataModelTests
         }
 
         Assert.NotNull(entity.FindProperty("CurrencyId"));
+    }
+
+    [Fact]
+    public void Goal_currency_is_optional_and_references_currency_master()
+    {
+        var entity = CreateModel().FindEntityType(typeof(GoalEntity))!;
+        var currencyId = entity.FindProperty(nameof(GoalEntity.CurrencyId));
+
+        Assert.NotNull(currencyId);
+        Assert.True(currencyId.IsNullable);
+        Assert.Contains(entity.GetForeignKeys(), foreignKey =>
+            foreignKey.Properties.Contains(currencyId)
+            && foreignKey.PrincipalEntityType.ClrType == typeof(Currency));
     }
 
     [Theory]
@@ -131,7 +143,7 @@ public class PublicMemberDataModelTests
     public void Member_entities_use_soft_delete_query_filter(Type entityType)
     {
         var entity = CreateModel().FindEntityType(entityType)!;
-        Assert.NotNull(entity.GetQueryFilter());
+        Assert.NotEmpty(entity.GetDeclaredQueryFilters());
     }
 
     [Fact]

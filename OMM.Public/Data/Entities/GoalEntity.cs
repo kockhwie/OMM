@@ -12,6 +12,10 @@ public class GoalEntity : UserOwnedEntity
 
     public decimal Current { get; set; }
 
+    public int? CurrencyId { get; set; }
+
+    public Currency? Currency { get; set; }
+
     public DateOnly TargetDate { get; set; }
 
     public required string Status { get; set; }

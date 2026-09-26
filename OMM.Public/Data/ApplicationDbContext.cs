@@ -5,8 +5,9 @@ using OMM.Shared.Models.MasterData;
 
 namespace OMM.Public.Data;
 
-public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser>(options)
+public partial class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser>(options)
 {
+    partial void ConfigureMemberData(ModelBuilder modelBuilder);
     public DbSet<Country> Countries => Set<Country>();
     public DbSet<Exchange> Exchanges => Set<Exchange>();
     public DbSet<Market> Markets => Set<Market>();
@@ -144,6 +145,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             new Institution { Id = 3, CountryId = 1, InstitutionCode = "PUBLIC-BANK", InstitutionName_EN = "Public Bank", InstitutionName_ZH_TW = "Public Bank", InstitutionName_ZH_CN = "Public Bank", InstitutionCategory = InstitutionCategory.Bank, IsActive = true, CreatedAt = SeedDate },
             new Institution { Id = 4, CountryId = 1, InstitutionCode = "KWSP", InstitutionName_EN = "KWSP", InstitutionName_ZH_TW = "KWSP", InstitutionName_ZH_CN = "KWSP", InstitutionCategory = InstitutionCategory.EpfKwsp, IsActive = true, CreatedAt = SeedDate },
             new Institution { Id = 5, CountryId = 1, InstitutionCode = "BURSA", InstitutionName_EN = "Bursa Malaysia", InstitutionName_ZH_TW = "Bursa Malaysia", InstitutionName_ZH_CN = "Bursa Malaysia", InstitutionCategory = InstitutionCategory.Other, IsActive = true, CreatedAt = SeedDate });
+
+        ConfigureMemberData(modelBuilder);
     }
 
     private static readonly DateTimeOffset SeedDate = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);

@@ -4,6 +4,7 @@
 @using System.Security.Claims
 @using System.Text
 @using System.Text.Encodings.Web
+@using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using OMM.Public.Data
@@ -80,6 +81,7 @@
         var info = await SignInManager.GetExternalLoginInfoAsync();
         if (info is null)
         {
+            await LogMissingExternalLoginAsync("initialization");
             RedirectManager.RedirectToWithStatus("Account/Login", "Error loading external login information.", HttpContext);
             return;
         }
@@ -141,6 +143,15 @@
     {
         if (externalLoginInfo is null)
         {
+            // The confirmation form can be handled by a new component instance.
+            // Re-read the request's external cookie instead of depending only on
+            // state captured while rendering the callback page.
+            externalLoginInfo = await SignInManager.GetExternalLoginInfoAsync();
+        }
+
+        if (externalLoginInfo is null)
+        {
+            await LogMissingExternalLoginAsync("confirmation");
             RedirectManager.RedirectToWithStatus("Account/Login", "Error loading external login information during confirmation.", HttpContext);
             return;
         }
@@ -179,11 +190,39 @@
                     RedirectManager.RedirectTo(ReturnUrl);
                 }
             }
+            else
+            {
+                Logger.LogError(
+                    "External registration created user {UserId}, but linking provider {LoginProvider} failed: {Errors}",
+                    await UserManager.GetUserIdAsync(user),
+                    externalLoginInfo.LoginProvider,
+                    string.Join(", ", result.Errors.Select(error => $"{error.Code}: {error.Description}")));
+                await UserManager.DeleteAsync(user);
+                message = "Error: We could not complete external registration. Please try again.";
+            }
         }
         else
         {
+            Logger.LogWarning(
+                "External registration could not create user for provider {LoginProvider}: {Errors}",
+                externalLoginInfo.LoginProvider,
+                string.Join(", ", result.Errors.Select(error => $"{error.Code}: {error.Description}")));
             message = $"Error: {string.Join(",", result.Errors.Select(error => error.Description))}";
         }
+    }
+
+    private async Task LogMissingExternalLoginAsync(string stage)
+    {
+        var authentication = await HttpContext.AuthenticateAsync(IdentityConstants.ExternalScheme);
+
+        Logger.LogWarning(
+            "External login information was unavailable during {Stage}. AuthenticationSucceeded={Succeeded}, Failure={Failure}, HasExternalCookie={HasExternalCookie}, Path={Path}, Host={Host}",
+            stage,
+            authentication.Succeeded,
+            authentication.Failure?.Message ?? "none",
+            HttpContext.Request.Cookies.ContainsKey("Identity.External"),
+            HttpContext.Request.Path,
+            HttpContext.Request.Host.Value);
     }
 
     private ApplicationUser CreateUser()

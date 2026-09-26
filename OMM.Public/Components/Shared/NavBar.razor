@@ -31,12 +31,12 @@
                     </form>
                 </Authorized>
                 <NotAuthorized>
-                    <a href="/Account/Login?returnUrl=%2Fdashboard" class="btn btn-light">
+                    <a href="/Account/Login?returnUrl=%2Fdashboard" class="btn btn-light px-3 py-2 fw-medium">
                         Log in
                     </a>
-                    <a href="/dashboard" class="btn btn-omm-primary">
-                        <span>Enter Mine Board</span>
-                        <i class="ti ti-chevron-right fs-6"></i>
+                    <a href="/Account/Register?returnUrl=%2Fdashboard" class="btn btn-omm-primary">
+                        <span>Get Started</span>
+                        <i class="ti ti-arrow-right fs-6"></i>
                     </a>
                 </NotAuthorized>
             </AuthorizeView>
@@ -71,12 +71,12 @@
                         </form>
                     </Authorized>
                     <NotAuthorized>
-                        <a href="/Account/Login?returnUrl=%2Fdashboard" class="btn btn-omm-secondary w-100" @onclick="CloseMobileMenu">
+                        <a href="/Account/Login?returnUrl=%2Fdashboard" class="btn btn-omm-secondary w-100 mb-2" @onclick="CloseMobileMenu">
                             Log in
                         </a>
-                        <a href="/dashboard" class="btn btn-omm-primary w-100 mt-1" @onclick="CloseMobileMenu">
-                            <span>Enter Mine Board</span>
-                            <i class="ti ti-chevron-right fs-6"></i>
+                        <a href="/Account/Register?returnUrl=%2Fdashboard" class="btn btn-omm-primary w-100" @onclick="CloseMobileMenu">
+                            <span>Get Started</span>
+                            <i class="ti ti-arrow-right fs-6"></i>
                         </a>
                     </NotAuthorized>
                 </AuthorizeView>

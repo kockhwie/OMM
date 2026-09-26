@@ -1,7 +1,9 @@
 @page "/burdens"
 @layout DashboardLayout
 @attribute [Authorize]
-@inject IMineService MineService
+@using OMM.Public.Services
+@inject MemberRecordService RecordService
+@inject DatabaseMineService MineService
 @inject NavigationManager Navigation
 
 <PageTitle>Burdens - OhMyMine</PageTitle>
@@ -31,10 +33,10 @@
                 <span class="text-uppercase fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.05em;">Total Burden Balance</span>
             </div>
             <div class="fs-3 fw-bold text-dark font-display">
-                @FormatHelper.FormatCurrency(TotalBalance)
+                @TotalBalanceDisplay
             </div>
             <small class="text-muted mt-1 d-block">
-                Down from @FormatHelper.FormatCurrency(TotalOriginal) original principal
+                Down from @TotalOriginalDisplay original principal
             </small>
         </div>
     </div>
@@ -49,7 +51,7 @@
                 <span class="text-uppercase fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.05em;">Monthly Debt Service</span>
             </div>
             <div class="fs-3 fw-bold text-dark font-display">
-                @FormatHelper.FormatCurrency(TotalMonthlyPayment)
+                @TotalMonthlyPaymentDisplay
             </div>
             <small class="text-muted mt-1 d-block">
                 Required monthly repayments across all loans
@@ -71,7 +73,7 @@
             </div>
             <ProgressBar Value="@OverallProgress" Height="8px" ColorClass="bg-success" />
             <small class="text-muted mt-2 d-block">
-                @FormatHelper.FormatCurrency(TotalOriginal - TotalBalance) repaid to date
+                @RepaidDisplay repaid to date
             </small>
         </div>
     </div>
@@ -134,13 +136,13 @@
                         <div class="col-4">
                             <span class="text-uppercase text-muted fw-semibold" style="font-size: 0.65rem; letter-spacing: 0.05em;">Balance</span>
                             <div class="fw-bold text-dark fs-6">
-                                @FormatHelper.FormatCurrency(burden.Balance)
+                                @FormatHelper.FormatCurrency(burden.Balance, burden.Currency)
                             </div>
                         </div>
                         <div class="col-4">
                             <span class="text-uppercase text-muted fw-semibold" style="font-size: 0.65rem; letter-spacing: 0.05em;">Monthly</span>
                             <div class="fw-bold text-dark fs-6">
-                                @FormatHelper.FormatCurrency(burden.MonthlyPayment)
+                                @FormatHelper.FormatCurrency(burden.MonthlyPayment, burden.Currency)
                             </div>
                         </div>
                         <div class="col-4">
@@ -228,11 +230,11 @@ else
                             </select>
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label text-dark">Remaining Principal Balance (RM) *</label>
+                            <label class="form-label text-dark">Remaining Principal Balance *</label>
                             <input type="number" class="form-control rounded-3" step="100" @bind="newBurden.Balance" />
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label text-dark">Original Principal Amount (RM) *</label>
+                            <label class="form-label text-dark">Original Principal Amount *</label>
                             <input type="number" class="form-control rounded-3" step="100" @bind="newBurden.OriginalAmount" />
                         </div>
                         <div class="col-12 col-md-6">
@@ -240,7 +242,7 @@ else
                             <input type="number" class="form-control rounded-3" step="0.1" @bind="newBurden.InterestRate" />
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label text-dark">Monthly Repayment (RM) *</label>
+                            <label class="form-label text-dark">Monthly Repayment *</label>
                             <input type="number" class="form-control rounded-3" step="50" @bind="newBurden.MonthlyPayment" />
                         </div>
                         <div class="col-12">
@@ -279,7 +281,7 @@ else
 
     private async Task LoadData()
     {
-        allBurdens = await MineService.GetBurdensAsync();
+        allBurdens = await RecordService.GetBurdensAsync();
         allMines = await MineService.GetMinesAsync();
     }
 
@@ -287,10 +289,21 @@ else
         .Where(b => selectedType == null || b.Type == selectedType.Value)
         .ToList();
 
-    private decimal TotalBalance => allBurdens.Sum(b => b.Balance);
-    private decimal TotalOriginal => allBurdens.Sum(b => b.OriginalAmount);
-    private decimal TotalMonthlyPayment => allBurdens.Sum(b => b.MonthlyPayment);
+    private bool HasSingleCurrency => allBurdens.Select(item => item.Currency).Distinct(StringComparer.OrdinalIgnoreCase).Count() == 1;
+    private string TotalBalanceDisplay => AggregateDisplay(item => item.Balance);
+    private string TotalOriginalDisplay => AggregateDisplay(item => item.OriginalAmount);
+    private string TotalMonthlyPaymentDisplay => AggregateDisplay(item => item.MonthlyPayment);
+    private string RepaidDisplay => HasSingleCurrency
+        ? FormatHelper.FormatCurrency(allBurdens.Sum(item => item.OriginalAmount - item.Balance), allBurdens[0].Currency)
+        : "Multiple currencies";
+    private decimal TotalBalance => HasSingleCurrency ? allBurdens.Sum(item => item.Balance) : 0m;
+    private decimal TotalOriginal => HasSingleCurrency ? allBurdens.Sum(item => item.OriginalAmount) : 0m;
     private int OverallProgress => TotalOriginal > 0 ? (int)Math.Round(((TotalOriginal - TotalBalance) / TotalOriginal) * 100m) : 0;
+
+    private string AggregateDisplay(Func<Burden, decimal> selector) =>
+        allBurdens.Count == 0 ? FormatHelper.FormatCurrency(0) : HasSingleCurrency
+            ? FormatHelper.FormatCurrency(allBurdens.Sum(selector), allBurdens[0].Currency)
+            : "Multiple currencies";
 
     private void OpenAddModal()
     {
@@ -298,7 +311,7 @@ else
         newBurden = new Burden
         {
             Type = BurdenType.PersonalLoan,
-            Currency = "MYR",
+            Currency = string.Empty,
             InterestRate = 4.5m
         };
         showAddModal = true;
@@ -319,14 +332,14 @@ else
         if (newBurden.OriginalAmount <= 0)
             newBurden.OriginalAmount = newBurden.Balance;
 
-        await MineService.AddBurdenAsync(newBurden);
+        await RecordService.AddBurdenAsync(newBurden);
         showAddModal = false;
         await LoadData();
     }
 
     private async Task DeleteBurden(string id)
     {
-        await MineService.DeleteBurdenAsync(id);
+        await RecordService.DeleteBurdenAsync(id);
         await LoadData();
     }
 }

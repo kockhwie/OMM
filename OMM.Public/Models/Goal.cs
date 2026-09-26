@@ -19,6 +19,7 @@ public class Goal
     public GoalType Type { get; set; }
     public decimal Target { get; set; }
     public decimal Current { get; set; }
+    public string? Currency { get; set; }
     public string TargetDate { get; set; } = string.Empty;
     public string Status { get; set; } = "on-track"; // on-track, needs-attention, not-started, achieved
     public List<string>? LinkedMineIds { get; set; }

@@ -1,7 +1,9 @@
 @page "/income"
 @layout DashboardLayout
 @attribute [Authorize]
-@inject IMineService MineService
+@using OMM.Public.Services
+@inject MemberRecordService RecordService
+@inject DatabaseMineService MineService
 @inject NavigationManager Navigation
 
 <PageTitle>Income Classification - OhMyMine</PageTitle>
@@ -31,7 +33,7 @@
                 <span class="text-uppercase fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.05em;">Active / month</span>
             </div>
             <div class="fs-3 fw-bold text-dark font-display">
-                @FormatHelper.FormatCurrency(ActiveMonthly)
+                @ActiveMonthlyDisplay
             </div>
             <small class="text-muted mt-1 d-block">Salaries, client retainers</small>
         </div>
@@ -47,7 +49,7 @@
                 <span class="text-uppercase fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.05em;">Passive / month</span>
             </div>
             <div class="fs-3 fw-bold text-success font-display">
-                @FormatHelper.FormatCurrency(Math.Round(PassiveMonthlyEquivalent))
+                @PassiveMonthlyDisplay
             </div>
             <small class="text-muted mt-1 d-block">Incl. annual yield ÷ 12</small>
         </div>
@@ -63,7 +65,7 @@
                 <span class="text-uppercase fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.05em;">Non-recurring</span>
             </div>
             <div class="fs-3 fw-bold text-dark font-display">
-                @FormatHelper.FormatCurrency(NonRecurringTotal)
+                @NonRecurringDisplay
             </div>
             <small class="text-muted mt-1 d-block">Bonuses, one-off windfalls</small>
         </div>
@@ -79,7 +81,7 @@
                 <span class="text-uppercase fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.05em;">Total Annual</span>
             </div>
             <div class="fs-3 fw-bold text-dark font-display">
-                @FormatHelper.FormatCurrency(TotalAnnualInflow)
+                @TotalAnnualInflowDisplay
             </div>
             <small class="text-muted mt-1 d-block">All sources annualized</small>
         </div>
@@ -147,7 +149,7 @@
                     <div class="d-flex align-items-center gap-3">
                         <div class="text-end">
                             <div class="fs-5 fw-bold text-dark font-display">
-                                @FormatHelper.FormatCurrency(rec.Amount)
+                                @FormatHelper.FormatCurrency(rec.Amount, rec.Currency)
                             </div>
                             <small class="text-muted">@rec.Date</small>
                         </div>
@@ -249,7 +251,7 @@
 
     private async Task LoadData()
     {
-        allRecords = await MineService.GetIncomeRecordsAsync();
+        allRecords = await RecordService.GetIncomeRecordsAsync();
         allMines = await MineService.GetMinesAsync();
     }
 
@@ -277,6 +279,13 @@
 
     private decimal TotalAnnualInflow => (ActiveMonthly * 12) + (PassiveMonthlyDirect * 12) + PassiveAnnual + NonRecurringTotal;
 
+    private bool HasSingleCurrency => allRecords.Select(item => item.Currency).Distinct(StringComparer.OrdinalIgnoreCase).Count() == 1;
+    private string ActiveMonthlyDisplay => AggregateDisplay(item => item.Classification == IncomeClass.Active && item.Frequency == "monthly" ? item.Amount : 0m);
+    private string PassiveMonthlyDisplay => AggregateDisplay(item => item.Classification == IncomeClass.PassiveMineGenerated ? MemberRecordService.MonthlyEquivalent(item.Amount, item.Frequency switch { "monthly" => Data.Entities.RecordFrequency.Monthly, "annual" => Data.Entities.RecordFrequency.Annual, _ => Data.Entities.RecordFrequency.OneOff }) : 0m);
+    private string NonRecurringDisplay => AggregateDisplay(item => item.Classification == IncomeClass.NonRecurring ? item.Amount : 0m);
+    private string TotalAnnualInflowDisplay => HasSingleCurrency ? FormatHelper.FormatCurrency(TotalAnnualInflow, allRecords[0].Currency) : allRecords.Count == 0 ? FormatHelper.FormatCurrency(0) : "Multiple currencies";
+    private string AggregateDisplay(Func<IncomeRecord, decimal> selector) => allRecords.Count == 0 ? FormatHelper.FormatCurrency(0) : HasSingleCurrency ? FormatHelper.FormatCurrency(allRecords.Sum(selector), allRecords[0].Currency) : "Multiple currencies";
+
     private void OpenAddModal()
     {
         inputError = null;
@@ -284,7 +293,7 @@
         {
             Classification = IncomeClass.Active,
             Frequency = "monthly",
-            Currency = "MYR"
+            Currency = string.Empty
         };
         showAddModal = true;
     }
@@ -324,14 +333,14 @@
         if (string.IsNullOrWhiteSpace(newRecord.Source) || newRecord.Amount <= 0)
             return;
 
-        await MineService.AddIncomeRecordAsync(newRecord);
+        await RecordService.AddIncomeRecordAsync(newRecord);
         showAddModal = false;
         await LoadData();
     }
 
     private async Task DeleteIncome(string id)
     {
-        await MineService.DeleteIncomeRecordAsync(id);
+        await RecordService.DeleteIncomeRecordAsync(id);
         await LoadData();
     }
 }

@@ -26,6 +26,10 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddScoped<IMineService, MockMineService>();
+builder.Services.AddScoped<IMineRepository, MineRepository>();
+builder.Services.AddScoped<DatabaseMineService>();
+builder.Services.AddScoped<MemberRecordService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IMinerProfileService, MinerProfileService>();
 builder.Services.AddScoped<PublicMemberMigrationService>();
 builder.Services.AddMemoryCache();

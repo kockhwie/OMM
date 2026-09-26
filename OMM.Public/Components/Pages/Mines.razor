@@ -3,9 +3,10 @@
 @attribute [Authorize]
 @using Microsoft.EntityFrameworkCore
 @using OMM.Public.Data
-@inject IMineService MineService
+@using OMM.Public.Services
+@inject DatabaseMineService MineService
 @inject NavigationManager Navigation
-@inject ApplicationDbContext DbContext
+@inject IDbContextFactory<ApplicationDbContext> DbContextFactory
 
 <PageTitle>My Mines - OhMyMine</PageTitle>
 
@@ -13,7 +14,7 @@
     <div>
         <h1 class="h3 fw-bold text-dark mb-1 font-display">My Mines</h1>
         <p class="text-muted small mb-0">
-            @FilteredMines.Count mines · @FormatHelper.FormatCurrency(TotalFilteredValue) total value
+            @FilteredMines.Count mines · @TotalFilteredValueDisplay total value
         </p>
     </div>
     <button class="btn btn-primary align-items-center gap-2 px-3 py-2 fw-semibold" @onclick="OpenAddModal">
@@ -92,8 +93,8 @@
                     <div class="row g-2 pt-2 border-top border-light-subtle text-center text-sm-start">
                         <div class="col-4 min-w-0">
                             <span class="text-uppercase text-muted fw-semibold d-block" style="font-size: 0.62rem; letter-spacing: 0.05em;">Current</span>
-                            <div class="fw-bold text-dark" style="font-size: 0.85rem;" title="@FormatHelper.FormatCurrency(mine.CurrentValue)">
-                                @FormatHelper.FormatCurrencyCompact(mine.CurrentValue)
+                            <div class="fw-bold text-dark" style="font-size: 0.85rem;" title="@FormatHelper.FormatCurrency(mine.CurrentValue, mine.Currency)">
+                                @FormatHelper.FormatCurrencyCompact(mine.CurrentValue, mine.Currency)
                             </div>
                         </div>
                         <div class="col-4 min-w-0">
@@ -105,8 +106,8 @@
                         </div>
                         <div class="col-4 min-w-0">
                             <span class="text-uppercase text-muted fw-semibold d-block" style="font-size: 0.62rem; letter-spacing: 0.05em;">Income/mo</span>
-                            <div class="fw-bold text-dark" style="font-size: 0.85rem;" title="@(mine.MonthlyIncome > 0 ? FormatHelper.FormatCurrency(mine.MonthlyIncome) : "—")">
-                                @(mine.MonthlyIncome > 0 ? FormatHelper.FormatCurrencyCompact(mine.MonthlyIncome) : "—")
+                            <div class="fw-bold text-dark" style="font-size: 0.85rem;" title="@(mine.MonthlyIncome > 0 ? FormatHelper.FormatCurrency(mine.MonthlyIncome, mine.Currency) : "—")">
+                                @(mine.MonthlyIncome > 0 ? FormatHelper.FormatCurrencyCompact(mine.MonthlyIncome, mine.Currency) : "—")
                             </div>
                         </div>
                     </div>
@@ -198,15 +199,15 @@ else
                             </select>
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label text-dark">Current Market Value (RM) *</label>
+                            <label class="form-label text-dark">Current Market Value *</label>
                             <input type="number" class="form-control rounded-3" step="100" @bind="newMine.CurrentValue" />
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label text-dark">Purchase Price (RM)</label>
+                            <label class="form-label text-dark">Purchase Price</label>
                             <input type="number" class="form-control rounded-3" step="100" @bind="newMine.PurchaseCost" />
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label text-dark">Est. Monthly Passive Income (RM)</label>
+                            <label class="form-label text-dark">Est. Monthly Passive Income</label>
                             <input type="number" class="form-control rounded-3" step="50" @bind="newMine.MonthlyIncome" />
                         </div>
                         <div class="col-12 col-md-6">
@@ -241,7 +242,8 @@ else
 
     private async Task LoadInstitutions()
     {
-        institutions = await DbContext.Institutions
+        await using var db = await DbContextFactory.CreateDbContextAsync();
+        institutions = await db.Institutions
             .AsNoTracking()
             .Where(i => i.IsActive)
             .OrderBy(i => i.InstitutionName_EN)
@@ -261,7 +263,21 @@ else
                     FormatHelper.MineTypeLabel(m.Type).Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
         .ToList();
 
-    private decimal TotalFilteredValue => FilteredMines.Sum(m => m.CurrentValue);
+    private string TotalFilteredValueDisplay
+    {
+        get
+        {
+            var currencies = FilteredMines
+                .Select(mine => mine.Currency)
+                .Where(currency => !string.IsNullOrWhiteSpace(currency))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            return currencies.Count == 1
+                ? FormatHelper.FormatCurrency(FilteredMines.Sum(mine => mine.CurrentValue), currencies[0])
+                : currencies.Count == 0 ? "—" : "Multiple currencies";
+        }
+    }
 
     private void NavigateToDetail(string mineId)
     {
@@ -281,7 +297,7 @@ else
         {
             Category = MineCategory.Investments,
             Type = MineType.Stocks,
-            Currency = "MYR",
+            Currency = string.Empty,
             Status = "active"
         };
         showAddModal = true;
@@ -312,8 +328,19 @@ else
             newMine.GrowthPct = 0;
         }
 
-        await MineService.AddMineAsync(newMine);
-        showAddModal = false;
-        await LoadMines();
+        try
+        {
+            await MineService.AddMineAsync(newMine);
+            showAddModal = false;
+            await LoadMines();
+        }
+        catch (ArgumentException exception)
+        {
+            inputError = exception.Message;
+        }
+        catch (InvalidOperationException exception)
+        {
+            inputError = exception.Message;
+        }
     }
 }

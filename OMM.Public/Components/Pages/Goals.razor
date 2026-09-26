@@ -1,7 +1,8 @@
 @page "/goals"
 @layout DashboardLayout
 @attribute [Authorize]
-@inject IMineService MineService
+@using OMM.Public.Services
+@inject MemberRecordService RecordService
 @inject NavigationManager Navigation
 
 <PageTitle>Goals - OhMyMine</PageTitle>
@@ -188,7 +189,7 @@ else
 
     private async Task LoadGoals()
     {
-        allGoals = await MineService.GetGoalsAsync();
+        allGoals = await RecordService.GetGoalsAsync();
     }
 
     private void OpenAddModal()
@@ -216,14 +217,14 @@ else
             return;
 
         newGoal.TargetDate = targetDateInput.ToString("yyyy-MM-dd");
-        await MineService.AddGoalAsync(newGoal);
+        await RecordService.AddGoalAsync(newGoal);
         showAddModal = false;
         await LoadGoals();
     }
 
     private async Task DeleteGoal(string id)
     {
-        await MineService.DeleteGoalAsync(id);
+        await RecordService.DeleteGoalAsync(id);
         await LoadGoals();
     }
 }

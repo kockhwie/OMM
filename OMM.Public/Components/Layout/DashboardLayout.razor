@@ -1,5 +1,6 @@
 @inherits LayoutComponentBase
 @inject IMineService MineService
+@inject INotificationService NotificationService
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JS
 
@@ -30,6 +31,10 @@
             <NavLink class="sidebar-link" href="goals">
                 <i class="ti ti-target fs-5"></i>
                 <span>Goals</span>
+            </NavLink>
+            <NavLink class="sidebar-link" href="expenses">
+                <i class="ti ti-receipt fs-5"></i>
+                <span>Expenses</span>
             </NavLink>
             <NavLink class="sidebar-link" href="dashboard/tools">
                 <i class="ti ti-calculator fs-5"></i>
@@ -104,6 +109,10 @@
                     <NavLink class="sidebar-link" href="goals" @onclick="ToggleMobileNav">
                         <i class="ti ti-target fs-5"></i>
                         <span>Goals</span>
+                    </NavLink>
+                    <NavLink class="sidebar-link" href="expenses" @onclick="ToggleMobileNav">
+                        <i class="ti ti-receipt fs-5"></i>
+                        <span>Expenses</span>
                     </NavLink>
                     <NavLink class="sidebar-link" href="dashboard/tools" @onclick="ToggleMobileNav">
                         <i class="ti ti-calculator fs-5"></i>
@@ -246,7 +255,8 @@
     protected override async Task OnInitializedAsync()
     {
         profile = await MineService.GetMinerProfileAsync();
-        notifications = await MineService.GetNotificationsAsync();
+        await NotificationService.GenerateAsync();
+        notifications = (await NotificationService.GetAsync()).ToList();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

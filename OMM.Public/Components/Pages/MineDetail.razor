@@ -1,7 +1,8 @@
 @page "/mines/{Id}"
 @layout DashboardLayout
 @attribute [Authorize]
-@inject IMineService MineService
+@using OMM.Public.Services
+@inject DatabaseMineService MineService
 @inject NavigationManager Navigation
 
 <PageTitle>@(currentMine?.Name ?? "Mine Detail") - OhMyMine</PageTitle>
@@ -66,7 +67,7 @@ else
                     <span class="text-uppercase fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.05em;">Current Value</span>
                 </div>
                 <div class="fs-4 fw-bold text-dark font-display">
-                    @FormatHelper.FormatCurrency(currentMine.CurrentValue)
+                    @FormatHelper.FormatCurrency(currentMine.CurrentValue, currentMine.Currency)
                 </div>
             </div>
         </div>
@@ -79,7 +80,7 @@ else
                     <span class="text-uppercase fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.05em;">Purchase Price</span>
                 </div>
                 <div class="fs-4 fw-bold text-dark font-display">
-                    @FormatHelper.FormatCurrency(currentMine.PurchaseCost)
+                    @FormatHelper.FormatCurrency(currentMine.PurchaseCost, currentMine.Currency)
                 </div>
             </div>
         </div>
@@ -92,7 +93,7 @@ else
                     <span class="text-uppercase fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.05em;">Total Growth</span>
                 </div>
                 <div class="fs-4 fw-bold font-display @(currentMine.Growth >= 0 ? "text-success" : "text-danger")">
-                    @FormatHelper.FormatCurrency(currentMine.Growth)
+                    @FormatHelper.FormatCurrency(currentMine.Growth, currentMine.Currency)
                     <span class="fs-6 fw-semibold text-muted ms-1">(@FormatHelper.FormatPercent(currentMine.GrowthPct))</span>
                 </div>
             </div>
@@ -106,7 +107,7 @@ else
                     <span class="text-uppercase fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.05em;">Monthly Income</span>
                 </div>
                 <div class="fs-4 fw-bold text-dark font-display">
-                    @(currentMine.MonthlyIncome > 0 ? FormatHelper.FormatCurrency(currentMine.MonthlyIncome) : "RM 0")
+                    @(currentMine.MonthlyIncome > 0 ? FormatHelper.FormatCurrency(currentMine.MonthlyIncome, currentMine.Currency) : FormatHelper.FormatCurrency(0, currentMine.Currency))
                 </div>
             </div>
         </div>
@@ -190,11 +191,11 @@ else
                             <div class="d-flex flex-column gap-2 text-dark small">
                                 <div class="d-flex justify-content-between">
                                     <span class="text-muted">Outstanding balance</span>
-                                    <span class="fw-semibold">@FormatHelper.FormatCurrency(linkedBurden.Balance)</span>
+                            <span class="fw-semibold">@FormatHelper.FormatCurrency(linkedBurden.Balance, linkedBurden.Currency)</span>
                                 </div>
                                 <div class="d-flex justify-content-between">
                                     <span class="text-muted">Monthly payment</span>
-                                    <span class="fw-semibold">@FormatHelper.FormatCurrency(linkedBurden.MonthlyPayment)</span>
+                            <span class="fw-semibold">@FormatHelper.FormatCurrency(linkedBurden.MonthlyPayment, linkedBurden.Currency)</span>
                                 </div>
                                 <div class="d-flex justify-content-between">
                                     <span class="text-muted">Interest rate</span>
@@ -209,7 +210,7 @@ else
                                 <div>
                                     <div class="text-muted small fw-medium">Net Realizable Equity</div>
                                     <div class="fs-4 fw-bold text-success font-display">
-                                        @FormatHelper.FormatCurrency(netEquity)
+                                        @FormatHelper.FormatCurrency(netEquity, currentMine.Currency)
                                     </div>
                                 </div>
                                 <a href="/burdens" class="btn btn-sm btn-outline-success rounded-3">Manage</a>
@@ -227,7 +228,7 @@ else
                             </div>
                             <div class="text-muted small mb-1">Unencumbered Asset - 100% Equity</div>
                             <div class="fs-3 fw-bold text-success font-display">
-                                @FormatHelper.FormatCurrency(currentMine.CurrentValue)
+                                @FormatHelper.FormatCurrency(currentMine.CurrentValue, currentMine.Currency)
                             </div>
                         </div>
                     </div>
@@ -267,7 +268,7 @@ else
                                             {
                                                 <div class="d-flex justify-content-between">
                                                     <span>Principal:</span>
-                                                    <span class="fw-semibold text-dark">@FormatHelper.FormatCurrency(sm.Principal.Value)</span>
+                                                <span class="fw-semibold text-dark">@FormatHelper.FormatCurrency(sm.Principal.Value, currentMine.Currency)</span>
                                                 </div>
                                             }
                                             @if (sm.Rate.HasValue)
@@ -288,7 +289,7 @@ else
                                             {
                                                 <div class="d-flex justify-content-between">
                                                     <span>Purchase Price:</span>
-                                                    <span class="fw-semibold text-dark">RM @sm.PurchasePrice.Value.ToString("F2")</span>
+                                                <span class="fw-semibold text-dark">@FormatHelper.FormatCurrencyPrecise(sm.PurchasePrice.Value, currentMine.Currency)</span>
                                                 </div>
                                             }
                                             @if (!string.IsNullOrEmpty(sm.MaturityDate))
@@ -324,7 +325,7 @@ else
                             <div class="p-4 rounded-4 bg-warning-subtle border border-warning-subtle text-center">
                                 <span class="text-uppercase text-muted fw-semibold" style="font-size: 0.7rem;">Monthly Cashflow</span>
                                 <div class="fs-2 fw-bold text-dark font-display my-1">
-                                    @(currentMine.MonthlyIncome > 0 ? FormatHelper.FormatCurrency(currentMine.MonthlyIncome) : "RM 0")
+                                    @(currentMine.MonthlyIncome > 0 ? FormatHelper.FormatCurrency(currentMine.MonthlyIncome, currentMine.Currency) : FormatHelper.FormatCurrency(0, currentMine.Currency))
                                 </div>
                                 <span class="small text-muted">Direct passive ore generated every 30 days</span>
                             </div>
@@ -333,7 +334,7 @@ else
                             <div class="p-4 rounded-4 bg-light border border-light-subtle text-center">
                                 <span class="text-uppercase text-muted fw-semibold" style="font-size: 0.7rem;">Annualized Yield</span>
                                 <div class="fs-2 fw-bold text-dark font-display my-1">
-                                    @FormatHelper.FormatCurrency(currentMine.MonthlyIncome * 12)
+                                    @FormatHelper.FormatCurrency(currentMine.MonthlyIncome * 12, currentMine.Currency)
                                 </div>
                                 <span class="small text-muted">Based on current monthly distribution rate</span>
                             </div>
@@ -370,7 +371,7 @@ else
         currentMine = await MineService.GetMineByIdAsync(Id);
         if (currentMine != null && !string.IsNullOrEmpty(currentMine.LinkedBurdenId))
         {
-            linkedBurden = await MineService.GetBurdenByIdAsync(currentMine.LinkedBurdenId);
+            linkedBurden = await MineService.GetLinkedBurdenAsync(currentMine.LinkedBurdenId);
         }
         else
         {

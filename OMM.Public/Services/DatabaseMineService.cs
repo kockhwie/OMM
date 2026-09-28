@@ -33,6 +33,11 @@ public sealed class DatabaseMineService(
 
         var profile = await profileService.GetCurrentAsync(cancellationToken)
             ?? throw new InvalidOperationException("Complete your miner profile before adding a mine.");
+        if (!profile.CurrencyId.HasValue || string.IsNullOrWhiteSpace(profile.CurrencyCode))
+        {
+            throw new InvalidOperationException("Choose a base currency in Settings before adding a Mine.");
+        }
+
         var currencyCode = string.IsNullOrWhiteSpace(mine.Currency) ? profile.CurrencyCode : mine.Currency;
         if (string.IsNullOrWhiteSpace(currencyCode))
         {

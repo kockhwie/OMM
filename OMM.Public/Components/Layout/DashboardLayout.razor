@@ -1,10 +1,13 @@
 @inherits LayoutComponentBase
+@implements IDisposable
 @inject IMinerProfileService ProfileService
 @inject INotificationService NotificationService
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JS
 
 <div class="dashboard-layout d-flex min-vh-100" style="background-color: #f3f8fe;">
+    @if (!requiresOnboarding)
+    {
     <!-- Desktop Sidebar -->
     <aside class="dashboard-sidebar d-none d-lg-flex flex-column position-fixed top-0 bottom-0 start-0 bg-white border-end" style="width: 256px; z-index: 1020;">
         <div class="dashboard-sidebar-brand d-flex align-items-center px-4 border-bottom" style="height: 64px;">
@@ -140,6 +143,7 @@
             </div>
         </div>
     }
+    }
 
     <!-- Main Content Area -->
     <div class="flex-grow-1 d-flex flex-column dashboard-content-wrapper" style="min-width: 0;">
@@ -147,9 +151,12 @@
         <header class="sticky-top bg-white bg-opacity-95 border-bottom px-4 px-lg-5 d-flex align-items-center justify-content-between" 
                 style="height: 64px; backdrop-filter: blur(8px); z-index: 1010; width: 100%;">
             <div class="d-flex align-items-center gap-3">
-                <button class="btn btn-sm d-lg-none p-1 text-dark border-0" @onclick="ToggleMobileNav">
-                    <i class="ti ti-menu-2 fs-4"></i>
-                </button>
+                @if (!requiresOnboarding)
+                {
+                    <button class="btn btn-sm d-lg-none p-1 text-dark border-0" @onclick="ToggleMobileNav" aria-label="Open navigation">
+                        <i class="ti ti-menu-2 fs-4"></i>
+                    </button>
+                }
                 <div class="d-none d-sm-flex search-input-group" style="width: 100%; max-width: 320px; min-width: 160px;">
                     <i class="ti ti-search"></i>
                     <input type="text" placeholder="Search mines, burdens..." />
@@ -216,7 +223,7 @@
 
                 <!-- User Profile Pill & Sign Out -->
                 <div class="d-flex align-items-center gap-2">
-                    @if (profile != null)
+                    @if (!requiresOnboarding && profile != null)
                     {
                         <a href="settings" class="d-flex align-items-center text-decoration-none flex-shrink-0" title="Account Settings (@profile.Name)">
                             <div class="rounded-circle text-white d-flex align-items-center justify-content-center fw-bold shadow-sm flex-shrink-0"
@@ -250,10 +257,13 @@
     private bool isMobileNavOpen = false;
     private bool isNotifOpen = false;
     private bool isStealthMode = false;
+    private bool requiresOnboarding = true;
     private int unreadNotifCount => notifications?.Count(n => !n.Read) ?? 0;
 
     protected override async Task OnInitializedAsync()
     {
+        NavigationManager.LocationChanged += HandleLocationChanged;
+
         var currentProfile = await ProfileService.GetCurrentAsync();
         profile = currentProfile is null
             ? new MinerProfile()
@@ -266,8 +276,46 @@
                 Language = currentProfile.Language ?? string.Empty,
                 JoinedDate = currentProfile.CreatedAt.ToString("yyyy-MM-dd")
             };
+
+        var currentPath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri)
+            .Split('?', 2)[0]
+            .Trim('/');
+        var isOnboardingRoute = string.Equals(currentPath, "onboarding", StringComparison.OrdinalIgnoreCase);
+        requiresOnboarding = currentProfile is null
+            || !currentProfile.CurrencyId.HasValue
+            || !currentProfile.CountryId.HasValue
+            || string.IsNullOrWhiteSpace(currentProfile.DisplayName)
+            || currentProfile.OnboardingStatus != OMM.Public.Data.Entities.OnboardingStatus.Completed;
+
+        if (!isOnboardingRoute && requiresOnboarding)
+        {
+            NavigationManager.NavigateTo("/onboarding", replace: true);
+            return;
+        }
+
         await NotificationService.GenerateAsync();
         notifications = (await NotificationService.GetAsync()).ToList();
+    }
+
+    private void HandleLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs args)
+    {
+        var currentPath = NavigationManager.ToBaseRelativePath(args.Location)
+            .Split('?', 2)[0]
+            .Trim('/');
+        var isOnboardingRoute = string.Equals(currentPath, "onboarding", StringComparison.OrdinalIgnoreCase);
+
+        if (requiresOnboarding && !isOnboardingRoute)
+        {
+            NavigationManager.NavigateTo("/onboarding", replace: true);
+            return;
+        }
+
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= HandleLocationChanged;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

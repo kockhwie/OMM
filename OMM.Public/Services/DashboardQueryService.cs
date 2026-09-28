@@ -100,6 +100,8 @@ public sealed class DashboardQueryService(
             Country = profile.CountryName ?? string.Empty,
             Currency = profile.CurrencyCode ?? string.Empty,
             Language = profile.Language ?? string.Empty,
-            JoinedDate = profile.CreatedAt.ToString("yyyy-MM-dd")
+            JoinedDate = profile.CreatedAt.ToString("yyyy-MM-dd"),
+            OnboardingStatus = profile.OnboardingStatus,
+            OnboardingStep = profile.OnboardingStep
         };
 }

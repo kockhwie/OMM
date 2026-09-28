@@ -20,28 +20,27 @@ else
 {
     <!-- Page Header -->
     <div class="mb-4">
-        <p class="text-muted mb-1" style="font-size: 0.875rem;">Welcome back, @(profile.Name.Split(' ')[0])</p>
+        <p class="text-muted mb-1" style="font-size: 0.875rem;">Welcome back@(string.IsNullOrWhiteSpace(profile.Name) ? string.Empty : $", {profile.Name.Split(' ')[0]}")</p>
         <h1 class="h3 font-display fw-bold text-dark mb-0">Mine Board Overview</h1>
     </div>
 
-    @if (IsZeroData)
+    @if (NeedsOnboarding)
+    {
+        <div class="mb-4">
+            <DashboardSectionEmptyState Icon="ti-user-cog"
+                                        Title="Complete your profile"
+                                        Description="Choose a base currency before saving financial records or Mine values. Country and display name are optional."
+                                        Href="/onboarding"
+                                        ActionText="Set up your profile" />
+        </div>
+    }
+    else if (IsZeroData)
     {
         <div class="mb-4">
             <DashboardEmptyState />
         </div>
     }
-    else if (ProfileNeedsSetup)
-    {
-        <div class="omm-card p-4 mb-4 border-warning-subtle">
-            <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
-                <div>
-                    <h2 class="h5 fw-bold text-dark mb-1">Complete your profile</h2>
-                    <p class="text-muted mb-0">Add your country and base currency so your dashboard can present your records correctly.</p>
-                </div>
-                <a class="btn btn-outline-dark rounded-3" href="/settings">Complete profile</a>
-            </div>
-        </div>
-    }
+
 
     <!-- Key Metrics Grid -->
     <div class="row g-3 mb-4">
@@ -324,14 +323,14 @@ else
 
     private bool HasNoMinesAndBurdens => (allMines?.Count ?? 0) == 0 && (burdens?.Count ?? 0) == 0;
 
-    private bool ProfileNeedsSetup => string.IsNullOrWhiteSpace(profile.Currency)
-        || string.IsNullOrWhiteSpace(profile.Country);
+    private bool NeedsOnboarding => string.IsNullOrWhiteSpace(profile.Currency);
 
     protected override async Task OnInitializedAsync()
     {
         snapshot = await DashboardQuery.GetSnapshotAsync();
         summary = snapshot.Summary;
         profile = snapshot.Profile;
+
         allMines = snapshot.Mines.ToList();
         topMines = allMines.OrderByDescending(m => m.CurrentValue).Take(4).ToList();
         burdens = snapshot.Burdens.ToList();

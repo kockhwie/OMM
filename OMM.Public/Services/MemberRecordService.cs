@@ -226,6 +226,7 @@ public sealed class MemberRecordService(
         if (goal.Target <= 0) throw new ArgumentException("Goal target must be greater than zero.", nameof(goal));
 
         var userId = await RequireUserIdAsync();
+        await RequireBaseCurrencyAsync(cancellationToken);
         await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
         await using var transaction = db.Database.IsRelational()
             ? await db.Database.BeginTransactionAsync(cancellationToken)
@@ -288,6 +289,7 @@ public sealed class MemberRecordService(
     public async Task<bool> UpdateGoalAsync(Goal goal, CancellationToken cancellationToken = default)
     {
         var userId = await RequireUserIdAsync();
+        await RequireBaseCurrencyAsync(cancellationToken);
         if (!Guid.TryParse(goal.Id, out var goalId)) return false;
         await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
         var entity = await db.Goals.SingleOrDefaultAsync(item => item.Id == goalId && item.UserId == userId, cancellationToken);
@@ -334,11 +336,10 @@ public sealed class MemberRecordService(
 
     private async Task<int> ResolveCurrencyIdAsync(ApplicationDbContext db, string? code, CancellationToken cancellationToken)
     {
+        var profile = await RequireBaseCurrencyAsync(cancellationToken);
         var selectedCode = code;
         if (string.IsNullOrWhiteSpace(selectedCode))
         {
-            var profile = await profileService.GetCurrentAsync(cancellationToken)
-                ?? throw new InvalidOperationException("Complete your miner profile before adding financial records.");
             selectedCode = profile.CurrencyCode;
         }
         if (string.IsNullOrWhiteSpace(selectedCode))
@@ -347,6 +348,18 @@ public sealed class MemberRecordService(
         var currencyId = await db.Currencies.Where(item => item.Code == selectedCode && item.IsActive)
             .Select(item => (int?)item.Id).SingleOrDefaultAsync(cancellationToken);
         return currencyId ?? throw new ArgumentException("The selected currency is not available.", nameof(code));
+    }
+
+    private async Task<MinerProfileView> RequireBaseCurrencyAsync(CancellationToken cancellationToken)
+    {
+        var profile = await profileService.GetCurrentAsync(cancellationToken)
+            ?? throw new InvalidOperationException("Complete your profile and choose a base currency before saving financial records.");
+        if (!profile.CurrencyId.HasValue || string.IsNullOrWhiteSpace(profile.CurrencyCode))
+        {
+            throw new InvalidOperationException("Choose a base currency in Settings before saving financial records.");
+        }
+
+        return profile;
     }
 
     private static async Task<Guid?> ResolveMineIdAsync(ApplicationDbContext db, string userId, string? id, CancellationToken cancellationToken)

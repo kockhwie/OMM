@@ -31,6 +31,7 @@ builder.Services.AddScoped<MemberRecordService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<DashboardQueryService>();
 builder.Services.AddScoped<IMinerProfileService, MinerProfileService>();
+builder.Services.AddScoped<IOnboardingService, OnboardingService>();
 builder.Services.AddScoped<PublicMemberMigrationService>();
 builder.Services.AddMemoryCache();
 builder.Services.AddDatabaseAvailability();

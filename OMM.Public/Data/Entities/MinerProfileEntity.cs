@@ -29,4 +29,14 @@ public class MinerProfileEntity
     public DateTimeOffset? DeletedAt { get; set; }
 
     public bool IsDeleted { get; set; }
+
+    public OnboardingStatus OnboardingStatus { get; set; } = OnboardingStatus.NotStarted;
+
+    public OnboardingStep OnboardingStep { get; set; } = OnboardingStep.Welcome;
+
+    public DateTimeOffset? OnboardingStartedAt { get; set; }
+
+    public DateTimeOffset? OnboardingSkippedAt { get; set; }
+
+    public DateTimeOffset? OnboardingCompletedAt { get; set; }
 }

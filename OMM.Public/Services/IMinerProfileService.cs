@@ -38,7 +38,9 @@ public sealed record MinerProfileView(
     string? CurrencyName,
     string? Language,
     DateTimeOffset CreatedAt,
-    bool IsComplete);
+    bool IsComplete,
+    OMM.Public.Data.Entities.OnboardingStatus OnboardingStatus,
+    OMM.Public.Data.Entities.OnboardingStep OnboardingStep);
 
 public sealed record ProfileCurrencyOption(int Id, string Code, string Name);
 

@@ -46,6 +46,54 @@ public sealed class PublicProfileTests
     }
 
     [Fact]
+    public async Task New_profile_starts_at_currency_step_without_fabricated_defaults()
+    {
+        await using var fixture = await ProfileFixture.CreateAsync("new-user", "new@example.com");
+        var profileService = fixture.CreateService();
+        var onboardingService = fixture.CreateOnboardingService();
+
+        await profileService.CreateIfMissingAsync();
+        var onboarding = await onboardingService.GetCurrentAsync();
+
+        Assert.Equal(OnboardingStatus.NotStarted, onboarding.Status);
+        Assert.Equal(OnboardingStep.Welcome, onboarding.CurrentStep);
+        Assert.Null(onboarding.CurrencyId);
+        Assert.Null(onboarding.CountryId);
+        Assert.Null(onboarding.DisplayName);
+    }
+
+    [Fact]
+    public async Task Currency_is_required_before_onboarding_can_be_completed()
+    {
+        await using var fixture = await ProfileFixture.CreateAsync("currency-user", "currency@example.com");
+        var onboardingService = fixture.CreateOnboardingService();
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            onboardingService.CompleteFirstMineDecisionAsync(addMineNow: false));
+    }
+
+    [Fact]
+    public async Task Onboarding_persists_currency_and_skipped_optional_steps_without_creating_records()
+    {
+        await using var fixture = await ProfileFixture.CreateAsync("flow-user", "flow@example.com");
+        var onboardingService = fixture.CreateOnboardingService();
+
+        var currency = await onboardingService.SaveCurrencyAsync(1);
+        Assert.Equal(OnboardingStep.Country, currency.CurrentStep);
+        Assert.Equal(OnboardingStatus.InProgress, currency.Status);
+
+        await onboardingService.SaveCountryAsync(null);
+        await onboardingService.SaveDisplayNameAsync(null);
+        var completed = await onboardingService.CompleteFirstMineDecisionAsync(addMineNow: false);
+
+        Assert.Equal(OnboardingStatus.Completed, completed.Status);
+        Assert.Equal(OnboardingStep.Complete, completed.CurrentStep);
+        await using var db = fixture.CreateContext();
+        Assert.Empty(await db.Mines.ToListAsync());
+        Assert.Empty(await db.IncomeRecords.ToListAsync());
+    }
+
+    [Fact]
     public async Task Profile_reads_are_scoped_to_the_authenticated_user()
     {
         await using var fixture = await ProfileFixture.CreateAsync("user-1", "one@example.com");
@@ -140,6 +188,11 @@ public sealed class PublicProfileTests
             new TestDbContextFactory(options),
             authenticationStateProvider,
             NullLogger<MinerProfileService>.Instance);
+
+        public OnboardingService CreateOnboardingService() => new(
+            new TestDbContextFactory(options),
+            authenticationStateProvider,
+            NullLogger<OnboardingService>.Instance);
 
         public ApplicationDbContext CreateContext() => new(options);
 

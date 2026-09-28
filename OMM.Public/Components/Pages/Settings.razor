@@ -49,8 +49,8 @@ else if (savedNotification)
 
             <div class="d-flex flex-column gap-3">
                 <div>
-                    <label class="form-label text-dark">Miner Name</label>
-                    <input type="text" class="form-control rounded-3" @bind="displayName" maxlength="200" />
+                    <label class="form-label text-dark">Miner Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control rounded-3" @bind="displayName" maxlength="200" required aria-required="true" />
                 </div>
                 <div>
                     <label class="form-label text-dark">Email Address</label>
@@ -58,8 +58,8 @@ else if (savedNotification)
                 </div>
                 <div class="row g-2">
                     <div class="col-6">
-                        <label class="form-label text-dark">Country</label>
-                        <select class="form-select rounded-3" @bind="countryId">
+                        <label class="form-label text-dark">Country <span class="text-danger">*</span></label>
+                        <select class="form-select rounded-3" @bind="countryId" required aria-required="true">
                             <option value="">Choose country</option>
                             @foreach (var country in countries)
                             {
@@ -91,8 +91,8 @@ else if (savedNotification)
 
             <div class="d-flex flex-column gap-3">
                 <div>
-                    <label class="form-label text-dark">Primary Base Currency</label>
-                    <select class="form-select rounded-3" @bind="currencyId">
+                    <label class="form-label text-dark">Primary Base Currency <span class="text-danger">*</span></label>
+                    <select class="form-select rounded-3" @bind="currencyId" required aria-required="true">
                         <option value="">Choose currency</option>
                         @foreach (var currency in currencies)
                         {
@@ -241,6 +241,27 @@ else if (savedNotification)
 
     private async Task SavePreferences()
     {
+        if (string.IsNullOrWhiteSpace(displayName))
+        {
+            inputError = "Enter a display name before saving your settings.";
+            savedNotification = false;
+            return;
+        }
+
+        if (!countryId.HasValue)
+        {
+            inputError = "Choose a country before saving your settings.";
+            savedNotification = false;
+            return;
+        }
+
+        if (!currencyId.HasValue)
+        {
+            inputError = "Choose a base currency before saving your settings.";
+            savedNotification = false;
+            return;
+        }
+
         inputError = PublicInputValidator.GetDisplayTextError("Miner name", displayName ?? string.Empty);
         if (inputError is not null)
         {

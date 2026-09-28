@@ -1,0 +1,229 @@
+@page "/onboarding"
+@layout DashboardLayout
+@attribute [Authorize]
+@using OMM.Public.Data.Entities
+@inject IOnboardingService OnboardingService
+@inject IMinerProfileService ProfileService
+@inject NavigationManager Navigation
+
+<PageTitle>Profile Setup — OhMyMine</PageTitle>
+
+@if (loading)
+{
+    <div class="alert alert-info" role="status">Loading your profile setup…</div>
+}
+else if (onboarding is not null)
+{
+    <div class="mb-4 animate-fade-up">
+        <h1 class="h3 fw-bold text-dark font-display mb-1">Set up your profile</h1>
+        <p class="text-muted mb-0">Choose the details that help OMM present your financial records correctly.</p>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <div class="alert alert-danger" role="alert">@errorMessage</div>
+    }
+
+    <section class="omm-card p-4 p-md-5" aria-labelledby="setup-step-heading">
+        <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-muted small">Step @StepNumber of 3</span>
+                <span class="text-muted small">@StepLabel</span>
+            </div>
+            <div class="progress" role="progressbar" aria-label="Profile setup progress" aria-valuenow="@StepNumber" aria-valuemin="1" aria-valuemax="3">
+                <div class="progress-bar bg-primary" style="width: @($"{StepNumber * 100 / 3}%")"></div>
+            </div>
+        </div>
+
+        @if (CurrentStep == OnboardingStep.Currency)
+        {
+            <div class="omm-form-section">
+                <div>
+                    <h2 id="setup-step-heading" class="h4 fw-bold text-dark mb-1">What currency do you normally use?</h2>
+                    <p class="text-muted mb-0">This is required before you can save financial records or Mine values.</p>
+                </div>
+                <div class="omm-form-field">
+                    <label class="omm-form-label" for="onboarding-currency">Base currency <span class="text-danger">*</span></label>
+                    <select id="onboarding-currency" class="form-select" @bind="currencyId" required aria-required="true">
+                        @foreach (var currency in onboarding.Currencies)
+                        {
+                            <option value="@currency.Id">@FormatCurrency(currency) — @currency.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <button class="btn btn-primary" @onclick="SaveCurrency" disabled="@saving">Continue</button>
+                </div>
+            </div>
+        }
+        else if (CurrentStep == OnboardingStep.Country)
+        {
+            <div class="omm-form-section">
+                <div>
+                    <h2 id="setup-step-heading" class="h4 fw-bold text-dark mb-1">Which country do you live in?</h2>
+                    <p class="text-muted mb-0">Your country will not change the currency you selected.</p>
+                </div>
+                <div class="omm-form-field">
+                    <label class="omm-form-label" for="onboarding-country">Country <span class="text-danger">*</span></label>
+                    <select id="onboarding-country" class="form-select" @bind="countryId" required aria-required="true">
+                        @foreach (var country in countries)
+                        {
+                            <option value="@country.Id">@country.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="d-flex flex-wrap justify-content-between gap-2">
+                    <button class="btn btn-outline-secondary" @onclick="GoToCurrency" disabled="@saving">Back</button>
+                    <button class="btn btn-primary" @onclick="SaveCountry" disabled="@saving">Continue</button>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="omm-form-section">
+                <div>
+                    <h2 id="setup-step-heading" class="h4 fw-bold text-dark mb-1">What should we call you?</h2>
+                    <p class="text-muted mb-0">This name appears in your account and dashboard.</p>
+                </div>
+                <div class="omm-form-field">
+                    <label class="omm-form-label" for="onboarding-display-name">Display name <span class="text-danger">*</span></label>
+                    <input id="onboarding-display-name" class="form-control" type="text" maxlength="200" @bind="displayName" required aria-required="true" />
+                </div>
+                <div class="d-flex flex-wrap justify-content-between gap-2">
+                    <button class="btn btn-outline-secondary" @onclick="GoToCountry" disabled="@saving">Back</button>
+                    <button class="btn btn-primary" @onclick="SaveDisplayName" disabled="@saving">Finish setup</button>
+                </div>
+            </div>
+        }
+    </section>
+}
+
+@code {
+    private OnboardingView? onboarding;
+    private IReadOnlyList<ProfileCountryOption> countries = [];
+    private int? currencyId;
+    private int? countryId;
+    private string? displayName;
+    private bool loading = true;
+    private bool saving;
+    private string? errorMessage;
+
+    private OnboardingStep CurrentStep => onboarding?.CurrentStep switch
+    {
+        OnboardingStep.Country => OnboardingStep.Country,
+        OnboardingStep.DisplayName => OnboardingStep.DisplayName,
+        _ => OnboardingStep.Currency
+    };
+
+    private int StepNumber => CurrentStep switch
+    {
+        OnboardingStep.Country => 2,
+        OnboardingStep.DisplayName => 3,
+        _ => 1
+    };
+
+    private string StepLabel => CurrentStep switch
+    {
+        OnboardingStep.Country => "Country",
+        OnboardingStep.DisplayName => "Display name",
+        _ => "Currency"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        onboarding = await OnboardingService.GetCurrentAsync();
+        countries = await ProfileService.GetCountryOptionsAsync();
+        currencyId = onboarding.CurrencyId
+            ?? onboarding.Currencies.FirstOrDefault(currency => currency.Code.Equals("MYR", StringComparison.OrdinalIgnoreCase))?.Id;
+        countryId = onboarding.CountryId
+            ?? countries.FirstOrDefault(country => country.Code.Equals("MY", StringComparison.OrdinalIgnoreCase))?.Id;
+        displayName = onboarding.DisplayName;
+        loading = false;
+
+        if (onboarding.Status == OnboardingStatus.Completed
+            && onboarding.CurrencyId.HasValue
+            && onboarding.CountryId.HasValue
+            && !string.IsNullOrWhiteSpace(onboarding.DisplayName))
+        {
+            Navigation.NavigateTo("/dashboard", replace: true);
+        }
+    }
+
+    private Task GoToCurrency()
+    {
+        onboarding = onboarding! with { CurrentStep = OnboardingStep.Currency };
+        return Task.CompletedTask;
+    }
+
+    private Task GoToCountry()
+    {
+        onboarding = onboarding! with { CurrentStep = OnboardingStep.Country };
+        return Task.CompletedTask;
+    }
+
+    private Task SaveCurrency() => RunAsync(async () =>
+    {
+        if (!currencyId.HasValue)
+        {
+            errorMessage = "Choose a currency before continuing.";
+            return;
+        }
+
+        onboarding = await OnboardingService.SaveCurrencyAsync(currencyId.Value);
+    });
+
+    private Task SaveCountry() => RunAsync(async () =>
+    {
+        if (!countryId.HasValue)
+        {
+            errorMessage = "Choose a country before continuing.";
+            return;
+        }
+
+        onboarding = await OnboardingService.SaveCountryAsync(countryId);
+    });
+
+    private Task SaveDisplayName() => FinishAsync(displayName);
+
+    private Task FinishAsync(string? value) => RunAsync(async () =>
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            errorMessage = "Enter a display name before finishing setup.";
+            return;
+        }
+
+        onboarding = await OnboardingService.SaveDisplayNameAsync(value);
+        Navigation.NavigateTo("/dashboard", forceLoad: true, replace: true);
+    });
+
+    private static string FormatCurrency(ProfileCurrencyOption currency) =>
+        currency.Code.Equals("MYR", StringComparison.OrdinalIgnoreCase) ? "RM (MYR)" : currency.Code;
+
+    private async Task RunAsync(Func<Task> operation)
+    {
+        if (saving)
+        {
+            return;
+        }
+
+        saving = true;
+        errorMessage = null;
+        try
+        {
+            await operation();
+        }
+        catch (ArgumentException exception)
+        {
+            errorMessage = exception.Message;
+        }
+        catch (InvalidOperationException exception)
+        {
+            errorMessage = exception.Message;
+        }
+        finally
+        {
+            saving = false;
+        }
+    }
+}

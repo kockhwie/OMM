@@ -1,6 +1,8 @@
 @page "/"
 @namespace OMM.Public.Components.Pages
 @inject IJSRuntime JS
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
 
 <PageTitle>OhMyMine - Master Your Mines & Burdens</PageTitle>
 
@@ -518,6 +520,15 @@
 
 </div>
 @code {
+    protected override async Task OnInitializedAsync()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authenticationState.User.Identity?.IsAuthenticated == true)
+        {
+            Navigation.NavigateTo("/dashboard", replace: true);
+        }
+    }
+
     private bool animationsInitialized;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

@@ -60,9 +60,24 @@ public sealed class MinerProfileService(
             ? null
             : update.DisplayName.Trim();
 
-        if (displayName is { Length: > 200 })
+        if (displayName is null)
+        {
+            throw new ArgumentException("Enter a display name before saving your profile.", nameof(update));
+        }
+
+        if (displayName.Length > 200)
         {
             throw new ArgumentException("Display name cannot exceed 200 characters.", nameof(update));
+        }
+
+        if (!update.CurrencyId.HasValue)
+        {
+            throw new ArgumentException("Choose a base currency before saving your profile.", nameof(update));
+        }
+
+        if (!update.CountryId.HasValue)
+        {
+            throw new ArgumentException("Choose a country before saving your profile.", nameof(update));
         }
 
         await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
@@ -220,8 +235,7 @@ public sealed class MinerProfileService(
         profile.Currency?.Name_EN,
         profile.Language,
         profile.CreatedAt,
-        !string.IsNullOrWhiteSpace(profile.DisplayName)
-            && profile.CountryId.HasValue
-            && profile.CurrencyId.HasValue
-            && !string.IsNullOrWhiteSpace(profile.Language));
+        profile.CurrencyId.HasValue,
+        profile.OnboardingStatus,
+        profile.OnboardingStep);
 }

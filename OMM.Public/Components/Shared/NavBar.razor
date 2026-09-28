@@ -2,7 +2,7 @@
 @implements IAsyncDisposable
 @inject IJSRuntime JS
 
-<header @ref="navElement" class="sticky-top bg-white bg-opacity-95 shadow-sm border-bottom border-light" style="backdrop-filter: blur(8px); z-index: 1030;">
+<header @ref="navElement" class="omm-site-header sticky-top bg-white bg-opacity-95 shadow-sm border-bottom border-light" style="backdrop-filter: blur(8px); z-index: 1030;">
     <div class="container-xl d-flex align-items-center justify-content-between py-2">
         <Logo Href="/" />
 
@@ -42,19 +42,19 @@
             </AuthorizeView>
         </div>
 
-        <button class="btn btn-sm d-lg-none border-0 text-dark" @onclick="ToggleMobileMenu" aria-label="Toggle menu">
+        <button class="omm-mobile-menu-toggle btn btn-sm d-lg-none border-0" @onclick="ToggleMobileMenu" aria-expanded="@isMobileMenuOpen" aria-controls="mobile-navigation" aria-label="Toggle menu">
             <i class="ti @(isMobileMenuOpen ? "ti-x" : "ti-menu-2") fs-3"></i>
         </button>
     </div>
 
     @if (isMobileMenuOpen)
     {
-        <div class="d-lg-none bg-white border-top px-4 py-3 shadow-sm">
-            <div class="d-flex flex-column gap-2">
+        <div id="mobile-navigation" class="omm-mobile-menu d-lg-none">
+            <div class="omm-mobile-menu-inner">
                 <NavLink class="omm-navlink" href="/tools" @onclick="CloseMobileMenu">Financial Tools</NavLink>
                 <NavLink class="omm-navlink" href="/learn" @onclick="CloseMobileMenu">Learn</NavLink>
                 <a class="omm-navlink" href="/#about" @onclick="CloseMobileMenu">About</a>
-                <hr class="my-2" />
+                <hr class="omm-mobile-menu-divider" />
                 <AuthorizeView>
                     <Authorized>
                         <a href="/dashboard" class="btn btn-omm-primary w-100 mb-2" @onclick="CloseMobileMenu">

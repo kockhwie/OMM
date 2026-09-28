@@ -49,14 +49,21 @@ authBuilder.AddIdentityCookies();
 
 var googleClientId = builder.Configuration["Authentication:Google:ClientId"];
 var googleClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
-if (!string.IsNullOrWhiteSpace(googleClientId) && !string.IsNullOrWhiteSpace(googleClientSecret))
+if (string.IsNullOrWhiteSpace(googleClientId))
 {
-    authBuilder.AddGoogle(options =>
-    {
-        options.ClientId = googleClientId;
-        options.ClientSecret = googleClientSecret;
-    });
+    googleClientId = builder.Configuration["ClientId"];
 }
+
+if (string.IsNullOrWhiteSpace(googleClientSecret))
+{
+    googleClientSecret = builder.Configuration["ClientSecret"];
+}
+
+authBuilder.AddGoogle(options =>
+{
+    options.ClientId = googleClientId ?? string.Empty;
+    options.ClientSecret = googleClientSecret ?? string.Empty;
+});
 
 builder.Services.AddAuthorizationBuilder(); // Non-Admin
 
@@ -90,6 +97,11 @@ builder.Services.AddSharedIdentityEmail<ApplicationUser>(builder.Configuration);
 builder.Services.AddSingleton<IKlseStockLookupService, KlseStockLookupService>();
 
 var app = builder.Build();
+
+app.Logger.LogInformation(
+    "Google external authentication registered. Client ID configured: {ClientIdConfigured}; client secret configured: {ClientSecretConfigured}.",
+    !string.IsNullOrWhiteSpace(googleClientId),
+    !string.IsNullOrWhiteSpace(googleClientSecret));
 
 app.UseForwardedHeaders();
 

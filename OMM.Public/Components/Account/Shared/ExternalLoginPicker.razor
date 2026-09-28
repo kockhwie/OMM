@@ -16,11 +16,11 @@
 }
 else
 {
-    <form class="form-horizontal" action="Account/PerformExternalLogin" method="post">
+    <form class="omm-external-login form-horizontal" action="Account/PerformExternalLogin" method="post">
         <div>
             <AntiforgeryToken />
             <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
-            <div class="d-flex flex-column gap-2">
+            <div class="omm-provider-actions d-flex flex-column gap-2">
                 @foreach (var provider in externalLogins)
                 {
                     @if (provider.Name == "Google")

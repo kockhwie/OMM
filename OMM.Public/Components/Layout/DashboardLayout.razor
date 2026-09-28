@@ -4,10 +4,10 @@
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JS
 
-<div class="d-flex min-vh-100" style="background-color: #f3f8fe;">
+<div class="dashboard-layout d-flex min-vh-100" style="background-color: #f3f8fe;">
     <!-- Desktop Sidebar -->
-    <aside class="d-none d-lg-flex flex-column position-fixed top-0 bottom-0 start-0 bg-white border-end" style="width: 256px; z-index: 1020;">
-        <div class="d-flex align-items-center px-4 border-bottom" style="height: 64px;">
+    <aside class="dashboard-sidebar d-none d-lg-flex flex-column position-fixed top-0 bottom-0 start-0 bg-white border-end" style="width: 256px; z-index: 1020;">
+        <div class="dashboard-sidebar-brand d-flex align-items-center px-4 border-bottom" style="height: 64px;">
             <Logo Size="sm" Href="/" />
         </div>
 
@@ -80,12 +80,12 @@
     <!-- Mobile Sidebar Offcanvas -->
     @if (isMobileNavOpen)
     {
-        <div class="position-fixed top-0 bottom-0 start-0 end-0 d-lg-none" style="z-index: 1040;">
+        <div class="dashboard-mobile-overlay position-fixed top-0 bottom-0 start-0 end-0 d-lg-none" style="z-index: 1040;">
             <div class="position-absolute top-0 bottom-0 start-0 end-0 bg-dark opacity-50" @onclick="ToggleMobileNav"></div>
-            <div class="position-relative bg-white h-100 d-flex flex-column" style="width: 280px;">
-                <div class="d-flex align-items-center justify-content-between px-4 border-bottom" style="height: 64px;">
+            <div class="dashboard-mobile-sidebar position-relative bg-white h-100 d-flex flex-column" style="width: 280px;">
+                <div class="dashboard-sidebar-brand d-flex align-items-center justify-content-between px-4 border-bottom" style="height: 64px;">
                     <Logo Size="sm" Href="/" />
-                    <button class="btn btn-sm text-muted" @onclick="ToggleMobileNav">
+                    <button class="dashboard-sidebar-close btn btn-sm" @onclick="ToggleMobileNav" aria-label="Close navigation">
                         <i class="ti ti-x fs-4"></i>
                     </button>
                 </div>

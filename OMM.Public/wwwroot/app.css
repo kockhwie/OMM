@@ -82,6 +82,266 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
+/* Shared brand component */
+.omm-logo {
+    max-width: 100%;
+    min-width: 0;
+    color: inherit;
+}
+
+.omm-logo-mark {
+    flex: 0 0 auto;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 0.75rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.omm-logo:hover .omm-logo-mark {
+    transform: translateY(-1px) rotate(-3deg);
+}
+
+.omm-logo-mark .ti {
+    stroke-width: 2.2;
+}
+
+.omm-logo-copy {
+    min-width: 0;
+    line-height: 1.1;
+}
+
+.omm-logo-title {
+    overflow-wrap: anywhere;
+    letter-spacing: -0.03em;
+}
+
+.omm-logo-tagline {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    color: rgb(132 143 165 / var(--tw-text-opacity, 1));
+    font-size: 0.625rem;
+    letter-spacing: 0.08em;
+    line-height: 1.8;
+}
+
+/* Dashboard branding needs a stable baseline beside the sidebar controls. */
+.dashboard-sidebar-brand .omm-logo {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.dashboard-sidebar-brand .omm-logo-copy {
+    line-height: 1.05;
+}
+
+.dashboard-sidebar-brand .omm-logo-tagline {
+    overflow: hidden;
+    white-space: nowrap;
+    overflow-wrap: normal;
+    font-size: 0.52rem;
+    letter-spacing: 0.06em;
+    line-height: 1.35;
+    text-overflow: clip;
+}
+
+.dashboard-sidebar-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 2.5rem;
+    height: 2.5rem;
+    color: var(--omm-ink-600);
+    border: 0;
+    border-radius: var(--omm-radius-sm);
+}
+
+.dashboard-sidebar-close:hover,
+.dashboard-sidebar-close:focus-visible {
+    color: var(--omm-ink-900);
+    background: var(--omm-ink-100);
+}
+
+.dashboard-sidebar-close:focus-visible {
+    outline: 0;
+    box-shadow: var(--omm-focus-ring);
+}
+
+/* Shared button geometry: colors remain controlled by Bootstrap or button variants. */
+.btn,
+.btn-omm-primary,
+.btn-omm-secondary,
+.btn-omm-accent,
+.btn-omm-warning,
+.btn-omm-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    min-width: 0;
+    line-height: 1.25;
+    white-space: nowrap;
+}
+
+.btn:not(.btn-sm):not(.btn-lg),
+.btn-omm-primary,
+.btn-omm-secondary,
+.btn-omm-accent,
+.btn-omm-warning,
+.btn-omm-ghost {
+    min-height: 2.75rem;
+}
+
+.btn-sm {
+    min-height: 2.25rem;
+}
+
+.btn-lg {
+    min-height: 3.25rem;
+}
+
+.btn-omm-primary,
+.btn-omm-secondary,
+.btn-omm-accent,
+.btn-omm-warning,
+.btn-omm-ghost {
+    border-radius: var(--omm-radius-sm);
+}
+
+.dashboard-empty-state-action {
+    min-width: 12rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--omm-radius-sm);
+    font-weight: 600;
+}
+
+@media (max-width: 767.98px) {
+    .dashboard-empty-state-action {
+        width: 100%;
+    }
+}
+
+/* Public footer */
+.omm-footer {
+    position: relative;
+    overflow: hidden;
+    color: var(--omm-ink-200);
+    background:
+        radial-gradient(circle at 86% 18%, rgb(197 132 58 / 0.14), transparent 28%),
+        linear-gradient(145deg, var(--omm-ink-900), var(--omm-ink-800));
+    border-top: 3px solid var(--omm-clay-500);
+}
+
+.omm-footer::before {
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px), linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+    background-size: 28px 28px;
+    content: "";
+    mask-image: linear-gradient(to bottom, black, transparent 75%);
+    pointer-events: none;
+}
+
+.omm-footer-container {
+    position: relative;
+    z-index: 1;
+    padding-top: clamp(3rem, 7vw, 5.5rem);
+    padding-bottom: clamp(2rem, 5vw, 3.5rem);
+}
+
+.omm-footer-heading {
+    margin-bottom: 1rem;
+    color: var(--omm-gold-500);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.omm-footer-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.9rem;
+}
+
+.omm-footer-links a {
+    display: inline-block;
+    color: var(--omm-ink-300);
+    text-decoration: none;
+    transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.omm-footer-links a:hover,
+.omm-footer-links a:focus-visible {
+    color: #ffffff;
+    transform: translateX(3px);
+}
+
+.omm-footer-description {
+    max-width: 34rem;
+    margin: 1.25rem 0 0;
+    color: var(--omm-ink-300);
+    font-size: 0.9rem;
+    line-height: 1.7;
+}
+
+.omm-footer-copyright {
+    margin-top: 2rem;
+    color: var(--omm-ink-400);
+    font-size: 0.78rem;
+}
+
+@media (max-width: 575.98px) {
+    .omm-footer-container {
+        padding-top: 2.75rem;
+    }
+
+    .omm-logo-mark {
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+
+    .omm-logo-tagline {
+        font-size: 0.55rem;
+        letter-spacing: 0.06em;
+        line-height: 1.6;
+    }
+
+    .omm-footer-description {
+        max-width: 30rem;
+    }
+}
+
+/* Keep single-form account pages compact while preserving the wider login layout. */
+.omm-auth-card:has(> .row > .col-md-4:only-child) {
+    width: min(100%, 760px);
+    padding: clamp(1.25rem, 3vw, 2.5rem);
+}
+
+.omm-auth-card:has(> .row > .col-md-4:only-child) > .row > .col-md-4 {
+    flex: 0 0 100%;
+    max-width: 100%;
+}
+
+@media (max-width: 767.98px) {
+    .omm-auth-card:has(> .row > .col-md-4:only-child) {
+        padding: 1.25rem;
+    }
+
+    .omm-auth-card:has(> .row > .col-md-4:only-child) h1 {
+        font-size: clamp(1.75rem, 9vw, 2.25rem);
+        line-height: 1.1;
+    }
+
+    .omm-auth-card:has(> .row > .col-md-4:only-child) h2 {
+        font-size: 1.25rem;
+    }
+}
+
 .omm-public-page {
     padding-top: clamp(1rem, 2.5vw, 2rem);
     padding-bottom: clamp(3rem, 6vw, 6rem);
@@ -1481,6 +1741,130 @@ body.omm-stealth-mode .stealth-target:hover {
 }
 
 /* ---------- Nav links with active indicator ---------- */
+.omm-site-header {
+    --omm-header-line: rgb(13 14 19 / 0.08);
+}
+
+.omm-mobile-menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    color: var(--omm-ink-900);
+    border-radius: var(--omm-radius-sm);
+    transition: color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
+}
+
+.omm-mobile-menu-toggle:hover {
+    color: var(--omm-clay-600);
+    background: var(--omm-clay-100);
+}
+
+.omm-mobile-menu-toggle:active {
+    transform: scale(0.94);
+}
+
+.omm-mobile-menu-toggle:focus-visible {
+    outline: 0;
+    box-shadow: var(--omm-focus-ring);
+}
+
+.omm-mobile-menu {
+    overflow: hidden;
+    border-top: 1px solid var(--omm-header-line);
+    background:
+        radial-gradient(circle at 90% 0%, rgb(197 132 58 / 0.16), transparent 34%),
+        linear-gradient(145deg, var(--omm-ink-900), var(--omm-ink-800));
+    box-shadow: 0 1rem 2rem rgb(8 9 12 / 0.18);
+}
+
+.omm-mobile-menu-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    width: min(100%, 1320px);
+    margin: 0 auto;
+    padding: 1rem max(1rem, calc((100vw - 1320px) / 2));
+}
+
+.omm-mobile-menu .omm-navlink {
+    display: block;
+    padding: 0.85rem 1rem;
+    color: var(--omm-ink-200);
+    border: 1px solid transparent;
+    border-radius: var(--omm-radius-sm);
+    font-size: 0.98rem;
+    font-weight: 600;
+}
+
+.omm-mobile-menu .omm-navlink::after {
+    display: none;
+}
+
+.omm-mobile-menu .omm-navlink:hover,
+.omm-mobile-menu .omm-navlink:focus-visible,
+.omm-mobile-menu .omm-navlink.active {
+    color: #ffffff;
+    background: rgb(255 255 255 / 0.08);
+    border-color: rgb(255 255 255 / 0.12);
+}
+
+.omm-mobile-menu .omm-navlink:focus-visible {
+    box-shadow: 0 0 0 0.2rem rgb(197 132 58 / 0.3);
+}
+
+.omm-mobile-menu-divider {
+    width: 100%;
+    margin: 0.75rem 0;
+    border-color: rgb(255 255 255 / 0.16);
+    opacity: 1;
+}
+
+.omm-mobile-menu .btn-omm-primary,
+.omm-mobile-menu .btn-omm-secondary,
+.omm-mobile-menu .btn-outline-secondary {
+    min-height: 3rem;
+    border-radius: var(--omm-radius-sm);
+}
+
+.omm-mobile-menu .btn-omm-primary {
+    background: var(--omm-clay-500);
+    border-color: var(--omm-clay-500);
+    color: #ffffff;
+}
+
+.omm-mobile-menu .btn-omm-primary:hover,
+.omm-mobile-menu .btn-omm-primary:focus-visible {
+    background: var(--omm-clay-600);
+    border-color: var(--omm-clay-600);
+}
+
+.omm-mobile-menu .btn-omm-secondary {
+    background: rgb(255 255 255 / 0.06);
+    border-color: rgb(255 255 255 / 0.2);
+    color: var(--omm-ink-200);
+}
+
+.omm-mobile-menu .btn-omm-secondary:hover,
+.omm-mobile-menu .btn-omm-secondary:focus-visible {
+    background: rgb(255 255 255 / 0.12);
+    border-color: rgb(255 255 255 / 0.35);
+    color: #ffffff;
+}
+
+.omm-mobile-menu .btn-outline-secondary {
+    color: var(--omm-ink-200);
+    border-color: rgb(255 255 255 / 0.25);
+}
+
+.omm-mobile-menu .btn-outline-secondary:hover,
+.omm-mobile-menu .btn-outline-secondary:focus-visible {
+    color: #ffffff;
+    background: rgb(255 255 255 / 0.08);
+    border-color: rgb(255 255 255 / 0.4);
+}
+
 .omm-navlink {
     position: relative;
     padding: 0.5rem 0.9rem;

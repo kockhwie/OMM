@@ -13,12 +13,12 @@
 
 <PageTitle>Log in</PageTitle>
 
-<h1>Log in</h1>
-<div class="row">
+<h1 class="omm-login-title">Log in</h1>
+<div class="omm-login-grid row">
     <div class="col-lg-6">
         <section>
             <StatusMessage Message="@errorMessage" />
-            <EditForm EditContext="editContext" method="post" OnSubmit="LoginUser" FormName="login">
+                <EditForm EditContext="editContext" method="post" OnSubmit="LoginUser" FormName="login" class="omm-login-form">
                 <DataAnnotationsValidator />
                 <ValidationSummary class="text-danger" role="alert" />
                 <div class="form-floating mb-3">
@@ -37,16 +37,11 @@
                         Remember me
                     </label>
                 </div>
-                <div>
+                <div class="omm-login-submit">
                     <button type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
                 </div>
-                <hr />
-                <div class="d-flex flex-column">
-                    <span class="text-secondary mx-auto mt-2">OR</span>
-                    <PasskeySubmit Operation="PasskeyOperation.Request" Name="Input.Passkey" EmailName="Input.Email" class="btn btn-link mx-auto">Log in with a passkey</PasskeySubmit>
-                </div>
-                <hr />
-                <div>
+                <hr class="omm-login-divider" />
+                <div class="omm-login-links">
                     <p>
                         <a href="Account/ForgotPassword">Forgot your password?</a>
                     </p>
@@ -61,9 +56,8 @@
         </section>
     </div>
     <div class="col-lg-4 col-lg-offset-2">
-        <section>
-            <h3>Use another service to log in.</h3>
-            <hr />
+        <section class="omm-login-alternative-actions">
+            <PasskeySubmit Operation="PasskeyOperation.Request" Name="Input.Passkey" EmailName="Input.Email" class="omm-passkey-button">Log in with a passkey</PasskeySubmit>
             <ExternalLoginPicker />
         </section>
     </div>

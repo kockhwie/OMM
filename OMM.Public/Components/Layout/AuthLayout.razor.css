@@ -31,29 +31,9 @@
     opacity: 1;
 }
 
-.omm-auth-card ::deep .form-control {
-    min-height: 3.25rem;
-    border-color: var(--omm-ink-200);
-    border-radius: var(--omm-radius-sm);
-}
-
 .omm-auth-card ::deep .form-control:focus {
-    border-color: var(--omm-clay-500);
-    box-shadow: 0 0 0 0.2rem rgb(197 132 58 / 0.16);
-}
-
-.omm-auth-card ::deep button[type="submit"] {
-    min-height: 3.25rem;
-    border: 0;
-    border-radius: var(--omm-radius-sm);
-    background: var(--omm-ink-900);
-    color: #fff;
-    font-weight: 700;
-}
-
-.omm-auth-card ::deep button[type="submit"]:hover,
-.omm-auth-card ::deep button[type="submit"]:focus-visible {
-    background: var(--omm-clay-500);
+    border-color: var(--omm-focus-border);
+    box-shadow: var(--omm-focus-ring);
 }
 
 .omm-auth-card ::deep a {
@@ -68,6 +48,68 @@
 .omm-auth-card ::deep .validation-errors,
 .omm-auth-card ::deep .text-danger {
     color: var(--omm-burden-red) !important;
+}
+
+.omm-auth-card ::deep .omm-login-alternative-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-top: 0.25rem;
+}
+
+.omm-auth-card ::deep .omm-passkey-button,
+.omm-auth-card ::deep .omm-provider-actions .btn {
+    width: 100%;
+    min-height: 2.75rem;
+    border-radius: var(--omm-radius-sm);
+}
+
+.omm-auth-card ::deep .omm-passkey-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.65rem 1rem;
+    background: var(--omm-ink-900);
+    border: 1px solid var(--omm-ink-900);
+    color: #ffffff;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.omm-auth-card ::deep .omm-passkey-button:hover,
+.omm-auth-card ::deep .omm-passkey-button:focus-visible {
+    background: var(--omm-ink-800);
+    border-color: var(--omm-ink-800);
+    color: #ffffff;
+}
+
+.omm-auth-card ::deep .omm-passkey-button:focus-visible {
+    outline: 0;
+    box-shadow: var(--omm-focus-ring);
+}
+
+.omm-auth-card ::deep .omm-external-login {
+    width: 100%;
+}
+
+.omm-auth-card ::deep .omm-provider-actions .btn {
+    justify-content: center;
+    padding: 0.65rem 1rem;
+}
+
+@media (max-width: 991.98px) {
+    .omm-auth-card ::deep > .row {
+        row-gap: 2rem;
+    }
+
+    .omm-auth-card ::deep section h3 {
+        margin-top: 0;
+        margin-bottom: 0.75rem;
+    }
+
+    .omm-auth-card ::deep .omm-login-alternative-actions {
+        gap: 0.6rem;
+    }
 }
 
 @media (max-width: 767.98px) {

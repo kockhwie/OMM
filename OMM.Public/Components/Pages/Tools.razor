@@ -2,7 +2,7 @@
 @page "/dashboard/tools/{ToolSlug}"
 @layout DashboardLayout
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
-@inject IMineService MineService
+@inject IMinerProfileService ProfileService
 @using OMM.Public.Services
 @using OMM.Public.Components.Shared.Tools
 
@@ -49,23 +49,23 @@ else
     [Parameter] public string? ToolSlug { get; set; }
 
     private string HubPath => "/dashboard/tools";
-    private string userCurrency = "MYR";
-    private string currencySymbol = "RM";
+    private string userCurrency = string.Empty;
+    private string currencySymbol = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            var profile = await MineService.GetMinerProfileAsync();
-            if (profile != null && !string.IsNullOrWhiteSpace(profile.Currency))
+            var profile = await ProfileService.GetCurrentAsync();
+            if (profile != null && !string.IsNullOrWhiteSpace(profile.CurrencyCode))
             {
-                userCurrency = profile.Currency;
+                userCurrency = profile.CurrencyCode;
                 currencySymbol = FormatHelper.GetCurrencySymbol(userCurrency);
             }
         }
         catch
         {
-            // fallback to MYR
+            // A missing profile currency remains empty until the member completes profile setup.
         }
     }
 }

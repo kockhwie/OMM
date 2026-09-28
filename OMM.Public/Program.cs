@@ -25,7 +25,6 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddScoped<IMineService, MockMineService>();
 builder.Services.AddScoped<IMineRepository, MineRepository>();
 builder.Services.AddScoped<DatabaseMineService>();
 builder.Services.AddScoped<MemberRecordService>();

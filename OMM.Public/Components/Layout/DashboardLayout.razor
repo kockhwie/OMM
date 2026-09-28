@@ -1,5 +1,5 @@
 @inherits LayoutComponentBase
-@inject IMineService MineService
+@inject IMinerProfileService ProfileService
 @inject INotificationService NotificationService
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JS
@@ -254,7 +254,18 @@
 
     protected override async Task OnInitializedAsync()
     {
-        profile = await MineService.GetMinerProfileAsync();
+        var currentProfile = await ProfileService.GetCurrentAsync();
+        profile = currentProfile is null
+            ? new MinerProfile()
+            : new MinerProfile
+            {
+                Name = currentProfile.DisplayName ?? currentProfile.Email,
+                Email = currentProfile.Email,
+                Country = currentProfile.CountryName ?? string.Empty,
+                Currency = currentProfile.CurrencyCode ?? string.Empty,
+                Language = currentProfile.Language ?? string.Empty,
+                JoinedDate = currentProfile.CreatedAt.ToString("yyyy-MM-dd")
+            };
         await NotificationService.GenerateAsync();
         notifications = (await NotificationService.GetAsync()).ToList();
     }

@@ -4,6 +4,7 @@
 @using OMM.Public.Services
 @inject MemberRecordService RecordService
 @inject DatabaseMineService MineService
+@inject IMinerProfileService ProfileService
 @inject NavigationManager Navigation
 
 <PageTitle>Income Classification - OhMyMine</PageTitle>
@@ -174,62 +175,81 @@
 <!-- Add Income Modal -->
 @if (showAddModal)
 {
-    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal fade show d-block omm-modal-backdrop" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="add-income-title">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
             <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
                 <div class="modal-header bg-dark text-white px-4 py-3 border-0">
                     <div class="d-flex align-items-center gap-2">
                         <i class="ti ti-cash text-success fs-4"></i>
-                        <h5 class="modal-title fw-bold font-display mb-0">Add Income Stream</h5>
+                        <h2 id="add-income-title" class="h5 modal-title fw-bold font-display mb-0">Add Income Stream</h2>
                     </div>
-                    <button type="button" class="btn-close btn-close-white" @onclick="CloseAddModal"></button>
+                    <button type="button" class="btn-close btn-close-white" aria-label="Close" @onclick="CloseAddModal"></button>
                 </div>
-                <div class="modal-body p-4">
+                <div class="modal-body p-4 bg-light">
                     @if (!string.IsNullOrEmpty(inputError))
                     {
-                        <div class="alert alert-danger rounded-3 mb-3" role="alert">@inputError</div>
+                        <div class="alert alert-danger rounded-3 d-flex align-items-center gap-2 mb-3" role="alert">
+                            <i class="ti ti-alert-triangle"></i>
+                            <small>@inputError</small>
+                        </div>
                     }
-                    <div class="row g-3">
-                        <div class="col-12 col-md-6">
-                            <label class="form-label text-dark">Income Source *</label>
-                            <input type="text" class="form-control rounded-3" placeholder="e.g. Monthly Salary, Rental Dividend" @bind="newRecord.Source" />
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label text-dark">Classification *</label>
-                            <select class="form-select rounded-3" @bind="newRecord.Classification">
-                                @foreach (var cls in Enum.GetValues<IncomeClass>())
-                                {
-                                    <option value="@cls">@FormatHelper.IncomeClassLabel(cls)</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label text-dark">Amount (RM) *</label>
-                            <input type="number" class="form-control rounded-3" step="50" @bind="newRecord.Amount" />
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label text-dark">Frequency *</label>
-                            <select class="form-select rounded-3" @bind="newRecord.Frequency">
-                                <option value="monthly">Monthly</option>
-                                <option value="annual">Annual</option>
-                                <option value="one-off">One-off / Non-recurring</option>
-                            </select>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label text-dark">Associated Mine (Optional)</label>
-                            <select class="form-select rounded-3" @onchange="OnMineSelected">
-                                <option value="">— Standalone Income (e.g. Salary, Consulting) —</option>
-                                @foreach (var mine in allMines)
-                                {
-                                    <option value="@mine.Id">@mine.Name (@FormatHelper.CategoryLabel(mine.Category))</option>
-                                }
-                            </select>
+                    <div class="card border-0 rounded-4">
+                        <div class="card-body">
+                            <div class="omm-form-section">
+                                <div class="omm-form-grid">
+                                    <div class="omm-form-field">
+                                        <label class="omm-form-label" for="income-source">Income Source <span class="text-danger">*</span></label>
+                                        <input id="income-source" type="text" class="form-control rounded-3" maxlength="200"
+                                               placeholder="e.g. Monthly Salary, Rental Dividend" @bind="newRecord.Source" />
+                                    </div>
+                                    <div class="omm-form-field">
+                                        <label class="omm-form-label" for="income-classification">Classification <span class="text-danger">*</span></label>
+                                        <select id="income-classification" class="form-select rounded-3" @bind="newRecord.Classification">
+                                            @foreach (var cls in Enum.GetValues<IncomeClass>())
+                                            {
+                                                <option value="@cls">@FormatHelper.IncomeClassLabel(cls)</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="omm-form-grid">
+                                    <div class="omm-form-field">
+                                        <label class="omm-form-label" for="income-amount">Amount <span class="text-danger">*</span></label>
+                                        <div class="dc-currency-group">
+                                            <span class="dc-currency-addon">@currencySymbol</span>
+                                            <input id="income-amount" type="number" class="form-control" min="0" step="50" @bind="newRecord.Amount" />
+                                        </div>
+                                    </div>
+                                    <div class="omm-form-field">
+                                        <label class="omm-form-label" for="income-frequency">Frequency <span class="text-danger">*</span></label>
+                                        <select id="income-frequency" class="form-select rounded-3" @bind="newRecord.Frequency">
+                                            <option value="monthly">Monthly</option>
+                                            <option value="annual">Annual</option>
+                                            <option value="one-off">One-off / Non-recurring</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="omm-form-field">
+                                    <label class="omm-form-label" for="income-associated-mine">Associated Mine</label>
+                                    <select id="income-associated-mine" class="form-select rounded-3" @onchange="OnMineSelected">
+                                        <option value="">— Standalone Income (e.g. Salary, Consulting) —</option>
+                                        @foreach (var mine in allMines)
+                                        {
+                                            <option value="@mine.Id">@mine.Name (@FormatHelper.CategoryLabel(mine.Category))</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer bg-light px-4 py-3 border-0">
-                    <button type="button" class="btn btn-outline-secondary rounded-3 px-3" @onclick="CloseAddModal">Cancel</button>
-                    <button type="button" class="btn btn-primary rounded-3 px-4 fw-semibold" @onclick="SaveIncome">Save Income</button>
+                    <button type="button" class="btn-omm-secondary" @onclick="CloseAddModal">Cancel</button>
+                    <button type="button" class="btn-omm-accent" @onclick="SaveIncome">
+                        <i class="ti ti-device-floppy"></i> Save Income
+                    </button>
                 </div>
             </div>
         </div>
@@ -243,9 +263,16 @@
     private bool showAddModal = false;
     private IncomeRecord newRecord = new();
     private string? inputError;
+    private string currencySymbol = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
+        var profile = await ProfileService.GetCurrentAsync();
+        if (!string.IsNullOrWhiteSpace(profile?.CurrencyCode))
+        {
+            currencySymbol = FormatHelper.GetCurrencySymbol(profile.CurrencyCode);
+        }
+
         await LoadData();
     }
 

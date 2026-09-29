@@ -4,6 +4,7 @@
 @using OMM.Public.Services
 @inject MemberRecordService RecordService
 @inject DatabaseMineService MineService
+@inject IMinerProfileService ProfileService
 @inject NavigationManager Navigation
 
 <PageTitle>Burdens - OhMyMine</PageTitle>
@@ -241,11 +242,17 @@ else
                                 <div class="omm-form-grid">
                                     <div class="omm-form-field">
                                         <label class="omm-form-label" for="burden-balance">Remaining Principal Balance <span class="text-danger">*</span></label>
-                                        <input id="burden-balance" type="number" class="form-control rounded-3" step="100" @bind="newBurden.Balance" />
+                                        <div class="dc-currency-group">
+                                            <span class="dc-currency-addon">@currencySymbol</span>
+                                            <input id="burden-balance" type="number" class="form-control" min="0" step="100" @bind="newBurden.Balance" />
+                                        </div>
                                     </div>
                                     <div class="omm-form-field">
                                         <label class="omm-form-label" for="burden-original-amount">Original Principal Amount <span class="text-danger">*</span></label>
-                                        <input id="burden-original-amount" type="number" class="form-control rounded-3" step="100" @bind="newBurden.OriginalAmount" />
+                                        <div class="dc-currency-group">
+                                            <span class="dc-currency-addon">@currencySymbol</span>
+                                            <input id="burden-original-amount" type="number" class="form-control" min="0" step="100" @bind="newBurden.OriginalAmount" />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -256,7 +263,10 @@ else
                                     </div>
                                     <div class="omm-form-field">
                                         <label class="omm-form-label" for="burden-monthly-payment">Monthly Repayment <span class="text-danger">*</span></label>
-                                        <input id="burden-monthly-payment" type="number" class="form-control rounded-3" step="50" @bind="newBurden.MonthlyPayment" />
+                                        <div class="dc-currency-group">
+                                            <span class="dc-currency-addon">@currencySymbol</span>
+                                            <input id="burden-monthly-payment" type="number" class="form-control" min="0" step="50" @bind="newBurden.MonthlyPayment" />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -292,9 +302,16 @@ else
     private bool showAddModal = false;
     private Burden newBurden = new();
     private string? inputError;
+    private string currencySymbol = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
+        var profile = await ProfileService.GetCurrentAsync();
+        if (!string.IsNullOrWhiteSpace(profile?.CurrencyCode))
+        {
+            currencySymbol = FormatHelper.GetCurrencySymbol(profile.CurrencyCode);
+        }
+
         await LoadData();
     }
 

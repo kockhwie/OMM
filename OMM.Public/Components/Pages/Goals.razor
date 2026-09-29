@@ -3,6 +3,7 @@
 @attribute [Authorize]
 @using OMM.Public.Services
 @inject MemberRecordService RecordService
+@inject IMinerProfileService ProfileService
 @inject NavigationManager Navigation
 
 <PageTitle>Goals - OhMyMine</PageTitle>
@@ -114,61 +115,99 @@ else
 <!-- Add Goal Modal -->
 @if (showAddModal)
 {
-    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal fade show d-block omm-modal-backdrop" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="add-goal-title">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
             <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
                 <div class="modal-header bg-dark text-white px-4 py-3 border-0">
                     <div class="d-flex align-items-center gap-2">
                         <i class="ti ti-target text-warning fs-4"></i>
-                        <h5 class="modal-title fw-bold font-display mb-0">Add Financial Milestone</h5>
+                        <h2 id="add-goal-title" class="h5 modal-title fw-bold font-display mb-0">Add Financial Milestone</h2>
                     </div>
-                    <button type="button" class="btn-close btn-close-white" @onclick="CloseAddModal"></button>
+                    <button type="button" class="btn-close btn-close-white" aria-label="Close" @onclick="CloseAddModal"></button>
                 </div>
-                <div class="modal-body p-4">
+                <div class="modal-body p-4 bg-light">
                     @if (!string.IsNullOrEmpty(inputError))
                     {
-                        <div class="alert alert-danger rounded-3 mb-3" role="alert">@inputError</div>
+                        <div class="alert alert-danger rounded-3 d-flex align-items-center gap-2 mb-3" role="alert">
+                            <i class="ti ti-alert-triangle"></i>
+                            <small>@inputError</small>
+                        </div>
                     }
-                    <div class="row g-3">
-                        <div class="col-12 col-md-6">
-                            <label class="form-label text-dark">Goal Title *</label>
-                            <input type="text" class="form-control rounded-3" placeholder="e.g. Emergency Fund (6 months)" @bind="newGoal.Title" />
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label text-dark">Goal Type *</label>
-                            <select class="form-select rounded-3" @bind="newGoal.Type">
-                                @foreach (var typ in Enum.GetValues<GoalType>())
-                                {
-                                    <option value="@typ">@typ</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label text-dark">Target Amount / Value *</label>
-                            <input type="number" class="form-control rounded-3" step="100" @bind="newGoal.Target" />
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label text-dark">Current Saved / Accumulated</label>
-                            <input type="number" class="form-control rounded-3" step="100" @bind="newGoal.Current" />
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label text-dark">Target Completion Date *</label>
-                            <input type="date" class="form-control rounded-3" @bind="targetDateInput" />
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label text-dark">Status</label>
-                            <select class="form-select rounded-3" @bind="newGoal.Status">
-                                <option value="on-track">On Track</option>
-                                <option value="needs-attention">Needs Attention</option>
-                                <option value="not-started">Not Started</option>
-                                <option value="achieved">Achieved</option>
-                            </select>
+                    <div class="card border-0 rounded-4">
+                        <div class="card-body">
+                            <div class="omm-form-section">
+                                <div class="omm-form-grid">
+                                    <div class="omm-form-field">
+                                        <label class="omm-form-label" for="goal-title">Goal Title <span class="text-danger">*</span></label>
+                                        <input id="goal-title" type="text" class="form-control rounded-3" maxlength="200"
+                                               placeholder="e.g. Emergency Fund (6 months)" @bind="newGoal.Title" />
+                                    </div>
+                                    <div class="omm-form-field">
+                                        <label class="omm-form-label" for="goal-type">Goal Type <span class="text-danger">*</span></label>
+                                        <select id="goal-type" class="form-select rounded-3" @bind="newGoal.Type">
+                                            @foreach (var typ in Enum.GetValues<GoalType>())
+                                            {
+                                                <option value="@typ">@typ</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="omm-form-grid">
+                                    <div class="omm-form-field">
+                                        <label class="omm-form-label" for="goal-target">@(newGoal.Type == GoalType.Freedom ? "Target Percentage" : "Target Amount / Value") <span class="text-danger">*</span></label>
+                                        @if (newGoal.Type == GoalType.Freedom)
+                                        {
+                                            <input id="goal-target" type="number" class="form-control rounded-3" min="0" max="100" step="1" @bind="newGoal.Target" />
+                                        }
+                                        else
+                                        {
+                                            <div class="dc-currency-group">
+                                                <span class="dc-currency-addon">@currencySymbol</span>
+                                                <input id="goal-target" type="number" class="form-control" min="0" step="100" @bind="newGoal.Target" />
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="omm-form-field">
+                                        <label class="omm-form-label" for="goal-current">@(newGoal.Type == GoalType.Freedom ? "Current Percentage" : "Current Saved / Accumulated")</label>
+                                        @if (newGoal.Type == GoalType.Freedom)
+                                        {
+                                            <input id="goal-current" type="number" class="form-control rounded-3" min="0" max="100" step="1" @bind="newGoal.Current" />
+                                        }
+                                        else
+                                        {
+                                            <div class="dc-currency-group">
+                                                <span class="dc-currency-addon">@currencySymbol</span>
+                                                <input id="goal-current" type="number" class="form-control" min="0" step="100" @bind="newGoal.Current" />
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="omm-form-grid">
+                                    <div class="omm-form-field">
+                                        <label class="omm-form-label" for="goal-target-date">Target Completion Date <span class="text-danger">*</span></label>
+                                        <input id="goal-target-date" type="date" class="form-control rounded-3" @bind="targetDateInput" />
+                                    </div>
+                                    <div class="omm-form-field">
+                                        <label class="omm-form-label" for="goal-status">Status</label>
+                                        <select id="goal-status" class="form-select rounded-3" @bind="newGoal.Status">
+                                            <option value="on-track">On Track</option>
+                                            <option value="needs-attention">Needs Attention</option>
+                                            <option value="not-started">Not Started</option>
+                                            <option value="achieved">Achieved</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer bg-light px-4 py-3 border-0">
-                    <button type="button" class="btn btn-outline-secondary rounded-3 px-3" @onclick="CloseAddModal">Cancel</button>
-                    <button type="button" class="btn btn-primary rounded-3 px-4 fw-semibold" @onclick="SaveGoal">Save Goal</button>
+                    <button type="button" class="btn-omm-secondary" @onclick="CloseAddModal">Cancel</button>
+                    <button type="button" class="btn-omm-accent" @onclick="SaveGoal">
+                        <i class="ti ti-device-floppy"></i> Save Goal
+                    </button>
                 </div>
             </div>
         </div>
@@ -181,9 +220,16 @@ else
     private Goal newGoal = new();
     private DateTime targetDateInput = DateTime.Today.AddYears(1);
     private string? inputError;
+    private string currencySymbol = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
+        var profile = await ProfileService.GetCurrentAsync();
+        if (!string.IsNullOrWhiteSpace(profile?.CurrencyCode))
+        {
+            currencySymbol = FormatHelper.GetCurrencySymbol(profile.CurrencyCode);
+        }
+
         await LoadGoals();
     }
 

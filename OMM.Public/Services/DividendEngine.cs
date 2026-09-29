@@ -37,6 +37,29 @@ public record QuickCalcResult
     public List<decimal> PayoutBreakdown { get; init; } = [];
 }
 
+/// <summary>
+/// Inputs for Malaysian Bursa stock transaction cost calculation.
+/// All rate fields are percentages (e.g. 0.1 = 0.1%).
+/// </summary>
+public record TransactionCostInput
+{
+    public decimal TradeValue { get; init; }             // total trade value (shares × price)
+    public decimal BrokerageRatePct { get; init; }       // %, negotiable; e.g. 0.1
+    public decimal MinBrokerageFee { get; init; }        // minimum brokerage fee, e.g. 8
+    public bool IncludeStampDuty { get; init; } = true;  // 0.1% capped at RM200
+    public bool IncludeClearingFee { get; init; } = true;// 0.03% capped at RM1000
+}
+
+/// <summary>Breakdown of Bursa transaction costs for a single leg (buy or sell).</summary>
+public record TransactionCostResult
+{
+    public decimal BrokerageFee { get; init; }
+    public decimal StampDuty { get; init; }
+    public decimal ClearingFee { get; init; }
+    public decimal TotalCost { get; init; }
+    public decimal EffectiveRatePct { get; init; }       // TotalCost / TradeValue * 100
+}
+
 /// <summary>All inputs for the Investment Simulator.</summary>
 public record DividendSimulatorInput
 {
@@ -74,6 +97,13 @@ public record DividendSimulatorInput
     public bool TaxEnabled { get; init; } = false;
     public decimal DividendTaxRate { get; init; }        // %, e.g. 15 = 15%
     public decimal CapitalGainsTaxRate { get; init; }    // %, e.g. 10 = 10%
+
+    // Transaction Costs (Bursa Malaysia or custom)
+    public bool TransactionCostEnabled { get; init; } = false;
+    public decimal BrokerageRatePct { get; init; } = 0.1m;   // %, default Bursa typical
+    public decimal MinBrokerageFee { get; init; } = 8m;       // minimum brokerage per trade
+    public bool IncludeStampDuty { get; init; } = true;       // 0.1% capped RM200
+    public bool IncludeClearingFee { get; init; } = true;     // 0.03% capped RM1000
 }
 
 /// <summary>Per-year snapshot used for the table and charts.</summary>
@@ -108,6 +138,8 @@ public record SimulatorResult
     public decimal TotalContributions { get; init; }
     // Cash-vs-DRIP comparison (value if dividends taken as cash instead)
     public decimal ValueWithoutDrip { get; init; }
+    // Transaction cost summary (buy leg only for initial investment)
+    public decimal TotalBuyTransactionCosts { get; init; }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -299,7 +331,21 @@ public static class DividendEngine
         decimal shares = input.InitialShares;
         decimal sharePrice = input.CurrentSharePrice > 0 ? input.CurrentSharePrice : 1m;
 
-        decimal initialInvestment = input.InitialShares * (input.PurchasePrice > 0 ? input.PurchasePrice : sharePrice);
+        decimal basePrice = input.PurchasePrice > 0 ? input.PurchasePrice : sharePrice;
+        decimal buyTransactionCosts = 0m;
+        if (input.TransactionCostEnabled && input.InitialShares > 0)
+        {
+            var buyCost = CalculateTransactionCosts(new TransactionCostInput
+            {
+                TradeValue         = input.InitialShares * basePrice,
+                BrokerageRatePct   = input.BrokerageRatePct,
+                MinBrokerageFee    = input.MinBrokerageFee,
+                IncludeStampDuty   = input.IncludeStampDuty,
+                IncludeClearingFee = input.IncludeClearingFee
+            });
+            buyTransactionCosts = buyCost.TotalCost;
+        }
+        decimal initialInvestment = input.InitialShares * basePrice + buyTransactionCosts;
         decimal totalContributions = 0m;
         decimal cumulativeDividendsGross = 0m;
         decimal cumulativeDividendsNet = 0m;
@@ -451,7 +497,46 @@ public static class DividendEngine
             YieldOnCost = yoc,
             InitialInvestment = initialInvestment,
             TotalContributions = totalContributions,
-            ValueWithoutDrip = valueWithoutDrip
+            ValueWithoutDrip = valueWithoutDrip,
+            TotalBuyTransactionCosts = buyTransactionCosts
+        };
+    }
+
+    // ── Transaction Cost Calculator (Bursa Malaysia) ──────────────────────────
+
+    /// <summary>
+    /// Calculate Bursa Malaysia transaction costs for a single trade leg (buy or sell).
+    /// Stamp Duty: 0.1% of trade value, capped at RM 200.
+    /// Clearing Fee: 0.03% of trade value, capped at RM 1,000.
+    /// Brokerage: negotiable %, subject to a minimum fee.
+    /// </summary>
+    public static TransactionCostResult CalculateTransactionCosts(TransactionCostInput input)
+    {
+        if (input.TradeValue <= 0)
+            return new TransactionCostResult();
+
+        decimal brokerage = Math.Max(
+            input.TradeValue * (input.BrokerageRatePct / 100m),
+            input.MinBrokerageFee);
+
+        decimal stampDuty = input.IncludeStampDuty
+            ? Math.Min(input.TradeValue * 0.001m, 200m)
+            : 0m;
+
+        decimal clearingFee = input.IncludeClearingFee
+            ? Math.Min(input.TradeValue * 0.0003m, 1000m)
+            : 0m;
+
+        decimal total = brokerage + stampDuty + clearingFee;
+        decimal effectiveRate = input.TradeValue > 0 ? (total / input.TradeValue) * 100m : 0m;
+
+        return new TransactionCostResult
+        {
+            BrokerageFee     = brokerage,
+            StampDuty        = stampDuty,
+            ClearingFee      = clearingFee,
+            TotalCost        = total,
+            EffectiveRatePct = effectiveRate
         };
     }
 

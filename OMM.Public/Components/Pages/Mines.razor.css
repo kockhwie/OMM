@@ -1,0 +1,50 @@
+.mines-search-container {
+    max-width: 340px;
+}
+
+.mine-category-icon {
+    width: 40px;
+    height: 40px;
+}
+
+.mine-name {
+    font-size: 0.92rem;
+    line-height: 1.3;
+    word-break: break-word;
+}
+
+.mine-meta {
+    font-size: 0.72rem;
+    line-height: 1.35;
+    word-break: break-word;
+}
+
+.mine-metric-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.05em;
+}
+
+.mine-metric-value,
+.mine-growth {
+    font-size: 0.85rem;
+}
+
+.mine-growth-icon {
+    font-size: 0.9rem;
+}
+
+.mine-status-overlay {
+    pointer-events: auto;
+    margin-top: 0;
+    margin-right: 15px;
+}
+
+.mine-empty-icon {
+    width: 64px;
+    height: 64px;
+}
+
+.mine-modal-backdrop {
+    background-color: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+}

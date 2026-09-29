@@ -207,7 +207,7 @@
 
                                 @if (YieldInputsPartiallyFilled)
                                 {
-                                    <div class="dc-inline-alert dc-inline-alert-warning text-danger mt-2">
+                                    <div class="alert alert-danger rounded-3 d-flex align-items-center gap-2 mt-2">
                                         <i class="ti ti-alert-triangle"></i>                      
                                         <small>
                                             Add @(qcSharePrice > 0 ? "a Purchase Price Basis" : "a Current Share Price")
@@ -330,6 +330,39 @@
                                     </div>
                                 }
                             </div>
+
+                            <!-- Quick Calc: Bursa Transaction Cost Preview -->
+                            @if (GetQuickCalcTransactionCosts() is { } qcBuyCost)
+                            {
+                                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white dc-animate">
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <i class="ti ti-receipt text-warning"></i>
+                                        <span class="small fw-bold font-display" style="color:var(--omm-ink-800);">Estimated Bursa Buy Charges</span>
+                                        <span class="badge bg-warning-subtle text-warning-emphasis" style="font-size:0.65rem;">on @dcCurrencySymbol @((qcShares * qcPurchasePrice).ToString("N2")) trade</span>
+                                    </div>
+                                    <div class="dc-metric-row">
+                                        <span class="dc-metric-label">Brokerage (~0.1%, min RM8)</span>
+                                        <span class="dc-metric-value">@dcCurrencySymbol @qcBuyCost.BrokerageFee.ToString("N2")</span>
+                                    </div>
+                                    <div class="dc-metric-row">
+                                        <span class="dc-metric-label">Stamp Duty (0.1%, cap RM200)</span>
+                                        <span class="dc-metric-value">@dcCurrencySymbol @qcBuyCost.StampDuty.ToString("N2")</span>
+                                    </div>
+                                    <div class="dc-metric-row">
+                                        <span class="dc-metric-label">Clearing Fee (0.03%, cap RM1,000)</span>
+                                        <span class="dc-metric-value">@dcCurrencySymbol @qcBuyCost.ClearingFee.ToString("N2")</span>
+                                    </div>
+                                    <div class="dc-metric-row border-top mt-1 pt-1">
+                                        <span class="dc-metric-label fw-bold">Total Buy Charges</span>
+                                        <span class="dc-metric-value fw-bold text-danger">@dcCurrencySymbol @qcBuyCost.TotalCost.ToString("N2")</span>
+                                    </div>
+                                    <div class="dc-metric-row">
+                                        <span class="dc-metric-label">True Cost of Shares (incl. charges)</span>
+                                        <span class="dc-metric-value fw-semibold">@dcCurrencySymbol @((qcShares * qcPurchasePrice + qcBuyCost.TotalCost).ToString("N2"))</span>
+                                    </div>
+                                    <div class="omm-form-help mt-1">Effective rate: @qcBuyCost.EffectiveRatePct.ToString("F3")%. Use <strong>Advanced Mode</strong> to include charges in yield-on-cost projection.</div>
+                                </div>
+                            }
 
                             <!-- Actions: Save as Mine & Transition to Simulator -->
                             <div class="card border-0 shadow-sm rounded-4 p-4 bg-white dc-animate">
@@ -586,6 +619,101 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Section 6: Transaction Costs (Bursa Malaysia) -->
+                    <div class="card border-0 rounded-4 mt-3">
+                        <div class="card-header bg-dark">
+                            <div class="dc-section-title text-gold"><i class="ti ti-receipt text-gold"></i> Transaction Costs <span class="dc-subtle-optional">(Optional)</span></div>
+                        </div>
+                        <div class="card-body">
+                            <div class="omm-form-section">
+                                <div class="dc-toggle-row">
+                                    <div>
+                                        <label class="dc-toggle-label mb-0 cursor-pointer" for="sim-txcost">Include transaction costs</label>
+                                        <div class="dc-toggle-sub">Bursa brokerage, stamp duty &amp; clearing fee on purchase</div>
+                                    </div>
+                                    <div class="form-check form-switch mb-0 ms-3">
+                                        <input class="form-check-input" type="checkbox" role="switch" id="sim-txcost"
+                                               @bind="simTransactionCostEnabled" />
+                                    </div>
+                                </div>
+                                @if (simTransactionCostEnabled)
+                                {
+                                    <div class="alert alert-info rounded-3 d-flex align-items-center gap-2 mt-2 mb-1" style="font-size:0.78rem;">
+                                        <i class="ti ti-info-circle"></i>
+                                        <span>Malaysian Bursa rates: Stamp Duty 0.1% (capped RM200), Clearing Fee 0.03% (capped RM1,000). Brokerage is negotiable — edit below.</span>
+                                    </div>
+                                    <div class="omm-form-grid mt-1">
+                                        <div class="omm-form-field">
+                                            <label class="omm-form-label" for="sim-brokerage">Brokerage Rate</label>
+                                            <div class="dc-currency-group">
+                                                <input id="sim-brokerage" type="number" class="form-control" min="0" max="5" step="0.01"
+                                                       placeholder="0.1" @bind="simBrokerageRatePct" @bind:event="oninput" />
+                                                <span class="dc-currency-suffix">%</span>
+                                            </div>
+                                        </div>
+                                        <div class="omm-form-field">
+                                            <label class="omm-form-label" for="sim-min-brokerage">Min Brokerage Fee</label>
+                                            <div class="dc-currency-group">
+                                                <span class="dc-currency-addon">@dcCurrencySymbol</span>
+                                                <input id="sim-min-brokerage" type="number" class="form-control" min="0" step="1"
+                                                       placeholder="8" @bind="simMinBrokerageFee" @bind:event="oninput" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="omm-form-grid">
+                                        <div class="omm-form-field">
+                                            <div class="dc-toggle-row py-1">
+                                                <label class="dc-toggle-label mb-0 cursor-pointer" for="sim-stamp">Stamp Duty (0.1%, cap RM200)</label>
+                                                <div class="form-check form-switch mb-0 ms-3">
+                                                    <input class="form-check-input" type="checkbox" role="switch" id="sim-stamp"
+                                                           @bind="simIncludeStampDuty" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="omm-form-field">
+                                            <div class="dc-toggle-row py-1">
+                                                <label class="dc-toggle-label mb-0 cursor-pointer" for="sim-clearing">Clearing Fee (0.03%, cap RM1,000)</label>
+                                                <div class="form-check form-switch mb-0 ms-3">
+                                                    <input class="form-check-input" type="checkbox" role="switch" id="sim-clearing"
+                                                           @bind="simIncludeClearingFee" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @if (GetSimulatorTransactionCostsPreview() is { } previewCost)
+                                    {
+                                        <div class="card border-0 rounded-3 p-3 mt-2" style="background:var(--omm-ink-50);">
+                                            <div class="small fw-semibold mb-2" style="color:var(--omm-ink-600);"><i class="ti ti-calculator me-1"></i>Buy Cost Preview</div>
+                                            <div class="dc-metric-row">
+                                                <span class="dc-metric-label">Brokerage</span>
+                                                <span class="dc-metric-value">@dcCurrencySymbol @previewCost.BrokerageFee.ToString("N2")</span>
+                                            </div>
+                                            @if (simIncludeStampDuty)
+                                            {
+                                                <div class="dc-metric-row">
+                                                    <span class="dc-metric-label">Stamp Duty</span>
+                                                    <span class="dc-metric-value">@dcCurrencySymbol @previewCost.StampDuty.ToString("N2")</span>
+                                                </div>
+                                            }
+                                            @if (simIncludeClearingFee)
+                                            {
+                                                <div class="dc-metric-row">
+                                                    <span class="dc-metric-label">Clearing Fee</span>
+                                                    <span class="dc-metric-value">@dcCurrencySymbol @previewCost.ClearingFee.ToString("N2")</span>
+                                                </div>
+                                            }
+                                            <div class="dc-metric-row border-top mt-1 pt-1">
+                                                <span class="dc-metric-label fw-bold">Total Buy Cost</span>
+                                                <span class="dc-metric-value fw-bold text-danger">@dcCurrencySymbol @previewCost.TotalCost.ToString("N2")</span>
+                                            </div>
+                                            <div class="omm-form-help mt-1">Effective rate: @previewCost.EffectiveRatePct.ToString("F3")% of trade value</div>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- RIGHT: Results + Charts -->
@@ -654,6 +782,16 @@
                                     <div class="dc-sim-metric-sub">Initial + regular contributions</div>
                                 </div>
                             </div>
+                            @if (simTransactionCostEnabled && CurrentSimResult.TotalBuyTransactionCosts > 0)
+                            {
+                                <div class="col-12">
+                                    <div class="dc-sim-metric" style="border-left: 3px solid var(--bs-danger); background: #fff5f5;">
+                                        <div class="dc-sim-metric-label"><i class="ti ti-receipt me-1 text-danger"></i>Buy Transaction Costs (purchase leg)</div>
+                                        <div class="dc-sim-metric-value text-danger">@dcCurrencySymbol @CurrentSimResult.TotalBuyTransactionCosts.ToString("N2")</div>
+                                        <div class="dc-sim-metric-sub">Brokerage + Stamp Duty + Clearing Fee — added to cost basis</div>
+                                    </div>
+                                </div>
+                            }
                         </div>
 
                         <!-- Charts -->
@@ -850,6 +988,11 @@
     private bool simTaxEnabled = false;
     private decimal simDividendTaxRate = 0m;
     private decimal simCapGainsTaxRate = 0m;
+    private bool simTransactionCostEnabled = false;
+    private decimal simBrokerageRatePct = 0.1m;
+    private decimal simMinBrokerageFee = 8m;
+    private bool simIncludeStampDuty = true;
+    private bool simIncludeClearingFee = true;
     private bool simTableExpanded = false;
 
     private SimulatorResult CurrentSimResult => DividendEngine.SimulatePortfolio(BuildSimulatorInput());
@@ -965,7 +1108,40 @@
         simFrequency = qcFrequency;
         simCurrentPrice = qcSharePrice > 0 ? qcSharePrice : (qcPurchasePrice > 0 ? qcPurchasePrice : 0m);
         simPurchasePrice = qcPurchasePrice > 0 ? qcPurchasePrice : (qcSharePrice > 0 ? qcSharePrice : 0m);
+        if (qcPurchasePrice > 0 && qcShares > 0)
+        {
+            simTransactionCostEnabled = true;
+        }
         await SwitchMode("simulator");
+    }
+
+    private TransactionCostResult? GetQuickCalcTransactionCosts()
+    {
+        if (qcPurchasePrice <= 0 || qcShares <= 0) return null;
+        return DividendEngine.CalculateTransactionCosts(new TransactionCostInput
+        {
+            TradeValue         = qcShares * qcPurchasePrice,
+            BrokerageRatePct   = 0.1m,
+            MinBrokerageFee    = 8m,
+            IncludeStampDuty   = true,
+            IncludeClearingFee = true
+        });
+    }
+
+    private TransactionCostResult? GetSimulatorTransactionCostsPreview()
+    {
+        if (!simTransactionCostEnabled || simShares <= 0) return null;
+        var basePrice = simPurchasePrice > 0 ? simPurchasePrice : simCurrentPrice;
+        if (basePrice <= 0) return null;
+
+        return DividendEngine.CalculateTransactionCosts(new TransactionCostInput
+        {
+            TradeValue         = simShares * basePrice,
+            BrokerageRatePct   = simBrokerageRatePct,
+            MinBrokerageFee    = simMinBrokerageFee,
+            IncludeStampDuty   = simIncludeStampDuty,
+            IncludeClearingFee = simIncludeClearingFee
+        });
     }
 
     private async Task CarryToSimulatorDrip()
@@ -998,7 +1174,12 @@
             AllowFractionalShares = simFractionalShares,
             TaxEnabled = simTaxEnabled,
             DividendTaxRate = simDividendTaxRate >= 0 && simDividendTaxRate <= 100 ? simDividendTaxRate : 0m,
-            CapitalGainsTaxRate = simCapGainsTaxRate >= 0 && simCapGainsTaxRate <= 100 ? simCapGainsTaxRate : 0m
+            CapitalGainsTaxRate = simCapGainsTaxRate >= 0 && simCapGainsTaxRate <= 100 ? simCapGainsTaxRate : 0m,
+            TransactionCostEnabled = simTransactionCostEnabled,
+            BrokerageRatePct = simBrokerageRatePct >= 0 ? simBrokerageRatePct : 0.1m,
+            MinBrokerageFee = simMinBrokerageFee >= 0 ? simMinBrokerageFee : 8m,
+            IncludeStampDuty = simIncludeStampDuty,
+            IncludeClearingFee = simIncludeClearingFee
         };
     }
 

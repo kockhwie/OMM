@@ -10,9 +10,10 @@
 - Ensure runtime-required directories are created automatically if missing, including recovery after accidental deletion, rather than requiring manual folder creation.
 - For runtime/error-handling changes, do not stop at compilation; perform a practical end-to-end verification of the failure path, including generated folders/files, notification behavior, and user-visible fallback responses.
 - Keep login and all public forms on the same shared form spacing and padding standard; do not introduce login-specific padding or margin overrides. Preserve the merged passkey/external-provider action stack while reusing common form element styles.
+- Move reusable inline styles out of Blazor markup into centralized CSS classes, following DRY; reuse existing shared styles whenever possible. Use generic, reusable CSS class names for standard form and modal elements rather than page-specific prefixes such as `mines-xxx`, so future forms can reuse the same styles without duplicated CSS. Keep page-specific prefixes only for truly page-specific visuals.
 
 ## Security Practices
 - Never hardcode the Twelve Data API key. Use an environment variable in Production and .NET User Secrets for localhost/development.
 
 ## Bilingual Column Guidelines
-- For Admin CRUD bilingual columns, prefer compact generic labels `Name (EN)` and `Name (TW)` instead of entity-specific labels such as `Market Name (EN)` or the abbreviation `ZHTW`. Keep the Traditional Chinese field visible.
+- For Admin CRUD bilingual columns, prefer compact generic labels `Name (EN)` and `Name (TW)` instead of entity-specific labels such as `Market Name (EN)` or the abbreviation `ZHTW`. Keep the Traditional Chinese field visible.- For Admin CRUD bilingual columns, prefer compact generic labels `Name (EN)` and `Name (TW)` instead of entity-specific labels such as `Market Name (EN)` or the abbreviation `ZHTW`. Keep the Traditional Chinese field visible.

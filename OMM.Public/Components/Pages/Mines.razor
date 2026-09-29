@@ -8,6 +8,7 @@
 @inject DatabaseMineService MineService
 @inject NavigationManager Navigation
 @inject IDbContextFactory<ApplicationDbContext> DbContextFactory
+@inject IMinerProfileService ProfileService
 
 <PageTitle>My Mines - OhMyMine</PageTitle>
 
@@ -26,7 +27,7 @@
 
 <!-- Search & Category Filters -->
 <div class="d-flex flex-column flex-md-row gap-3 mb-2 animate-fade-up">
-    <div class="position-relative flex-grow-1" style="max-width: 340px;">
+    <div class="position-relative flex-grow-1 mines-search-container">
         <i class="ti ti-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
         <input type="text"
                class="form-control ps-5 bg-white border-light-subtle rounded-3 py-2 shadow-xs"
@@ -71,20 +72,18 @@
             <div class="col-12 col-md-6 col-xl-4 position-relative">
 
                 <div class="card h-100 border-0 shadow-sm rounded-4 p-4 card-hover cursor-pointer"
-                     style="transition: all 0.2s ease-in-out;"
                      @onclick="() => NavigateToDetail(mine.Id)">
 
                     <!-- Header: Icon, Name & Category (wraps, no truncation, full width) -->
                     <div class="d-flex align-items-start gap-3 mb-3">
-                        <div class="rounded-3 bg-dark-subtle text-dark d-flex align-items-center justify-content-center p-2 flex-shrink-0"
-                             style="width: 40px; height: 40px;">
+                        <div class="rounded-3 bg-dark-subtle text-dark d-flex align-items-center justify-content-center p-2 flex-shrink-0 mine-category-icon">
                             <i class="ti @FormatHelper.CategoryToIcon(mine.Category) fs-5"></i>
                         </div>
                         <div class="min-w-0">
-                            <h3 class="h6 fw-bold mb-0 text-dark font-display" style="font-size: 0.92rem; line-height: 1.3; word-break: break-word;">
+                            <h3 class="h6 fw-bold mb-0 text-dark font-display mine-name">
                                 @mine.Name
                             </h3>
-                            <small class="text-muted d-block" style="font-size: 0.72rem; line-height: 1.35; word-break: break-word;">
+                            <small class="text-muted d-block mine-meta">
                                 @FormatHelper.CategoryLabel(mine.Category) · @FormatHelper.MineTypeLabel(mine.Type)
                             </small>
                         </div>
@@ -93,21 +92,21 @@
                     <!-- Metrics Grid -->
                     <div class="row g-2 pt-2 border-top border-light-subtle text-center text-sm-start">
                         <div class="col-4 min-w-0">
-                            <span class="text-uppercase text-muted fw-semibold d-block" style="font-size: 0.62rem; letter-spacing: 0.05em;">Current</span>
-                            <div class="fw-bold text-dark" style="font-size: 0.85rem;" title="@FormatHelper.FormatCurrency(mine.CurrentValue, mine.Currency)">
+                            <span class="text-uppercase text-muted fw-semibold d-block mine-metric-label">Current</span>
+                            <div class="fw-bold text-dark mine-metric-value" title="@FormatHelper.FormatCurrency(mine.CurrentValue, mine.Currency)">
                                 @FormatHelper.FormatCurrencyCompact(mine.CurrentValue, mine.Currency)
                             </div>
                         </div>
                         <div class="col-4 min-w-0">
-                            <span class="text-uppercase text-muted fw-semibold d-block" style="font-size: 0.62rem; letter-spacing: 0.05em;">Growth</span>
-                            <div class="fw-bold d-flex align-items-center justify-content-center justify-content-sm-start gap-1 @(growthPositive ? "text-success" : "text-danger")" style="font-size: 0.85rem;">
-                                <i class="ti @(growthPositive ? "ti-trending-up" : "ti-trending-down")" style="font-size: 0.9rem;"></i>
+                            <span class="text-uppercase text-muted fw-semibold d-block mine-metric-label">Growth</span>
+                            <div class="fw-bold d-flex align-items-center justify-content-center justify-content-sm-start gap-1 mine-growth @(growthPositive ? "text-success" : "text-danger")">
+                                <i class="ti @(growthPositive ? "ti-trending-up" : "ti-trending-down") mine-growth-icon"></i>
                                 <span>@FormatHelper.FormatPercent(mine.GrowthPct)</span>
                             </div>
                         </div>
                         <div class="col-4 min-w-0">
-                            <span class="text-uppercase text-muted fw-semibold d-block" style="font-size: 0.62rem; letter-spacing: 0.05em;">Income/mo</span>
-                            <div class="fw-bold text-dark" style="font-size: 0.85rem;" title="@(mine.MonthlyIncome > 0 ? FormatHelper.FormatCurrency(mine.MonthlyIncome, mine.Currency) : "—")">
+                            <span class="text-uppercase text-muted fw-semibold d-block mine-metric-label">Income/mo</span>
+                            <div class="fw-bold text-dark mine-metric-value" title="@(mine.MonthlyIncome > 0 ? FormatHelper.FormatCurrency(mine.MonthlyIncome, mine.Currency) : "—")">
                                 @(mine.MonthlyIncome > 0 ? FormatHelper.FormatCurrencyCompact(mine.MonthlyIncome, mine.Currency) : "—")
                             </div>
                         </div>
@@ -127,7 +126,7 @@
                 </div>
 
                 <!-- Status Badge — overlaid on top right corner, inside card -->
-                <div class="position-absolute top-0 end-0" style="pointer-events: auto; margin-top: 0px; margin-right: 15px;">
+                <div class="position-absolute top-0 end-0 mine-status-overlay">
                     <StatusBadge Status="@mine.Status" Compact="true" />
                 </div>
             </div>
@@ -137,7 +136,7 @@
 else
 {
     <div class="card border-0 shadow-sm rounded-4 text-center py-5 px-4 my-4">
-        <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mx-auto mb-3" style="width: 64px; height: 64px;">
+        <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mx-auto mb-3 mine-empty-icon">
             <i class="ti ti-pick fs-2 text-muted"></i>
         </div>
         <h3 class="h5 fw-bold text-dark mb-1">No mines found</h3>
@@ -151,75 +150,126 @@ else
 <!-- Add Mine Modal -->
 @if (showAddModal)
 {
-    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal fade show d-block mine-modal-backdrop" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="add-mine-title">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
             <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
                 <div class="modal-header bg-dark text-white px-4 py-3 border-0">
                     <div class="d-flex align-items-center gap-2">
-                        <i class="ti ti-pick text-warning fs-4"></i>
-                        <h5 class="modal-title fw-bold font-display mb-0">Add New Mine</h5>
+                        <i class="ti ti-pick text-gold fs-4"></i>
+                        <h2 id="add-mine-title" class="h5 modal-title fw-bold font-display mb-0">Add New Mine</h2>
                     </div>
-                    <button type="button" class="btn-close btn-close-white" @onclick="CloseAddModal"></button>
+                    <button type="button" class="btn-close btn-close-white" aria-label="Close" @onclick="CloseAddModal"></button>
                 </div>
-                <div class="modal-body p-4">
+
+                <div class="modal-body p-4 bg-light">
                     @if (!string.IsNullOrEmpty(inputError))
                     {
-                        <div class="alert alert-danger rounded-3 mb-3" role="alert">@inputError</div>
+                        <div class="alert alert-danger rounded-3 d-flex align-items-center gap-2 mb-3" role="alert">
+                            <i class="ti ti-alert-triangle"></i>
+                            <small>@inputError</small>
+                        </div>
                     }
-                    <div class="row g-3">
-                        <div class="col-12 col-md-6">
-                            <label class="form-label text-dark">Mine Name *</label>
-                            <input type="text" class="form-control rounded-3" placeholder="e.g. EPF / KWSP, Maybank Shares" @bind="newMine.Name" />
+
+                    <!-- 1. Mine details -->
+                    <div class="card border-0 rounded-4">
+                        <div class="card-header bg-dark">
+                            <div class="dc-section-title text-gold"><i class="ti ti-blocks text-gold"></i> Mine Details</div>
                         </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label text-dark">Institution / Issuer</label>
-                            <select class="form-select rounded-3" @bind="newMine.Institution">
-                                <option value="">Select an institution</option>
-                                @foreach (var institution in institutions)
-                                {
-                                    <option value="@institution.InstitutionName_EN">@institution.InstitutionCode - @institution.InstitutionName_EN</option>
-                                }
-                            </select>
+                        <div class="card-body">
+                            <div class="omm-form-section">
+                                <div class="omm-form-field">
+                                    <label class="omm-form-label" for="mine-name">Mine Name <span class="text-danger">*</span></label>
+                                    <input id="mine-name" type="text" class="form-control rounded-3" maxlength="200"
+                                           placeholder="e.g. EPF / KWSP, Maybank Shares" @bind="newMine.Name" />
+                                </div>
+
+                                <div class="omm-form-field">
+                                    <label class="omm-form-label" for="mine-institution">Institution / Issuer</label>
+                                    <select id="mine-institution" class="form-select rounded-3" @bind="newMine.Institution">
+                                        <option value="">Select an institution</option>
+                                        @foreach (var institution in institutions)
+                                        {
+                                            <option value="@institution.InstitutionName_EN">@institution.InstitutionCode - @institution.InstitutionName_EN</option>
+                                        }
+                                    </select>
+                                </div>
+
+                                <div class="omm-form-grid">
+                                    <div class="omm-form-field">
+                                        <label class="omm-form-label" for="mine-category">Category <span class="text-danger">*</span></label>
+                                        <select id="mine-category" class="form-select rounded-3" @bind="newMine.Category">
+                                            @foreach (var cat in Enum.GetValues<MineCategory>())
+                                            {
+                                                <option value="@cat">@FormatHelper.CategoryLabel(cat)</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="omm-form-field">
+                                        <label class="omm-form-label" for="mine-type">Asset Type <span class="text-danger">*</span></label>
+                                        <select id="mine-type" class="form-select rounded-3" @bind="newMine.Type">
+                                            @foreach (var typ in Enum.GetValues<MineType>())
+                                            {
+                                                <option value="@typ">@FormatHelper.MineTypeLabel(typ)</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label text-dark">Category *</label>
-                            <select class="form-select rounded-3" @bind="newMine.Category">
-                                @foreach (var cat in Enum.GetValues<MineCategory>())
-                                {
-                                    <option value="@cat">@FormatHelper.CategoryLabel(cat)</option>
-                                }
-                            </select>
+                    </div>
+
+                    <!-- 2. Value & income -->
+                    <div class="card border-0 rounded-4 mt-3">
+                        <div class="card-header bg-dark">
+                            <div class="dc-section-title text-gold"><i class="ti ti-pig-money text-gold"></i> Value &amp; Income</div>
                         </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label text-dark">Asset Type *</label>
-                            <select class="form-select rounded-3" @bind="newMine.Type">
-                                @foreach (var typ in Enum.GetValues<MineType>())
-                                {
-                                    <option value="@typ">@FormatHelper.MineTypeLabel(typ)</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label text-dark">Current Market Value *</label>
-                            <input type="number" class="form-control rounded-3" step="100" @bind="newMine.CurrentValue" />
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label text-dark">Purchase Price</label>
-                            <input type="number" class="form-control rounded-3" step="100" @bind="newMine.PurchaseCost" />
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label text-dark">Est. Monthly Passive Income</label>
-                            <input type="number" class="form-control rounded-3" step="50" @bind="newMine.MonthlyIncome" />
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label text-dark">Holdings / Details</label>
-                            <input type="text" class="form-control rounded-3" placeholder="e.g. 1,000 shares, 50 grams" @bind="newMine.Holdings" />
+                        <div class="card-body">
+                            <div class="omm-form-section">
+                                <div class="omm-form-grid">
+                                    <div class="omm-form-field">
+                                        <label class="omm-form-label" for="mine-current-value">Current Market Value <span class="text-danger">*</span></label>
+                                        <div class="dc-currency-group">
+                                            <span class="dc-currency-addon">@currencySymbol</span>
+                                            <input id="mine-current-value" type="number" class="form-control" min="0" step="0.01"
+                                                   placeholder="0.00" @bind="newMine.CurrentValue" @bind:event="oninput" />
+                                        </div>
+                                    </div>
+                                    <div class="omm-form-field">
+                                        <label class="omm-form-label" for="mine-purchase-cost">Purchase Price</label>
+                                        <div class="dc-currency-group">
+                                            <span class="dc-currency-addon">@currencySymbol</span>
+                                            <input id="mine-purchase-cost" type="number" class="form-control" min="0" step="0.01"
+                                                   placeholder="0.00" @bind="newMine.PurchaseCost" @bind:event="oninput" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="omm-form-field">
+                                    <label class="omm-form-label" for="mine-monthly-income">Est. Monthly Passive Income</label>
+                                    <div class="dc-currency-group">
+                                        <span class="dc-currency-addon">@currencySymbol</span>
+                                        <input id="mine-monthly-income" type="number" class="form-control" min="0" step="0.01"
+                                               placeholder="0.00" @bind="newMine.MonthlyIncome" @bind:event="oninput" />
+                                        <span class="dc-currency-suffix">/ mo</span>
+                                    </div>
+                                    <div class="omm-form-help">Dividends, rent, or interest this mine produces. Counts toward your Freedom Ratio.</div>
+                                </div>
+
+                                <div class="omm-form-field">
+                                    <label class="omm-form-label" for="mine-holdings">Holdings / Details</label>
+                                    <input id="mine-holdings" type="text" class="form-control rounded-3" maxlength="200"
+                                           placeholder="e.g. 1,000 shares, 50 grams" @bind="newMine.Holdings" />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
+
                 <div class="modal-footer bg-light px-4 py-3 border-0">
-                    <button type="button" class="btn btn-outline-secondary rounded-3 px-3" @onclick="CloseAddModal">Cancel</button>
-                    <button type="button" class="btn btn-primary rounded-3 px-4 fw-semibold" @onclick="SaveMine">Save Mine</button>
+                    <button type="button" class="btn-omm-secondary" @onclick="CloseAddModal">Cancel</button>
+                    <button type="button" class="btn-omm-accent" @onclick="SaveMine">
+                        <i class="ti ti-device-floppy"></i> Save Mine
+                    </button>
                 </div>
             </div>
         </div>
@@ -234,9 +284,16 @@ else
     private bool showAddModal = false;
     private Mine newMine = new();
     private string? inputError;
+    private string currencySymbol = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
+        var profile = await ProfileService.GetCurrentAsync();
+        if (!string.IsNullOrWhiteSpace(profile?.CurrencyCode))
+        {
+            currencySymbol = FormatHelper.GetCurrencySymbol(profile.CurrencyCode);
+        }
+
         await LoadInstitutions();
         await LoadMines();
         if (Navigation.Uri.TrimEnd('/').EndsWith("/mines/new", StringComparison.OrdinalIgnoreCase))
@@ -333,6 +390,18 @@ else
             newMine.GrowthPct = 0;
         }
 
+        // Validate numeric inputs
+        if (newMine.CurrentValue <= 0)
+        {
+            inputError = "Enter a current market value greater than zero.";
+            return;
+        }
+        if (newMine.PurchaseCost < 0 || newMine.MonthlyIncome < 0)
+        {
+            inputError = "Purchase price and monthly income cannot be negative.";
+            return;
+        }
+
         try
         {
             await MineService.AddMineAsync(newMine);
@@ -347,5 +416,8 @@ else
         {
             inputError = exception.Message;
         }
+
+
+
     }
 }

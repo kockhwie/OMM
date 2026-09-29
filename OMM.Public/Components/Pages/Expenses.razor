@@ -4,6 +4,7 @@
 @using OMM.Public.Models
 @using OMM.Public.Services
 @inject MemberRecordService RecordService
+@inject IMinerProfileService ProfileService
 
 <PageTitle>Expenses - OhMyMine</PageTitle>
 
@@ -54,41 +55,59 @@ else
 
 @if (showAddModal)
 {
-    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(15, 23, 42, 0.6);">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 rounded-4 shadow-lg">
-                <div class="modal-header bg-dark text-white border-0">
-                    <h2 class="h5 modal-title fw-bold mb-0">Add Expense</h2>
-                    <button type="button" class="btn-close btn-close-white" @onclick="CloseAddModal"></button>
+    <div class="modal fade show d-block omm-modal-backdrop" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="add-expense-title">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+                <div class="modal-header bg-dark text-white px-4 py-3 border-0">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="ti ti-receipt text-warning fs-4"></i>
+                        <h2 id="add-expense-title" class="h5 modal-title fw-bold font-display mb-0">Add Expense</h2>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" aria-label="Close" @onclick="CloseAddModal"></button>
                 </div>
-                <div class="modal-body p-4">
+                <div class="modal-body p-4 bg-light">
                     @if (!string.IsNullOrWhiteSpace(inputError))
                     {
-                        <div class="alert alert-danger rounded-3">@inputError</div>
+                        <div class="alert alert-danger rounded-3 d-flex align-items-center gap-2 mb-3" role="alert">
+                            <i class="ti ti-alert-triangle"></i>
+                            <small>@inputError</small>
+                        </div>
                     }
-                    <div class="mb-3">
-                        <label class="form-label">Expense name *</label>
-                        <input class="form-control rounded-3" @bind="newExpense.Name" placeholder="e.g. Utilities, Groceries" />
-                    </div>
-                    <div class="row g-3">
-                        <div class="col-6">
-                            <label class="form-label">Amount *</label>
-                            <input type="number" min="0" step="0.01" class="form-control rounded-3" @bind="newExpense.Amount" />
+                    <div class="card border-0 rounded-4">
+                        <div class="card-body">
+                            <div class="omm-form-section">
+                                <div class="omm-form-field">
+                                    <label class="omm-form-label" for="expense-name">Expense Name <span class="text-danger">*</span></label>
+                                    <input id="expense-name" type="text" class="form-control rounded-3" maxlength="200"
+                                           placeholder="e.g. Utilities, Groceries" @bind="newExpense.Name" />
+                                </div>
+
+                                <div class="omm-form-grid">
+                                    <div class="omm-form-field">
+                                        <label class="omm-form-label" for="expense-amount">Amount <span class="text-danger">*</span></label>
+                                        <div class="dc-currency-group">
+                                            <span class="dc-currency-addon">@currencySymbol</span>
+                                            <input id="expense-amount" type="number" min="0" step="0.01" class="form-control" @bind="newExpense.Amount" />
+                                        </div>
+                                    </div>
+                                    <div class="omm-form-field">
+                                        <label class="omm-form-label" for="expense-frequency">Frequency <span class="text-danger">*</span></label>
+                                        <select id="expense-frequency" class="form-select rounded-3" @bind="newExpense.Frequency">
+                                            <option value="monthly">Monthly</option>
+                                            <option value="annual">Annual</option>
+                                            <option value="one-off">One-off</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-6">
-                            <label class="form-label">Frequency *</label>
-                            <select class="form-select rounded-3" @bind="newExpense.Frequency">
-                                <option value="monthly">Monthly</option>
-                                <option value="annual">Annual</option>
-                                <option value="one-off">One-off</option>
-                            </select>
-                        </div>
                     </div>
-                    <p class="text-muted small mt-3 mb-0">Currency follows your saved profile currency unless a record-specific currency is added later.</p>
                 </div>
-                <div class="modal-footer border-0 bg-light">
-                    <button class="btn btn-outline-secondary rounded-3" @onclick="CloseAddModal">Cancel</button>
-                    <button class="btn btn-primary rounded-3" @onclick="SaveExpense">Save Expense</button>
+                <div class="modal-footer bg-light px-4 py-3 border-0">
+                    <button type="button" class="btn-omm-secondary" @onclick="CloseAddModal">Cancel</button>
+                    <button type="button" class="btn-omm-accent" @onclick="SaveExpense">
+                        <i class="ti ti-device-floppy"></i> Save Expense
+                    </button>
                 </div>
             </div>
         </div>
@@ -100,8 +119,18 @@ else
     private Expense newExpense = new();
     private bool showAddModal;
     private string? inputError;
+    private string currencySymbol = string.Empty;
 
-    protected override async Task OnInitializedAsync() => await LoadExpenses();
+    protected override async Task OnInitializedAsync()
+    {
+        var profile = await ProfileService.GetCurrentAsync();
+        if (!string.IsNullOrWhiteSpace(profile?.CurrencyCode))
+        {
+            currencySymbol = FormatHelper.GetCurrencySymbol(profile.CurrencyCode);
+        }
+
+        await LoadExpenses();
+    }
 
     private async Task LoadExpenses() => expenses = await RecordService.GetExpensesAsync();
 

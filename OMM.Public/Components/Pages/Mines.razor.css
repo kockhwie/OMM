@@ -44,7 +44,3 @@
     height: 64px;
 }
 
-.mine-modal-backdrop {
-    background-color: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(4px);
-}

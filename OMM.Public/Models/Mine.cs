@@ -62,7 +62,12 @@ public class MineMetadata
     public string? Notes                   { get; set; }
 
     // --- EPF / Savings ---
-    public string? AccountType             { get; set; } // e.g. "Conventional", "Shariah"
+    public string?  AccountType            { get; set; } // e.g. "Conventional", "Shariah"
+    public decimal? Akaun1Balance          { get; set; } // Akaun Persaraan (75%)
+    public decimal? Akaun2Balance          { get; set; } // Akaun Sejahtera (15%)
+    public decimal? Akaun3Balance          { get; set; } // Akaun Fleksibel (10%)
+    public decimal? MonthlyContribution    { get; set; } // Total employee + employer monthly contribution
+    public decimal? ExpectedDividendRate   { get; set; } // % p.a. for EPF/ASB dividend projections
 
     // --- ASB / Unit Trust ---
     public decimal? UnitsHeld              { get; set; }
@@ -95,12 +100,15 @@ public class MineMetadata
     // --- Gold / Silver ---
     public decimal? WeightGrams            { get; set; }
     public string?  GoldForm               { get; set; } // "Physical Bar" | "Jewellery" | "Digital (GIA/GAP)"
+    public decimal? CurrentPricePerGram    { get; set; }
     public decimal? BuybackPricePerGram    { get; set; }
 
     // --- Cryptocurrency ---
     public string?  CoinSymbol             { get; set; } // "BTC", "ETH", "BNB"
     public decimal? CoinsHeld              { get; set; } // high precision
+    public decimal? CurrentPricePerCoin    { get; set; } // in MYR
     public decimal? PurchasePricePerCoin   { get; set; } // in MYR
+    public decimal? StakingYieldPct        { get; set; } // % per annum
     public string?  WalletOrExchange       { get; set; }
 }
 

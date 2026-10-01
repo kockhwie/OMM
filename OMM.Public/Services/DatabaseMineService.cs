@@ -76,6 +76,8 @@ public sealed class DatabaseMineService(
         var purchaseCost = mine.PurchaseCost > 0 ? mine.PurchaseCost : mine.CurrentValue;
         var growth = mine.CurrentValue - purchaseCost;
         var growthPct = purchaseCost > 0 ? Math.Round(growth / purchaseCost * 100m, 4) : 0m;
+        Guid? linkedBurdenGuid = Guid.TryParse(mine.LinkedBurdenId, out var parsedBurden) ? parsedBurden : null;
+
         await repository.AddMineAsync(new MineEntity
         {
             UserId = string.Empty,
@@ -90,9 +92,61 @@ public sealed class DatabaseMineService(
             GrowthPct = growthPct,
             MonthlyIncome = mine.MonthlyIncome,
             Holdings = string.IsNullOrWhiteSpace(mine.Holdings) ? null : mine.Holdings.Trim(),
+            MetadataJson = mine.Metadata is not null ? System.Text.Json.JsonSerializer.Serialize(mine.Metadata) : null,
+            LinkedBurdenId = linkedBurdenGuid,
             Status = string.IsNullOrWhiteSpace(mine.Status) ? "active" : mine.Status,
             UpdatedOn = DateOnly.FromDateTime(DateTime.UtcNow)
         }, cancellationToken);
+    }
+
+    public async Task<bool> UpdateMineAsync(Mine mine, CancellationToken cancellationToken = default)
+    {
+        if (!Guid.TryParse(mine.Id, out var mineId))
+        {
+            return false;
+        }
+
+        PublicInputValidator.ValidateDisplayText("Mine name", mine.Name);
+        PublicInputValidator.ValidateDisplayText("Holdings / details", mine.Holdings, optional: true);
+
+        var existingEntity = await repository.GetMineAsync(mineId, cancellationToken);
+        if (existingEntity is null)
+        {
+            return false;
+        }
+
+        await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        int? institutionId = null;
+        if (!string.IsNullOrWhiteSpace(mine.Institution))
+        {
+            institutionId = await db.Institutions
+                .Where(item => item.IsActive && item.InstitutionName_EN == mine.Institution)
+                .Select(item => (int?)item.Id)
+                .SingleOrDefaultAsync(cancellationToken);
+        }
+
+        var purchaseCost = mine.PurchaseCost > 0 ? mine.PurchaseCost : mine.CurrentValue;
+        var growth = mine.CurrentValue - purchaseCost;
+        var growthPct = purchaseCost > 0 ? Math.Round(growth / purchaseCost * 100m, 4) : 0m;
+        Guid? linkedBurdenGuid = Guid.TryParse(mine.LinkedBurdenId, out var parsedBurden) ? parsedBurden : null;
+
+        existingEntity.Name = mine.Name.Trim();
+        existingEntity.Category = mine.Category;
+        existingEntity.Type = mine.Type;
+        existingEntity.InstitutionId = institutionId;
+        existingEntity.CurrentValue = mine.CurrentValue;
+        existingEntity.PurchaseCost = purchaseCost;
+        existingEntity.Growth = growth;
+        existingEntity.GrowthPct = growthPct;
+        existingEntity.MonthlyIncome = mine.MonthlyIncome;
+        existingEntity.Holdings = string.IsNullOrWhiteSpace(mine.Holdings) ? null : mine.Holdings.Trim();
+        existingEntity.MetadataJson = mine.Metadata is not null ? System.Text.Json.JsonSerializer.Serialize(mine.Metadata) : null;
+        existingEntity.LinkedBurdenId = linkedBurdenGuid;
+        existingEntity.Status = string.IsNullOrWhiteSpace(mine.Status) ? "active" : mine.Status;
+        existingEntity.UpdatedOn = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        var updated = await repository.UpdateMineAsync(existingEntity, cancellationToken);
+        return updated is not null;
     }
 
     public async Task<bool> DeleteMineAsync(string id, CancellationToken cancellationToken = default)
@@ -194,9 +248,60 @@ public sealed class DatabaseMineService(
         Holdings = entity.Holdings,
         SubMines = entity.Positions.Select(MapPosition).ToList(),
         LinkedBurdenId = entity.LinkedBurdenId?.ToString(),
+        Metadata = string.IsNullOrWhiteSpace(entity.MetadataJson)
+            ? null
+            : System.Text.Json.JsonSerializer.Deserialize<MineMetadata>(entity.MetadataJson),
         Status = entity.Status,
         UpdatedAt = entity.UpdatedOn.ToString("yyyy-MM-dd")
     };
+
+    public async Task<bool> RecordYieldHistoryAsync(
+        string mineId,
+        int effectiveYear,
+        DateOnly recordDate,
+        decimal ratePct,
+        decimal? declaredAmount = null,
+        decimal? balanceAtTime = null,
+        string? notes = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (!Guid.TryParse(mineId, out var parsedMineId)) return false;
+        var profile = await profileService.GetCurrentAsync(cancellationToken);
+        if (profile is null) return false;
+
+        await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        var history = new MineYieldHistoryEntity
+        {
+            UserId = profile.UserId,
+            MineId = parsedMineId,
+            EffectiveYear = effectiveYear,
+            RecordDate = recordDate,
+            RatePct = ratePct,
+            DeclaredAmount = declaredAmount,
+            BalanceAtTime = balanceAtTime,
+            Notes = notes
+        };
+        db.Set<MineYieldHistoryEntity>().Add(history);
+        await db.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<List<MineYieldHistoryEntity>> GetYieldHistoriesAsync(
+        string mineId,
+        CancellationToken cancellationToken = default)
+    {
+        if (!Guid.TryParse(mineId, out var parsedMineId)) return [];
+        var profile = await profileService.GetCurrentAsync(cancellationToken);
+        if (profile is null) return [];
+
+        await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        return await db.Set<MineYieldHistoryEntity>()
+            .AsNoTracking()
+            .Where(h => h.MineId == parsedMineId && h.UserId == profile.UserId)
+            .OrderByDescending(h => h.EffectiveYear)
+            .ThenByDescending(h => h.RecordDate)
+            .ToListAsync(cancellationToken);
+    }
 
     private static SubMine MapPosition(MinePositionEntity entity) => new()
     {

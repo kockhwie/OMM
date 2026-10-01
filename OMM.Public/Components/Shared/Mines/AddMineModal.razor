@@ -1,0 +1,1554 @@
+@namespace OMM.Public.Components.Shared.Mines
+@using Microsoft.EntityFrameworkCore
+@using OMM.Public.Data
+@using OMM.Public.Data.Entities
+@using OMM.Public.Models
+@using OMM.Public.Services
+@using OMM.Public.Validation
+@using OMM.Shared.Models.MasterData
+@inject DatabaseMineService MineService
+@inject IDbContextFactory<ApplicationDbContext> DbContextFactory
+@inject IMinerProfileService ProfileService
+
+@if (IsOpen)
+{
+    <div class="modal fade show d-block omm-modal-backdrop" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="add-mine-modal-title">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+                <!-- Modal Header -->
+                <div class="modal-header bg-dark text-white px-4 py-3 border-0">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="ti @(IsEditMode ? "ti-edit" : "ti-pick") text-gold fs-4"></i>
+                        <div>
+                            <h2 id="add-mine-modal-title" class="h5 modal-title fw-bold font-display mb-0">
+                                @(IsEditMode ? $"Edit Mine: {workingMine.Name}" : "Add New Mine")
+                            </h2>
+                            <small class="text-white-50" style="font-size: 0.75rem;">
+                                Step @step of 3 &bull; @GetStepTitle(step)
+                            </small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" aria-label="Close" @onclick="HandleClose"></button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body p-4 bg-light">
+                    @if (!string.IsNullOrEmpty(inputError))
+                    {
+                        <div class="alert alert-danger rounded-3 d-flex align-items-center gap-2 mb-3 py-2" role="alert">
+                            <i class="ti ti-alert-triangle flex-shrink-0 fs-5"></i>
+                            <span class="small">@inputError</span>
+                        </div>
+                    }
+
+                    <!-- Progress Stepper -->
+                    <div class="stepper-nav d-flex justify-content-between align-items-center mb-4 px-2">
+                        <div class="step-indicator @(step >= 1 ? "active" : "") @(step > 1 ? "completed" : "")">
+                            <div class="step-number">1</div>
+                            <span class="step-label">Category & Type</span>
+                        </div>
+                        <div class="step-connector @(step >= 2 ? "active" : "")"></div>
+                        <div class="step-indicator @(step >= 2 ? "active" : "") @(step > 2 ? "completed" : "")">
+                            <div class="step-number">2</div>
+                            <span class="step-label">Financial Details</span>
+                        </div>
+                        <div class="step-connector @(step >= 3 ? "active" : "")"></div>
+                        <div class="step-indicator @(step == 3 ? "active" : "")">
+                            <div class="step-number">3</div>
+                            <span class="step-label">Review & Confirm</span>
+                        </div>
+                    </div>
+
+                    @if (step == 1)
+                    {
+                        <!-- Step 1: Category & Type Selection -->
+                        <div class="card border-0 rounded-4 shadow-sm p-4 bg-white">
+                            <div class="omm-form-section">
+                                <div>
+                                    <label class="omm-form-label mb-2">1. Choose Asset Category <span class="text-danger">*</span></label>
+                                    <div class="row g-2">
+                                        @foreach (var cat in Enum.GetValues<MineCategory>())
+                                        {
+                                            var isSelected = workingMine.Category == cat;
+                                            <div class="col-6 col-md-3">
+                                                <div class="category-card p-3 rounded-3 h-100 cursor-pointer d-flex flex-column justify-content-between @(isSelected ? "category-card-active" : "")"
+                                                     @onclick="() => SelectCategory(cat)">
+                                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                                        <div class="category-icon-wrapper rounded-3 @(isSelected ? "bg-warning text-dark" : "bg-light text-muted") p-2">
+                                                            <i class="ti @FormatHelper.CategoryToIcon(cat) fs-4"></i>
+                                                        </div>
+                                                        @if (isSelected)
+                                                        {
+                                                            <i class="ti ti-circle-check-filled text-warning fs-5"></i>
+                                                        }
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-bold small @(isSelected ? "text-dark" : "text-secondary")">
+                                                            @FormatHelper.CategoryLabel(cat)
+                                                        </div>
+                                                        <div class="text-muted" style="font-size: 0.68rem; line-height: 1.2;">
+                                                            @GetCategoryDescription(cat)
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="mt-3">
+                                    <label class="omm-form-label mb-2">2. Specific Asset Type <span class="text-danger">*</span></label>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        @foreach (var typ in FormatHelper.GetTypesForCategory(workingMine.Category))
+                                        {
+                                            var isTypSelected = workingMine.Type == typ;
+                                            <button type="button"
+                                                    class="btn btn-sm rounded-pill px-3 py-1-5 d-flex align-items-center gap-2 @(isTypSelected ? "btn-warning text-dark fw-bold shadow-sm" : "btn-outline-secondary text-muted bg-white")"
+                                                    @onclick="() => SelectType(typ)">
+                                                <i class="ti @FormatHelper.MineTypeToIcon(typ)"></i>
+                                                <span>@FormatHelper.MineTypeLabel(typ)</span>
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="omm-form-grid mt-3">
+                                    <div class="omm-form-field">
+                                        <label class="omm-form-label" for="mine-name">Mine Name <span class="text-danger">*</span></label>
+                                        <input id="mine-name" type="text" class="form-control rounded-3" maxlength="200"
+                                               placeholder="@GetNamePlaceholder(workingMine.Type)"
+                                               @bind="workingMine.Name" />
+                                        <div class="omm-form-help">A recognisable name for this asset in your portfolio.</div>
+                                    </div>
+
+                                    <div class="omm-form-field">
+                                        <label class="omm-form-label" for="mine-institution">Institution / Provider</label>
+                                        <select id="mine-institution" class="form-select rounded-3" @bind="workingMine.Institution">
+                                            <option value="">Select an institution (optional)</option>
+                                            @foreach (var institution in institutions)
+                                            {
+                                                <option value="@institution.InstitutionName_EN">@institution.InstitutionCode - @institution.InstitutionName_EN</option>
+                                            }
+                                        </select>
+                                        <div class="omm-form-help">Bank, broker, or fund manager holding this asset.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else if (step == 2)
+                    {
+                        <!-- Step 2: Adaptive Tailored Sub-Forms -->
+                        <div class="card border-0 rounded-4 shadow-sm p-4 bg-white">
+                            <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                                <i class="ti @FormatHelper.MineTypeToIcon(workingMine.Type) text-warning fs-4"></i>
+                                <div>
+                                    <h3 class="h6 mb-0 fw-bold">@FormatHelper.MineTypeLabel(workingMine.Type) Details</h3>
+                                    <small class="text-muted">Fill in the fields tailored for this Malaysian asset class.</small>
+                                </div>
+                            </div>
+
+                            <div class="omm-form-section">
+                                @switch (workingMine.Type)
+                                {
+                                    case MineType.EpfKwsp:
+                                        <!-- EPF / KWSP Form -->
+                                        <div class="omm-form-field">
+                                            <label class="omm-form-label">EPF Account Scheme</label>
+                                            <div class="btn-group w-100" role="group">
+                                                <button type="button" class="btn btn-outline-dark @(metadata.AccountType != "Shariah" ? "active" : "")"
+                                                        @onclick="@(() => metadata.AccountType = "Conventional")">
+                                                    <i class="ti ti-building-bank me-1"></i> Simpanan Konvensional
+                                                </button>
+                                                <button type="button" class="btn btn-outline-dark @(metadata.AccountType == "Shariah" ? "active" : "")"
+                                                        @onclick="@(() => metadata.AccountType = "Shariah")">
+                                                    <i class="ti ti-moon me-1"></i> Simpanan Shariah
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div class="row g-2">
+                                            <div class="col-12 col-md-4">
+                                                <div class="omm-form-field">
+                                                    <label class="omm-form-label" for="epf-akaun1">Akaun Persaraan (75%)</label>
+                                                    <div class="dc-currency-group">
+                                                        <span class="dc-currency-addon">@currencySymbol</span>
+                                                        <input id="epf-akaun1" type="number" class="form-control" min="0" step="0.01"
+                                                               placeholder="0.00" @bind="metadata.Akaun1Balance" @bind:event="oninput" @bind:after="RecalculateEpf" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-12 col-md-4">
+                                                <div class="omm-form-field">
+                                                    <label class="omm-form-label" for="epf-akaun2">Akaun Sejahtera (15%)</label>
+                                                    <div class="dc-currency-group">
+                                                        <span class="dc-currency-addon">@currencySymbol</span>
+                                                        <input id="epf-akaun2" type="number" class="form-control" min="0" step="0.01"
+                                                               placeholder="0.00" @bind="metadata.Akaun2Balance" @bind:event="oninput" @bind:after="RecalculateEpf" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-12 col-md-4">
+                                                <div class="omm-form-field">
+                                                    <label class="omm-form-label" for="epf-akaun3">Akaun Fleksibel (10%)</label>
+                                                    <div class="dc-currency-group">
+                                                        <span class="dc-currency-addon">@currencySymbol</span>
+                                                        <input id="epf-akaun3" type="number" class="form-control" min="0" step="0.01"
+                                                               placeholder="0.00" @bind="metadata.Akaun3Balance" @bind:event="oninput" @bind:after="RecalculateEpf" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="alert alert-light border rounded-3 p-3 d-flex justify-content-between align-items-center my-2">
+                                            <div>
+                                                <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.7rem;">Computed Total EPF Balance</small>
+                                                <div class="fs-5 fw-bold text-dark">@FormatHelper.FormatCurrency(workingMine.CurrentValue, currencySymbol)</div>
+                                            </div>
+                                            <div class="text-end">
+                                                <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.7rem;">Projected Monthly Dividend</small>
+                                                <div class="fs-5 fw-bold text-success">@FormatHelper.FormatCurrency(workingMine.MonthlyIncome, currencySymbol)/mo</div>
+                                            </div>
+                                        </div>
+
+                                        <div class="omm-form-grid">
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="epf-dividend">Expected Dividend Rate (% p.a.)</label>
+                                                <div class="input-group">
+                                                    <input id="epf-dividend" type="number" class="form-control rounded-start-3" min="0" max="15" step="0.05"
+                                                           placeholder="5.50" @bind="metadata.ExpectedDividendRate" @bind:event="oninput" @bind:after="RecalculateEpf" />
+                                                    <span class="input-group-text rounded-end-3">%</span>
+                                                </div>
+                                                <div class="omm-form-help">Historical average is ~5.3% - 6.0%.</div>
+                                            </div>
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="epf-contrib">Monthly Contribution (Employee + Employer)</label>
+                                                <div class="dc-currency-group">
+                                                    <span class="dc-currency-addon">@currencySymbol</span>
+                                                    <input id="epf-contrib" type="number" class="form-control" min="0" step="0.01"
+                                                           placeholder="0.00" @bind="metadata.MonthlyContribution" />
+                                                    <span class="dc-currency-suffix">/ mo</span>
+                                                </div>
+                                                <div class="omm-form-help">Optional: Ongoing monthly statutory inflow.</div>
+                                            </div>
+                                        </div>
+                                        break;
+
+                                    case MineType.UnitTrustAsb:
+                                        <!-- ASB / ASM Fixed-Price Unit Trust -->
+                                        <div class="omm-form-field">
+                                            <label class="omm-form-label" for="asb-fund">PNB Fund Selection</label>
+                                            <select id="asb-fund" class="form-select rounded-3" @bind="metadata.FundCode" @bind:after="OnAsbFundChanged">
+                                                <option value="ASB">Amanah Saham Bumiputera (ASB)</option>
+                                                <option value="ASB 2">Amanah Saham Bumiputera 2 (ASB 2)</option>
+                                                <option value="ASB 3 Didik">Amanah Saham Bumiputera 3 - Didik (ASB 3 Didik)</option>
+                                                <option value="ASM">Amanah Saham Malaysia (ASM)</option>
+                                                <option value="ASM 2 Wawasan">Amanah Saham Malaysia 2 - Wawasan (ASM 2 Wawasan)</option>
+                                                <option value="ASM 3">Amanah Saham Malaysia 3 (ASM 3)</option>
+                                                <option value="Other">Other Fixed Price Unit Trust</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="omm-form-grid">
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="asb-units">Total Units Held <span class="text-danger">*</span></label>
+                                                <input id="asb-units" type="number" class="form-control rounded-3" min="0" step="1"
+                                                       placeholder="e.g. 50000" @bind="metadata.UnitsHeld" @bind:event="oninput" @bind:after="RecalculateAsb" />
+                                                <div class="omm-form-help">Fixed NAV of <strong>RM 1.00 per unit</strong> (Guaranteed capital).</div>
+                                            </div>
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="asb-dividend">Expected Dividend Rate (% p.a.)</label>
+                                                <div class="input-group">
+                                                    <input id="asb-dividend" type="number" class="form-control rounded-start-3" min="0" max="15" step="0.05"
+                                                           placeholder="5.25" @bind="metadata.ExpectedDividendRate" @bind:event="oninput" @bind:after="RecalculateAsb" />
+                                                    <span class="input-group-text rounded-end-3">%</span>
+                                                </div>
+                                                <div class="omm-form-help">Recent ASB/ASM dividends range from 4.75% to 5.50%.</div>
+                                            </div>
+                                        </div>
+
+                                        <div class="alert alert-light border rounded-3 p-3 d-flex justify-content-between align-items-center mt-2">
+                                            <div>
+                                                <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.7rem;">Computed Fund Value</small>
+                                                <div class="fs-5 fw-bold text-dark">@FormatHelper.FormatCurrency(workingMine.CurrentValue, currencySymbol)</div>
+                                            </div>
+                                            <div class="text-end">
+                                                <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.7rem;">Projected Monthly Income</small>
+                                                <div class="fs-5 fw-bold text-success">@FormatHelper.FormatCurrency(workingMine.MonthlyIncome, currencySymbol)/mo</div>
+                                            </div>
+                                        </div>
+                                        break;
+
+                                    case MineType.FixedDeposit:
+                                        <!-- Fixed Deposit Form -->
+                                        <div class="omm-form-grid">
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="fd-principal">Principal Deposit <span class="text-danger">*</span></label>
+                                                <div class="dc-currency-group">
+                                                    <span class="dc-currency-addon">@currencySymbol</span>
+                                                    <input id="fd-principal" type="number" class="form-control" min="0" step="0.01"
+                                                           placeholder="0.00" @bind="metadata.Principal" @bind:event="oninput" @bind:after="RecalculateFd" />
+                                                </div>
+                                            </div>
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="fd-rate">Interest Rate (% p.a.) <span class="text-danger">*</span></label>
+                                                <div class="input-group">
+                                                    <input id="fd-rate" type="number" class="form-control rounded-start-3" min="0" max="15" step="0.05"
+                                                           placeholder="3.85" @bind="metadata.InterestRatePct" @bind:event="oninput" @bind:after="RecalculateFd" />
+                                                    <span class="input-group-text rounded-end-3">%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="omm-form-grid">
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="fd-tenure">Tenure</label>
+                                                <select id="fd-tenure" class="form-select rounded-3" @bind="metadata.TenureMonths" @bind:after="RecalculateFd">
+                                                    <option value="1">1 Month</option>
+                                                    <option value="3">3 Months</option>
+                                                    <option value="6">6 Months</option>
+                                                    <option value="9">9 Months</option>
+                                                    <option value="12">12 Months (1 Year)</option>
+                                                    <option value="24">24 Months (2 Years)</option>
+                                                    <option value="36">36 Months (3 Years)</option>
+                                                    <option value="60">60 Months (5 Years)</option>
+                                                </select>
+                                            </div>
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="fd-maturity">Maturity Date</label>
+                                                <input id="fd-maturity" type="date" class="form-control rounded-3"
+                                                       value="@(metadata.MaturityDate?.ToString("yyyy-MM-dd"))"
+                                                       @onchange="OnMaturityDateChanged" />
+                                            </div>
+                                        </div>
+
+                                        <div class="omm-form-field">
+                                            <label class="omm-form-label" for="fd-rollover">Maturity Action / Rollover</label>
+                                            <select id="fd-rollover" class="form-select rounded-3" @bind="metadata.RolloverBehavior">
+                                                <option value="Auto-renew Principal + Interest">Auto-renew (Principal + Interest)</option>
+                                                <option value="Auto-renew Principal only">Auto-renew (Principal only, payout interest)</option>
+                                                <option value="Transfer to Savings on Maturity">Transfer to Savings on Maturity</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="alert alert-light border rounded-3 p-3 d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.7rem;">Maturity Interest Payout</small>
+                                                <div class="fs-5 fw-bold text-dark">
+                                                    @FormatHelper.FormatCurrency(((metadata.Principal ?? 0) * (metadata.InterestRatePct ?? 0) / 100m) * ((metadata.TenureMonths ?? 12) / 12m), currencySymbol)
+                                                </div>
+                                            </div>
+                                            <div class="text-end">
+                                                <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.7rem;">Est. Monthly Interest</small>
+                                                <div class="fs-5 fw-bold text-success">@FormatHelper.FormatCurrency(workingMine.MonthlyIncome, currencySymbol)/mo</div>
+                                            </div>
+                                        </div>
+                                        break;
+
+                                    case MineType.Stocks:
+                                    case MineType.Reit:
+                                    case MineType.Etf:
+                                        <!-- Bursa Malaysia Shares, REITs, ETFs -->
+                                        <div class="omm-form-grid">
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="stock-code">Stock / REIT Symbol <span class="text-danger">*</span></label>
+                                                <input id="stock-code" type="text" class="form-control rounded-3 text-uppercase" maxlength="20"
+                                                       placeholder="e.g. MAYBANK, 1155, IGBREIT" @bind="metadata.StockCode" @bind:after="OnStockCodeChanged" />
+                                            </div>
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="stock-exchange">Exchange</label>
+                                                <input id="stock-exchange" type="text" class="form-control rounded-3" readonly value="Bursa Malaysia (KLSE)" />
+                                            </div>
+                                        </div>
+
+                                        <div class="omm-form-grid">
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="stock-shares">Shares Owned (Units) <span class="text-danger">*</span></label>
+                                                <input id="stock-shares" type="number" class="form-control rounded-3" min="1" step="1"
+                                                       placeholder="e.g. 1000 (10 lots)" @bind="metadata.SharesOwned" @bind:event="oninput" @bind:after="RecalculateStock" />
+                                                <div class="omm-form-help">Enter unit count (e.g. 10 lots = 1,000 shares).</div>
+                                            </div>
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="stock-dividend">Estimated Dividend Yield (% p.a.)</label>
+                                                <div class="input-group">
+                                                    <input id="stock-dividend" type="number" class="form-control rounded-start-3" min="0" max="30" step="0.1"
+                                                           placeholder="5.50" @bind="metadata.DividendYieldPct" @bind:event="oninput" @bind:after="RecalculateStock" />
+                                                    <span class="input-group-text rounded-end-3">%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="omm-form-grid">
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="stock-cost">Avg Cost per Share</label>
+                                                <div class="dc-currency-group">
+                                                    <span class="dc-currency-addon">@currencySymbol</span>
+                                                    <input id="stock-cost" type="number" class="form-control" min="0" step="0.001"
+                                                           placeholder="0.000" @bind="metadata.PurchasePricePerShare" @bind:event="oninput" @bind:after="RecalculateStock" />
+                                                </div>
+                                            </div>
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="stock-price">Current Share Price <span class="text-danger">*</span></label>
+                                                <div class="dc-currency-group">
+                                                    <span class="dc-currency-addon">@currencySymbol</span>
+                                                    <input id="stock-price" type="number" class="form-control" min="0" step="0.001"
+                                                           placeholder="0.000" @bind="metadata.CurrentSharePrice" @bind:event="oninput" @bind:after="RecalculateStock" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="alert alert-light border rounded-3 p-3 row g-2 m-0 mt-2">
+                                            <div class="col-4">
+                                                <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.65rem;">Total Value</small>
+                                                <div class="fw-bold text-dark">@FormatHelper.FormatCurrency(workingMine.CurrentValue, currencySymbol)</div>
+                                            </div>
+                                            <div class="col-4">
+                                                <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.65rem;">Total Cost</small>
+                                                <div class="fw-bold text-muted">@FormatHelper.FormatCurrency(workingMine.PurchaseCost, currencySymbol)</div>
+                                            </div>
+                                            <div class="col-4 text-end">
+                                                <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.65rem;">Unrealized P&L</small>
+                                                <div class="fw-bold @(workingMine.Growth >= 0 ? "text-success" : "text-danger")">
+                                                    @(workingMine.Growth >= 0 ? "+" : "")@FormatHelper.FormatCurrency(workingMine.Growth, currencySymbol) (@workingMine.GrowthPct%)
+                                                </div>
+                                            </div>
+                                        </div>
+                                        break;
+
+                                    case MineType.StocksUs:
+                                        <!-- US Stocks (Manual MYR Tracking) -->
+                                        <div class="omm-form-grid">
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="us-symbol">Stock Ticker <span class="text-danger">*</span></label>
+                                                <input id="us-symbol" type="text" class="form-control rounded-3 text-uppercase" maxlength="15"
+                                                       placeholder="e.g. AAPL, NVDA, VOO" @bind="metadata.StockCode" @bind:after="OnStockCodeChanged" />
+                                            </div>
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="us-exchange">Exchange</label>
+                                                <select id="us-exchange" class="form-select rounded-3" @bind="metadata.Exchange">
+                                                    <option value="NASDAQ">NASDAQ</option>
+                                                    <option value="NYSE">NYSE</option>
+                                                    <option value="AMEX">AMEX</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="omm-form-grid">
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="us-shares">Shares Owned</label>
+                                                <input id="us-shares" type="number" class="form-control rounded-3" min="0" step="0.0001"
+                                                       placeholder="e.g. 15.5" @bind="metadata.SharesOwned" />
+                                                <div class="omm-form-help">Supports fractional shares.</div>
+                                            </div>
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="us-dividend">Dividend Yield (% p.a.)</label>
+                                                <div class="input-group">
+                                                    <input id="us-dividend" type="number" class="form-control rounded-start-3" min="0" max="25" step="0.1"
+                                                           placeholder="1.50" @bind="metadata.DividendYieldPct" @bind:event="oninput" @bind:after="RecalculateUsStock" />
+                                                    <span class="input-group-text rounded-end-3">%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="omm-form-grid">
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="us-cost">Total Invested Cost (MYR)</label>
+                                                <div class="dc-currency-group">
+                                                    <span class="dc-currency-addon">@currencySymbol</span>
+                                                    <input id="us-cost" type="number" class="form-control" min="0" step="0.01"
+                                                           placeholder="0.00" @bind="workingMine.PurchaseCost" @bind:event="oninput" @bind:after="RecalculateUsStock" />
+                                                </div>
+                                            </div>
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="us-val">Current Portfolio Value (MYR) <span class="text-danger">*</span></label>
+                                                <div class="dc-currency-group">
+                                                    <span class="dc-currency-addon">@currencySymbol</span>
+                                                    <input id="us-val" type="number" class="form-control" min="0" step="0.01"
+                                                           placeholder="0.00" @bind="workingMine.CurrentValue" @bind:event="oninput" @bind:after="RecalculateUsStock" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        break;
+
+                                    case MineType.UnitTrustGeneral:
+                                        <!-- Variable Unit Trust / Mutual Funds -->
+                                        <div class="omm-form-field">
+                                            <label class="omm-form-label" for="fund-name">Fund Name / Code <span class="text-danger">*</span></label>
+                                            <input id="fund-name" type="text" class="form-control rounded-3" maxlength="150"
+                                                   placeholder="e.g. Public Mutual Ittikal Fund, Kenanga Growth Fund" @bind="metadata.FundCode" />
+                                        </div>
+
+                                        <div class="omm-form-grid">
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="fund-units">Units Held <span class="text-danger">*</span></label>
+                                                <input id="fund-units" type="number" class="form-control rounded-3" min="0" step="0.01"
+                                                       placeholder="e.g. 12500" @bind="metadata.UnitsHeld" @bind:event="oninput" @bind:after="RecalculateFund" />
+                                            </div>
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="fund-yield">Distribution Yield (% p.a.)</label>
+                                                <div class="input-group">
+                                                    <input id="fund-yield" type="number" class="form-control rounded-start-3" min="0" max="25" step="0.1"
+                                                           placeholder="4.00" @bind="metadata.DividendYieldPct" @bind:event="oninput" @bind:after="RecalculateFund" />
+                                                    <span class="input-group-text rounded-end-3">%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="omm-form-grid">
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="fund-purchase-nav">Average Purchase NAV</label>
+                                                <div class="dc-currency-group">
+                                                    <span class="dc-currency-addon">@currencySymbol</span>
+                                                    <input id="fund-purchase-nav" type="number" class="form-control" min="0" step="0.0001"
+                                                           placeholder="0.0000" @bind="metadata.NavPerUnit" @bind:event="oninput" @bind:after="RecalculateFund" />
+                                                </div>
+                                            </div>
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="fund-current-nav">Current NAV <span class="text-danger">*</span></label>
+                                                <div class="dc-currency-group">
+                                                    <span class="dc-currency-addon">@currencySymbol</span>
+                                                    <input id="fund-current-nav" type="number" class="form-control" min="0" step="0.0001"
+                                                           placeholder="0.0000" @bind="currentNavTemp" @bind:event="oninput" @bind:after="RecalculateFund" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        break;
+
+                                    case MineType.PropertyResidential:
+                                    case MineType.PropertyCommercial:
+                                        <!-- Real Estate / Property Form -->
+                                        <div class="omm-form-grid">
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="prop-address">Property Address / Unit <span class="text-danger">*</span></label>
+                                                <input id="prop-address" type="text" class="form-control rounded-3" maxlength="200"
+                                                       placeholder="e.g. Unit 12-03, The Park Residences, Bangsar South" @bind="metadata.Address" />
+                                            </div>
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="prop-type">Property Sub-Type</label>
+                                                <select id="prop-type" class="form-select rounded-3" @bind="metadata.PropertyType">
+                                                    <option value="Condominium">Condominium / Serviced Apt</option>
+                                                    <option value="Terraced House">Terraced / Link House</option>
+                                                    <option value="Semi-D">Semi-Detached (Semi-D)</option>
+                                                    <option value="Bungalow">Bungalow</option>
+                                                    <option value="Commercial Shop">Commercial Shoplot / Office</option>
+                                                    <option value="Land">Land / Agricultural</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="omm-form-grid">
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="prop-val">Estimated Current Valuation <span class="text-danger">*</span></label>
+                                                <div class="dc-currency-group">
+                                                    <span class="dc-currency-addon">@currencySymbol</span>
+                                                    <input id="prop-val" type="number" class="form-control" min="0" step="1000"
+                                                           placeholder="0.00" @bind="workingMine.CurrentValue" @bind:event="oninput" @bind:after="RecalculateProperty" />
+                                                </div>
+                                            </div>
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="prop-cost">Original Purchase Price</label>
+                                                <div class="dc-currency-group">
+                                                    <span class="dc-currency-addon">@currencySymbol</span>
+                                                    <input id="prop-cost" type="number" class="form-control" min="0" step="1000"
+                                                           placeholder="0.00" @bind="workingMine.PurchaseCost" @bind:event="oninput" @bind:after="RecalculateProperty" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="omm-form-grid">
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="prop-rent">Gross Monthly Rental</label>
+                                                <div class="dc-currency-group">
+                                                    <span class="dc-currency-addon">@currencySymbol</span>
+                                                    <input id="prop-rent" type="number" class="form-control" min="0" step="10"
+                                                           placeholder="0.00" @bind="metadata.RentalIncomeMonthly" @bind:event="oninput" @bind:after="RecalculateProperty" />
+                                                    <span class="dc-currency-suffix">/ mo</span>
+                                                </div>
+                                                <div class="omm-form-help">Leave 0 if owner-occupied.</div>
+                                            </div>
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="prop-maint">Maintenance / Sinking Fund</label>
+                                                <div class="dc-currency-group">
+                                                    <span class="dc-currency-addon">@currencySymbol</span>
+                                                    <input id="prop-maint" type="number" class="form-control" min="0" step="5"
+                                                           placeholder="0.00" @bind="metadata.MaintenanceCostMonthly" @bind:event="oninput" @bind:after="RecalculateProperty" />
+                                                    <span class="dc-currency-suffix">/ mo</span>
+                                                </div>
+                                                <div class="omm-form-help">Deducted to calculate net rental income.</div>
+                                            </div>
+                                        </div>
+
+                                        <div class="omm-form-field">
+                                            <label class="omm-form-label" for="prop-burden">Link Mortgage Loan (Burden)</label>
+                                            <select id="prop-burden" class="form-select rounded-3" @bind="workingMine.LinkedBurdenId">
+                                                <option value="">No linked mortgage burden</option>
+                                                @foreach (var burden in userBurdens)
+                                                {
+                                                    <option value="@burden.Id.ToString()">@burden.Name (@FormatHelper.FormatCurrency(burden.Balance, currencySymbol))</option>
+                                                }
+                                            </select>
+                                            <div class="omm-form-help">Linking your mortgage automatically tracks property equity (Valuation - Loan Balance).</div>
+                                        </div>
+                                        break;
+
+                                    case MineType.Gold:
+                                    case MineType.Silver:
+                                        <!-- Precious Metals Form -->
+                                        <div class="omm-form-grid">
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="metal-form">Form / Holding Type</label>
+                                                <select id="metal-form" class="form-select rounded-3" @bind="metadata.GoldForm">
+                                                    <option value="Physical Bar / Bullion">Physical Bar / Bullion</option>
+                                                    <option value="Jewellery / Coins">Jewellery / Coins</option>
+                                                    <option value="Digital Gold (GAP / GIA)">Digital Gold (Public Gold GAP / Maybank GIA)</option>
+                                                </select>
+                                            </div>
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="metal-weight">Weight (Grams) <span class="text-danger">*</span></label>
+                                                <input id="metal-weight" type="number" class="form-control rounded-3" min="0.1" step="0.1"
+                                                       placeholder="e.g. 50.0" @bind="metadata.WeightGrams" @bind:event="oninput" @bind:after="RecalculatePreciousMetals" />
+                                            </div>
+                                        </div>
+
+                                        <div class="omm-form-grid">
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="metal-cost">Total Purchase Cost (MYR)</label>
+                                                <div class="dc-currency-group">
+                                                    <span class="dc-currency-addon">@currencySymbol</span>
+                                                    <input id="metal-cost" type="number" class="form-control" min="0" step="0.01"
+                                                           placeholder="0.00" @bind="workingMine.PurchaseCost" @bind:event="oninput" @bind:after="RecalculatePreciousMetals" />
+                                                </div>
+                                            </div>
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="metal-price">Current Price per Gram (MYR) <span class="text-danger">*</span></label>
+                                                <div class="dc-currency-group">
+                                                    <span class="dc-currency-addon">@currencySymbol</span>
+                                                    <input id="metal-price" type="number" class="form-control" min="0" step="0.1"
+                                                           placeholder="e.g. 385.00" @bind="metadata.CurrentPricePerGram" @bind:event="oninput" @bind:after="RecalculatePreciousMetals" />
+                                                    <span class="dc-currency-suffix">/ g</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        break;
+
+                                    case MineType.Cryptocurrency:
+                                        <!-- Cryptocurrency Form -->
+                                        <div class="omm-form-grid">
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="crypto-symbol">Coin / Token <span class="text-danger">*</span></label>
+                                                <input id="crypto-symbol" type="text" class="form-control rounded-3 text-uppercase" maxlength="10"
+                                                       placeholder="e.g. BTC, ETH, SOL" @bind="metadata.CoinSymbol" />
+                                            </div>
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="crypto-platform">Exchange / Custody</label>
+                                                <select id="crypto-platform" class="form-select rounded-3" @bind="metadata.WalletOrExchange">
+                                                    <option value="Luno (SC Regulated)">Luno (SC Regulated)</option>
+                                                    <option value="Tokenize (SC Regulated)">Tokenize (SC Regulated)</option>
+                                                    <option value="Hardware Wallet (Ledger/Trezor)">Hardware Wallet (Ledger / Trezor)</option>
+                                                    <option value="Self-Custodial Wallet">Self-Custodial Wallet (Trust / MetaMask)</option>
+                                                    <option value="Binance / International">Binance / International Exchange</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="omm-form-grid">
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="crypto-qty">Quantity Held</label>
+                                                <input id="crypto-qty" type="number" class="form-control rounded-3" min="0" step="0.00000001"
+                                                       placeholder="e.g. 0.0525" @bind="metadata.CoinsHeld" />
+                                            </div>
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="crypto-staking">Staking / Earn Yield (% p.a.)</label>
+                                                <div class="input-group">
+                                                    <input id="crypto-staking" type="number" class="form-control rounded-start-3" min="0" max="50" step="0.1"
+                                                           placeholder="0.00" @bind="metadata.StakingYieldPct" @bind:event="oninput" @bind:after="RecalculateCrypto" />
+                                                    <span class="input-group-text rounded-end-3">%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="omm-form-grid">
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="crypto-cost">Total Cost Basis (MYR)</label>
+                                                <div class="dc-currency-group">
+                                                    <span class="dc-currency-addon">@currencySymbol</span>
+                                                    <input id="crypto-cost" type="number" class="form-control" min="0" step="0.01"
+                                                           placeholder="0.00" @bind="workingMine.PurchaseCost" @bind:event="oninput" @bind:after="RecalculateCrypto" />
+                                                </div>
+                                            </div>
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="crypto-val">Current Value (MYR) <span class="text-danger">*</span></label>
+                                                <div class="dc-currency-group">
+                                                    <span class="dc-currency-addon">@currencySymbol</span>
+                                                    <input id="crypto-val" type="number" class="form-control" min="0" step="0.01"
+                                                           placeholder="0.00" @bind="workingMine.CurrentValue" @bind:event="oninput" @bind:after="RecalculateCrypto" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        break;
+
+                                    case MineType.SavingsAccount:
+                                    case MineType.CashInHand:
+                                        <!-- Cash & High-Yield Savings Form -->
+                                        <div class="omm-form-field">
+                                            <label class="omm-form-label" for="savings-type">Platform / Account Class</label>
+                                            <select id="savings-type" class="form-select rounded-3" @bind="savingsClassTemp">
+                                                <option value="High-Yield Digital Bank">High-Yield Digital Bank (GXBank, Boost Bank, AEON Bank, Rize)</option>
+                                                <option value="Digital Cash Management">Digital Cash Management (Versa Cash, KDI Save, StashAway Simple)</option>
+                                                <option value="Traditional Savings / Current">Traditional Savings / Current Account</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="omm-form-grid">
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="savings-balance">Account Balance <span class="text-danger">*</span></label>
+                                                <div class="dc-currency-group">
+                                                    <span class="dc-currency-addon">@currencySymbol</span>
+                                                    <input id="savings-balance" type="number" class="form-control" min="0" step="0.01"
+                                                           placeholder="0.00" @bind="workingMine.CurrentValue" @bind:event="oninput" @bind:after="RecalculateSavings" />
+                                                </div>
+                                            </div>
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="savings-rate">Interest / APY Rate (% p.a.)</label>
+                                                <div class="input-group">
+                                                    <input id="savings-rate" type="number" class="form-control rounded-start-3" min="0" max="10" step="0.05"
+                                                           placeholder="3.00" @bind="metadata.InterestRatePct" @bind:event="oninput" @bind:after="RecalculateSavings" />
+                                                    <span class="input-group-text rounded-end-3">%</span>
+                                                </div>
+                                                <div class="omm-form-help">e.g. GXBank 3.0%, Versa 3.7%.</div>
+                                            </div>
+                                        </div>
+                                        break;
+
+                                    default:
+                                        <!-- Catch-all / Others Form -->
+                                        <div class="omm-form-grid">
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="mine-current-val">Current Value <span class="text-danger">*</span></label>
+                                                <div class="dc-currency-group">
+                                                    <span class="dc-currency-addon">@currencySymbol</span>
+                                                    <input id="mine-current-val" type="number" class="form-control" min="0" step="0.01"
+                                                           placeholder="0.00" @bind="workingMine.CurrentValue" @bind:event="oninput" />
+                                                </div>
+                                            </div>
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="mine-purchase-val">Total Invested Cost</label>
+                                                <div class="dc-currency-group">
+                                                    <span class="dc-currency-addon">@currencySymbol</span>
+                                                    <input id="mine-purchase-val" type="number" class="form-control" min="0" step="0.01"
+                                                           placeholder="0.00" @bind="workingMine.PurchaseCost" @bind:event="oninput" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="omm-form-field">
+                                            <label class="omm-form-label" for="mine-income">Est. Monthly Passive Income</label>
+                                            <div class="dc-currency-group">
+                                                <span class="dc-currency-addon">@currencySymbol</span>
+                                                <input id="mine-income" type="number" class="form-control" min="0" step="0.01"
+                                                       placeholder="0.00" @bind="workingMine.MonthlyIncome" @bind:event="oninput" />
+                                                <span class="dc-currency-suffix">/ mo</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="omm-form-field">
+                                            <label class="omm-form-label" for="mine-holdings-text">Holdings / Notes</label>
+                                            <input id="mine-holdings-text" type="text" class="form-control rounded-3" maxlength="200"
+                                                   placeholder="Details about this asset" @bind="workingMine.Holdings" />
+                                        </div>
+                                        break;
+                                }
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Step 3: Review & Confirmation Panel -->
+                        <div class="card border-0 rounded-4 shadow-sm p-4 bg-white">
+                            <!-- Mine Header Snapshot -->
+                            <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
+                                <div class="rounded-4 bg-dark text-warning p-3 fs-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 56px; height: 56px;">
+                                    <i class="ti @FormatHelper.MineTypeToIcon(workingMine.Type)"></i>
+                                </div>
+                                <div>
+                                    <h4 class="h5 fw-bold mb-1 font-display text-dark">@workingMine.Name</h4>
+                                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                                        <span class="badge bg-dark px-2 py-1">@FormatHelper.CategoryLabel(workingMine.Category)</span>
+                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning px-2 py-1">
+                                            @FormatHelper.MineTypeLabel(workingMine.Type)
+                                        </span>
+                                        @if (!string.IsNullOrWhiteSpace(workingMine.Institution))
+                                        {
+                                            <span class="text-muted small">&bull; @workingMine.Institution</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Core Financial Metrics Row -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-6 col-md-3">
+                                    <div class="p-3 bg-light rounded-3 text-center">
+                                        <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.68rem;">Current Value</small>
+                                        <div class="fs-5 fw-bold text-dark mt-1">@FormatHelper.FormatCurrency(workingMine.CurrentValue, currencySymbol)</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="p-3 bg-light rounded-3 text-center">
+                                        <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.68rem;">Cost Basis</small>
+                                        <div class="fs-5 fw-bold text-muted mt-1">@FormatHelper.FormatCurrency(workingMine.PurchaseCost, currencySymbol)</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="p-3 bg-light rounded-3 text-center">
+                                        <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.68rem;">Unrealized P&L</small>
+                                        <div class="fs-5 fw-bold @(workingMine.Growth >= 0 ? "text-success" : "text-danger") mt-1">
+                                            @(workingMine.Growth >= 0 ? "+" : "")@FormatHelper.FormatCurrency(workingMine.Growth, currencySymbol)
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="p-3 bg-light rounded-3 text-center">
+                                        <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.68rem;">Est. Monthly Income</small>
+                                        <div class="fs-5 fw-bold text-success mt-1">
+                                            @(workingMine.MonthlyIncome > 0 ? FormatHelper.FormatCurrency(workingMine.MonthlyIncome, currencySymbol) : "—")
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Asset Attribute Summary Chips -->
+                            <div class="bg-light p-3 rounded-3 mb-3">
+                                <small class="text-muted d-block text-uppercase fw-semibold mb-2" style="font-size: 0.68rem;">Asset Metadata Attributes</small>
+                                <div class="d-flex flex-wrap gap-2">
+                                    @if (!string.IsNullOrWhiteSpace(workingMine.Holdings))
+                                    {
+                                        <span class="badge bg-white text-dark border px-2 py-1">
+                                            <i class="ti ti-info-circle text-muted me-1"></i> @workingMine.Holdings
+                                        </span>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(metadata.AccountType))
+                                    {
+                                        <span class="badge bg-white text-dark border px-2 py-1">
+                                            <i class="ti ti-certificate text-muted me-1"></i> Scheme: @metadata.AccountType
+                                        </span>
+                                    }
+                                    @if (metadata.InterestRatePct.HasValue && metadata.InterestRatePct > 0)
+                                    {
+                                        <span class="badge bg-white text-dark border px-2 py-1">
+                                            <i class="ti ti-percentage text-muted me-1"></i> Rate: @metadata.InterestRatePct% p.a.
+                                        </span>
+                                    }
+                                    @if (metadata.ExpectedDividendRate.HasValue && metadata.ExpectedDividendRate > 0)
+                                    {
+                                        <span class="badge bg-white text-dark border px-2 py-1">
+                                            <i class="ti ti-trending-up text-muted me-1"></i> Exp. Yield: @metadata.ExpectedDividendRate% p.a.
+                                        </span>
+                                    }
+                                    @if (metadata.DividendYieldPct.HasValue && metadata.DividendYieldPct > 0)
+                                    {
+                                        <span class="badge bg-white text-dark border px-2 py-1">
+                                            <i class="ti ti-chart-arrows text-muted me-1"></i> Div Yield: @metadata.DividendYieldPct% p.a.
+                                        </span>
+                                    }
+                                    @if (metadata.TenureMonths.HasValue)
+                                    {
+                                        <span class="badge bg-white text-dark border px-2 py-1">
+                                            <i class="ti ti-clock text-muted me-1"></i> Tenure: @metadata.TenureMonths mos
+                                        </span>
+                                    }
+                                    @if (metadata.MaturityDate.HasValue)
+                                    {
+                                        <span class="badge bg-white text-dark border px-2 py-1">
+                                            <i class="ti ti-calendar text-muted me-1"></i> Matures: @metadata.MaturityDate.Value.ToString("dd MMM yyyy")
+                                        </span>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(metadata.RolloverBehavior))
+                                    {
+                                        <span class="badge bg-white text-dark border px-2 py-1">
+                                            <i class="ti ti-refresh text-muted me-1"></i> @metadata.RolloverBehavior
+                                        </span>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(metadata.StockCode))
+                                    {
+                                        <span class="badge bg-white text-dark border px-2 py-1">
+                                            <i class="ti ti-tag text-muted me-1"></i> Ticker: @metadata.StockCode
+                                        </span>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(metadata.GoldForm))
+                                    {
+                                        <span class="badge bg-white text-dark border px-2 py-1">
+                                            <i class="ti ti-coin text-muted me-1"></i> Form: @metadata.GoldForm
+                                        </span>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(metadata.CoinSymbol))
+                                    {
+                                        <span class="badge bg-white text-dark border px-2 py-1">
+                                            <i class="ti ti-currency-bitcoin text-muted me-1"></i> Crypto: @metadata.CoinSymbol
+                                        </span>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(workingMine.LinkedBurdenId))
+                                    {
+                                        <span class="badge bg-white text-dark border px-2 py-1">
+                                            <i class="ti ti-link text-muted me-1"></i> Mortgage Connected
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Yield History Archiving (Edit Mode feature) -->
+                            @if (IsEditMode)
+                            {
+                                <div class="border rounded-3 p-3 bg-light-subtle">
+                                    <div class="form-check form-switch mb-2">
+                                        <input class="form-check-input" type="checkbox" id="archive-history-toggle" @bind="archiveYieldHistory" />
+                                        <label class="form-check-label fw-bold small text-dark" for="archive-history-toggle">
+                                            Record update to Yield History timeline
+                                        </label>
+                                    </div>
+                                    <small class="text-muted d-block mb-2">
+                                        Log this declared dividend or renewed interest rate to track year-over-year performance on your mine's history chart.
+                                    </small>
+
+                                    @if (archiveYieldHistory)
+                                    {
+                                        <div class="row g-2 mt-1">
+                                            <div class="col-4">
+                                                <label class="form-label small fw-semibold" for="hist-year">Effective Year</label>
+                                                <input id="hist-year" type="number" class="form-control form-control-sm rounded-2"
+                                                       @bind="historyYear" min="2000" max="2050" />
+                                            </div>
+                                            <div class="col-4">
+                                                <label class="form-label small fw-semibold" for="hist-rate">Declared Rate (%)</label>
+                                                <input id="hist-rate" type="number" class="form-control form-control-sm rounded-2" step="0.01"
+                                                       @bind="historyRatePct" />
+                                            </div>
+                                            <div class="col-4">
+                                                <label class="form-label small fw-semibold" for="hist-notes">Note / Label</label>
+                                                <input id="hist-notes" type="text" class="form-control form-control-sm rounded-2"
+                                                       placeholder="e.g. 2025 Declared Dividend" @bind="historyNotes" />
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer bg-light px-4 py-3 border-0 d-flex justify-content-between">
+                    <div>
+                        @if (step > 1)
+                        {
+                            <button type="button" class="btn btn-outline-secondary rounded-3 px-3 py-2 fw-semibold" @onclick="GoPrevious">
+                                <i class="ti ti-arrow-left me-1"></i> Back
+                            </button>
+                        }
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn-omm-secondary" @onclick="HandleClose">Cancel</button>
+                        @if (step < 3)
+                        {
+                            <button type="button" class="btn btn-dark rounded-3 px-4 py-2 fw-semibold" @onclick="GoNext">
+                                Next <i class="ti ti-arrow-right ms-1"></i>
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="button" class="btn-omm-accent" @onclick="SaveMineAsync" disabled="@isSaving">
+                                @if (isSaving)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                                    <span>Saving...</span>
+                                }
+                                else
+                                {
+                                    <i class="ti ti-device-floppy"></i>
+                                    <span>@(IsEditMode ? "Update Mine" : "Save Mine")</span>
+                                }
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .stepper-nav {
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .step-indicator {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .step-number {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background-color: #e9ecef;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.8rem;
+        transition: all 0.2s ease;
+    }
+
+    .step-indicator.active .step-number {
+        background-color: #212529;
+        color: #f59e0b;
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+    }
+
+    .step-indicator.completed .step-number {
+        background-color: #10b981;
+        color: #ffffff;
+    }
+
+    .step-label {
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: #6c757d;
+    }
+
+    .step-indicator.active .step-label {
+        color: #212529;
+    }
+
+    .step-connector {
+        flex: 1;
+        height: 2px;
+        background-color: #e9ecef;
+        margin: 0 0.5rem 1rem 0.5rem;
+        transition: background-color 0.2s ease;
+    }
+
+    .step-connector.active {
+        background-color: #212529;
+    }
+
+    .category-card {
+        border: 2px solid #e9ecef;
+        background-color: #ffffff;
+        transition: all 0.2s ease;
+    }
+
+    .category-card:hover {
+        border-color: #f59e0b;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .category-card-active {
+        border-color: #f59e0b !important;
+        background-color: #fffbeb !important;
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15) !important;
+    }
+
+    .category-icon-wrapper {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .cursor-pointer {
+        cursor: pointer;
+    }
+</style>
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnSaved { get; set; }
+    [Parameter] public Mine? ExistingMine { get; set; }
+
+    public bool IsEditMode => ExistingMine is not null;
+
+    private Mine workingMine = new();
+    private MineMetadata metadata = new();
+    private List<Institution> institutions = [];
+    private List<BurdenEntity> userBurdens = [];
+    private string? inputError;
+    private string currencySymbol = "RM";
+    private int step = 1;
+    private bool isSaving = false;
+
+    // Temporary reactive state holders
+    private decimal? currentNavTemp;
+    private string savingsClassTemp = "High-Yield Digital Bank";
+
+    // History archiving options (Edit mode)
+    private bool archiveYieldHistory = false;
+    private int historyYear = DateTime.UtcNow.Year;
+    private decimal historyRatePct = 0;
+    private string historyNotes = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var profile = await ProfileService.GetCurrentAsync();
+        if (!string.IsNullOrWhiteSpace(profile?.CurrencyCode))
+        {
+            currencySymbol = FormatHelper.GetCurrencySymbol(profile.CurrencyCode);
+        }
+
+        await LoadDataAsync();
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (!IsOpen) return;
+
+        inputError = null;
+        step = 1;
+        archiveYieldHistory = false;
+
+        if (ExistingMine != null)
+        {
+            workingMine = new Mine
+            {
+                Id = ExistingMine.Id,
+                Name = ExistingMine.Name,
+                Category = ExistingMine.Category,
+                Type = ExistingMine.Type,
+                Institution = ExistingMine.Institution,
+                Currency = ExistingMine.Currency,
+                CurrentValue = ExistingMine.CurrentValue,
+                PurchaseCost = ExistingMine.PurchaseCost,
+                Growth = ExistingMine.Growth,
+                GrowthPct = ExistingMine.GrowthPct,
+                MonthlyIncome = ExistingMine.MonthlyIncome,
+                Holdings = ExistingMine.Holdings,
+                LinkedBurdenId = ExistingMine.LinkedBurdenId,
+                Status = ExistingMine.Status,
+                UpdatedAt = ExistingMine.UpdatedAt,
+                Metadata = ExistingMine.Metadata
+            };
+
+            metadata = ExistingMine.Metadata != null
+                ? System.Text.Json.JsonSerializer.Deserialize<MineMetadata>(
+                    System.Text.Json.JsonSerializer.Serialize(ExistingMine.Metadata)) ?? new MineMetadata()
+                : new MineMetadata();
+
+            currentNavTemp = metadata.NavPerUnit;
+            historyRatePct = metadata.ExpectedDividendRate 
+                ?? metadata.InterestRatePct 
+                ?? metadata.DividendYieldPct 
+                ?? 0;
+            historyNotes = $"{FormatHelper.MineTypeLabel(workingMine.Type)} rate update";
+        }
+        else
+        {
+            var defaultCategory = MineCategory.Investments;
+            workingMine = new Mine
+            {
+                Category = defaultCategory,
+                Type = FormatHelper.GetTypesForCategory(defaultCategory)[0],
+                Currency = string.Empty,
+                Status = "active"
+            };
+            metadata = new MineMetadata();
+            currentNavTemp = null;
+        }
+    }
+
+    private async Task LoadDataAsync()
+    {
+        try
+        {
+            await using var db = await DbContextFactory.CreateDbContextAsync();
+            institutions = await db.Institutions
+                .AsNoTracking()
+                .Where(i => i.IsActive)
+                .OrderBy(i => i.InstitutionName_EN)
+                .ToListAsync();
+
+            var profile = await ProfileService.GetCurrentAsync();
+            if (profile != null)
+            {
+                userBurdens = await db.Burdens
+                    .AsNoTracking()
+                    .Where(b => b.UserId == profile.UserId && !b.IsDeleted)
+                    .OrderBy(b => b.Name)
+                    .ToListAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading institutions or burdens: {ex.Message}");
+        }
+    }
+
+    private void SelectCategory(MineCategory category)
+    {
+        workingMine.Category = category;
+        var types = FormatHelper.GetTypesForCategory(category);
+        workingMine.Type = types[0];
+        AutoSuggestMineName();
+    }
+
+    private void SelectType(MineType type)
+    {
+        workingMine.Type = type;
+        AutoSuggestMineName();
+    }
+
+    private void AutoSuggestMineName()
+    {
+        if (IsEditMode) return;
+        if (string.IsNullOrWhiteSpace(workingMine.Name) || IsGenericName(workingMine.Name))
+        {
+            workingMine.Name = workingMine.Type switch
+            {
+                MineType.EpfKwsp => "EPF / KWSP",
+                MineType.UnitTrustAsb => "Amanah Saham Bumiputera (ASB)",
+                MineType.FixedDeposit => "Fixed Deposit",
+                MineType.Stocks => "Maybank Shares",
+                MineType.StocksUs => "US Tech Portfolio",
+                MineType.Reit => "Sunway REIT",
+                MineType.Etf => "MyETF MSCI Malaysia",
+                MineType.UnitTrustGeneral => "Unit Trust Investment",
+                MineType.PropertyResidential => "Residential Property",
+                MineType.PropertyCommercial => "Commercial Property",
+                MineType.Gold => "Physical Gold",
+                MineType.Silver => "Silver Bullion",
+                MineType.Cryptocurrency => "Bitcoin (Crypto)",
+                MineType.SavingsAccount => "High-Yield Savings",
+                MineType.CashInHand => "Cash Reserve",
+                _ => FormatHelper.MineTypeLabel(workingMine.Type)
+            };
+        }
+    }
+
+    private bool IsGenericName(string name) =>
+        name.Contains("EPF") || name.Contains("Fixed Deposit") || name.Contains("Shares") ||
+        name.Contains("Property") || name.Contains("Gold") || name.Contains("Savings") ||
+        name.Contains("Crypto") || name.Contains("ASB") || name.Contains("Unit Trust");
+
+    private string GetNamePlaceholder(MineType type) => type switch
+    {
+        MineType.EpfKwsp => "e.g. EPF / KWSP (Simpanan Konvensional)",
+        MineType.UnitTrustAsb => "e.g. Amanah Saham Bumiputera (ASB)",
+        MineType.FixedDeposit => "e.g. Maybank 12-Month FD",
+        MineType.Stocks => "e.g. Maybank (1155.KL)",
+        MineType.StocksUs => "e.g. Apple Inc (AAPL)",
+        MineType.Reit => "e.g. IGB REIT",
+        MineType.UnitTrustGeneral => "e.g. Public Mutual Ittikal Fund",
+        MineType.PropertyResidential => "e.g. Bangsar South Condo Unit 12",
+        MineType.PropertyCommercial => "e.g. Subang Jaya Shoplot",
+        MineType.Gold => "e.g. 50g Public Gold Minted Bar",
+        MineType.Cryptocurrency => "e.g. Bitcoin (Luno Wallet)",
+        MineType.SavingsAccount => "e.g. GXBank Savings Account",
+        _ => "e.g. My Investment Asset"
+    };
+
+    private string GetCategoryDescription(MineCategory cat) => cat switch
+    {
+        MineCategory.Retirement => "EPF / KWSP, PRS funds",
+        MineCategory.CashAndDeposits => "FD, High-Yield Savings",
+        MineCategory.Investments => "Bursa, US Stocks, ASB",
+        MineCategory.Property => "Residential & Commercial",
+        MineCategory.PreciousMetals => "Physical & Digital Gold",
+        MineCategory.Digital => "Cryptocurrency & Staking",
+        _ => "Alternative & Other Assets"
+    };
+
+    // Auto-calculation methods
+    private void RecalculateEpf()
+    {
+        var total = (metadata.Akaun1Balance ?? 0) + (metadata.Akaun2Balance ?? 0) + (metadata.Akaun3Balance ?? 0);
+        workingMine.CurrentValue = total;
+        workingMine.PurchaseCost = total;
+        workingMine.Growth = 0;
+        workingMine.GrowthPct = 0;
+
+        if (metadata.ExpectedDividendRate.HasValue && metadata.ExpectedDividendRate > 0)
+        {
+            var annual = total * (metadata.ExpectedDividendRate.Value / 100m);
+            workingMine.MonthlyIncome = Math.Round(annual / 12m, 2);
+        }
+        workingMine.Holdings = $"A1: {currencySymbol}{(metadata.Akaun1Balance ?? 0):N0} | A2: {currencySymbol}{(metadata.Akaun2Balance ?? 0):N0} | A3: {currencySymbol}{(metadata.Akaun3Balance ?? 0):N0}";
+    }
+
+    private void OnAsbFundChanged()
+    {
+        if (!IsEditMode && !string.IsNullOrWhiteSpace(metadata.FundCode))
+        {
+            workingMine.Name = metadata.FundCode;
+        }
+        RecalculateAsb();
+    }
+
+    private void RecalculateAsb()
+    {
+        metadata.NavPerUnit = 1.00m;
+        var total = (metadata.UnitsHeld ?? 0) * 1.00m;
+        workingMine.CurrentValue = total;
+        workingMine.PurchaseCost = total;
+        workingMine.Growth = 0;
+        workingMine.GrowthPct = 0;
+
+        if (metadata.ExpectedDividendRate.HasValue && metadata.ExpectedDividendRate > 0)
+        {
+            var annual = total * (metadata.ExpectedDividendRate.Value / 100m);
+            workingMine.MonthlyIncome = Math.Round(annual / 12m, 2);
+        }
+        workingMine.Holdings = $"{(metadata.UnitsHeld ?? 0):N0} units @ RM 1.00";
+    }
+
+    private void RecalculateFd()
+    {
+        var principal = metadata.Principal ?? 0;
+        workingMine.PurchaseCost = principal;
+        workingMine.CurrentValue = principal;
+        workingMine.Growth = 0;
+        workingMine.GrowthPct = 0;
+
+        if (metadata.InterestRatePct.HasValue && metadata.InterestRatePct > 0)
+        {
+            var annual = principal * (metadata.InterestRatePct.Value / 100m);
+            workingMine.MonthlyIncome = Math.Round(annual / 12m, 2);
+        }
+        workingMine.Holdings = $"{metadata.TenureMonths ?? 12} mos @ {metadata.InterestRatePct ?? 0:0.00}% p.a.";
+    }
+
+    private void OnMaturityDateChanged(ChangeEventArgs e)
+    {
+        if (DateOnly.TryParse(e.Value?.ToString(), out var dt))
+        {
+            metadata.MaturityDate = dt;
+        }
+        else
+        {
+            metadata.MaturityDate = null;
+        }
+    }
+
+    private void OnStockCodeChanged()
+    {
+        if (!IsEditMode && !string.IsNullOrWhiteSpace(metadata.StockCode))
+        {
+            workingMine.Name = metadata.StockCode.ToUpperInvariant();
+        }
+    }
+
+    private void RecalculateStock()
+    {
+        var shares = metadata.SharesOwned ?? 0;
+        var costPerShare = metadata.PurchasePricePerShare ?? 0;
+        var currentPrice = metadata.CurrentSharePrice ?? costPerShare;
+
+        workingMine.PurchaseCost = shares * costPerShare;
+        workingMine.CurrentValue = shares * currentPrice;
+        ComputeGrowth();
+
+        if (metadata.DividendYieldPct.HasValue && metadata.DividendYieldPct > 0)
+        {
+            var annual = workingMine.CurrentValue * (metadata.DividendYieldPct.Value / 100m);
+            workingMine.MonthlyIncome = Math.Round(annual / 12m, 2);
+        }
+        workingMine.Holdings = $"{shares:N0} shares @ {currentPrice:N2}";
+    }
+
+    private void RecalculateUsStock()
+    {
+        ComputeGrowth();
+        if (metadata.DividendYieldPct.HasValue && metadata.DividendYieldPct > 0)
+        {
+            var annual = workingMine.CurrentValue * (metadata.DividendYieldPct.Value / 100m);
+            workingMine.MonthlyIncome = Math.Round(annual / 12m, 2);
+        }
+        if (!string.IsNullOrWhiteSpace(metadata.StockCode))
+        {
+            workingMine.Holdings = $"{metadata.SharesOwned} shares of {metadata.StockCode}";
+        }
+    }
+
+    private void RecalculateFund()
+    {
+        var units = metadata.UnitsHeld ?? 0;
+        var purchaseNav = metadata.NavPerUnit ?? 0;
+        var currentNav = currentNavTemp ?? purchaseNav;
+
+        workingMine.PurchaseCost = units * purchaseNav;
+        workingMine.CurrentValue = units * currentNav;
+        ComputeGrowth();
+
+        if (metadata.DividendYieldPct.HasValue && metadata.DividendYieldPct > 0)
+        {
+            var annual = workingMine.CurrentValue * (metadata.DividendYieldPct.Value / 100m);
+            workingMine.MonthlyIncome = Math.Round(annual / 12m, 2);
+        }
+        workingMine.Holdings = $"{units:N2} units @ {currentNav:N4} NAV";
+    }
+
+    private void RecalculateProperty()
+    {
+        ComputeGrowth();
+        var netRent = Math.Max(0, (metadata.RentalIncomeMonthly ?? 0) - (metadata.MaintenanceCostMonthly ?? 0));
+        workingMine.MonthlyIncome = netRent;
+        if (!string.IsNullOrWhiteSpace(metadata.PropertyType))
+        {
+            workingMine.Holdings = $"{metadata.PropertyType} - {metadata.Address}";
+        }
+    }
+
+    private void RecalculatePreciousMetals()
+    {
+        var weight = metadata.WeightGrams ?? 0;
+        var pricePerG = metadata.CurrentPricePerGram ?? 0;
+        if (pricePerG > 0)
+        {
+            workingMine.CurrentValue = weight * pricePerG;
+        }
+        ComputeGrowth();
+        workingMine.Holdings = $"{weight:N1}g {metadata.GoldForm ?? "Gold"}";
+    }
+
+    private void RecalculateCrypto()
+    {
+        ComputeGrowth();
+        if (metadata.StakingYieldPct.HasValue && metadata.StakingYieldPct > 0)
+        {
+            var annual = workingMine.CurrentValue * (metadata.StakingYieldPct.Value / 100m);
+            workingMine.MonthlyIncome = Math.Round(annual / 12m, 2);
+        }
+        if (!string.IsNullOrWhiteSpace(metadata.CoinSymbol))
+        {
+            workingMine.Holdings = $"{metadata.CoinsHeld:N4} {metadata.CoinSymbol} ({metadata.WalletOrExchange})";
+        }
+    }
+
+    private void RecalculateSavings()
+    {
+        workingMine.PurchaseCost = workingMine.CurrentValue;
+        workingMine.Growth = 0;
+        workingMine.GrowthPct = 0;
+
+        if (metadata.InterestRatePct.HasValue && metadata.InterestRatePct > 0)
+        {
+            var annual = workingMine.CurrentValue * (metadata.InterestRatePct.Value / 100m);
+            workingMine.MonthlyIncome = Math.Round(annual / 12m, 2);
+        }
+        workingMine.Holdings = $"{metadata.InterestRatePct ?? 0:0.00}% p.a. - {savingsClassTemp}";
+    }
+
+    private void ComputeGrowth()
+    {
+        if (workingMine.PurchaseCost > 0)
+        {
+            workingMine.Growth = workingMine.CurrentValue - workingMine.PurchaseCost;
+            workingMine.GrowthPct = Math.Round((workingMine.Growth / workingMine.PurchaseCost) * 100m, 1);
+        }
+        else
+        {
+            workingMine.PurchaseCost = workingMine.CurrentValue;
+            workingMine.Growth = 0;
+            workingMine.GrowthPct = 0;
+        }
+    }
+
+    private string GetStepTitle(int s) => s switch
+    {
+        1 => "Asset Type & Identity",
+        2 => "Details & Financials",
+        3 => "Review & Confirm",
+        _ => string.Empty
+    };
+
+    private void GoNext()
+    {
+        inputError = null;
+
+        if (step == 1)
+        {
+            inputError = PublicInputValidator.GetDisplayTextError("Mine name", workingMine.Name);
+            if (inputError != null) return;
+            step = 2;
+        }
+        else if (step == 2)
+        {
+            if (workingMine.CurrentValue <= 0)
+            {
+                inputError = "Enter a value greater than zero.";
+                return;
+            }
+            if (workingMine.PurchaseCost < 0 || workingMine.MonthlyIncome < 0)
+            {
+                inputError = "Purchase cost and monthly income cannot be negative.";
+                return;
+            }
+
+            ComputeGrowth();
+            step = 3;
+        }
+    }
+
+    private void GoPrevious()
+    {
+        inputError = null;
+        if (step > 1) step--;
+    }
+
+    private async Task HandleClose()
+    {
+        inputError = null;
+        await OnClose.InvokeAsync();
+    }
+
+    private async Task SaveMineAsync()
+    {
+        if (isSaving) return;
+        isSaving = true;
+        inputError = null;
+
+        workingMine.Metadata = metadata;
+
+        try
+        {
+            if (IsEditMode)
+            {
+                await MineService.UpdateMineAsync(workingMine);
+
+                // If user toggled to record to yield history timeline
+                if (archiveYieldHistory && historyRatePct > 0)
+                {
+                    await MineService.RecordYieldHistoryAsync(
+                        workingMine.Id,
+                        historyYear,
+                        DateOnly.FromDateTime(DateTime.UtcNow),
+                        historyRatePct,
+                        declaredAmount: workingMine.MonthlyIncome * 12m,
+                        balanceAtTime: workingMine.CurrentValue,
+                        notes: string.IsNullOrWhiteSpace(historyNotes) ? null : historyNotes.Trim());
+                }
+            }
+            else
+            {
+                await MineService.AddMineAsync(workingMine);
+            }
+
+            await OnSaved.InvokeAsync();
+            await HandleClose();
+        }
+        catch (Exception ex)
+        {
+            inputError = ex.Message;
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+}

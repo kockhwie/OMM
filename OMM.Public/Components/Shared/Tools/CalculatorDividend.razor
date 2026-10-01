@@ -828,6 +828,17 @@
                             </div>
                         </div>
 
+                        <!-- Actions: Save as Mine in Simulator Mode -->
+                        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white mb-4 dc-animate d-flex flex-row justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-bold font-display small text-dark">Track in Portfolio</div>
+                                <div class="text-muted" style="font-size: 0.75rem;">Save this simulated stock position directly to your Mines.</div>
+                            </div>
+                            <button class="btn-omm-accent" @onclick="SaveToMinesAsync">
+                                <i class="ti ti-device-floppy"></i> Save as Mine to Track
+                            </button>
+                        </div>
+
                         <!-- Year-by-Year Projection Table -->
                         <div class="card border-0 shadow-sm rounded-4 bg-white dc-animate">
                             <div class="p-4 d-flex align-items-center justify-content-between">
@@ -1003,15 +1014,29 @@
     {
         try
         {
-            var stockTitle = !string.IsNullOrWhiteSpace(qcStockName)
-                ? qcStockName
-                : (!string.IsNullOrWhiteSpace(qcStockSymbol) ? qcStockSymbol : "Dividend Stock");
+            var isSimMode = dcMode == "simulator";
+            var stockTitle = isSimMode
+                ? (!string.IsNullOrWhiteSpace(simStockName) ? simStockName : (!string.IsNullOrWhiteSpace(simStockSymbol) ? simStockSymbol : "Simulated Stock"))
+                : (!string.IsNullOrWhiteSpace(qcStockName) ? qcStockName : (!string.IsNullOrWhiteSpace(qcStockSymbol) ? qcStockSymbol : "Dividend Stock"));
 
-            var currentVal = qcSharePrice > 0 ? qcShares * qcSharePrice : (CurrentQuickCalc.AnnualDividend > 0 ? CurrentQuickCalc.AnnualDividend * 15m : 1000m);
-            var costVal = qcPurchasePrice > 0 ? qcShares * qcPurchasePrice : currentVal;
+            var sharesCount = isSimMode ? (int)simShares : (int)qcShares;
+            var curPrice = isSimMode ? simCurrentPrice : qcSharePrice;
+            var buyPrice = isSimMode ? simPurchasePrice : qcPurchasePrice;
+            var divYield = isSimMode 
+                ? (curPrice > 0 && sharesCount > 0 ? (CurrentSimResult.FinalAnnualDividend / (sharesCount * curPrice) * 100m) : 0m)
+                : (CurrentQuickCalc.DividendYield ?? 0m);
+
+            var currentVal = curPrice > 0 && sharesCount > 0 ? sharesCount * curPrice : (isSimMode ? 1000m : (CurrentQuickCalc.AnnualDividend > 0 ? CurrentQuickCalc.AnnualDividend * 15m : 1000m));
+            var costVal = buyPrice > 0 && sharesCount > 0 ? sharesCount * buyPrice : currentVal;
 
             var growthVal = currentVal - costVal;
             var growthPct = costVal > 0 ? (growthVal / costVal) * 100m : 0m;
+
+            var monthlyIncome = isSimMode 
+                ? Math.Round((CurrentSimResult.Projections.Count > 0 ? CurrentSimResult.Projections[0].AnnualDividendNet : 0m) / 12m, 2)
+                : CurrentQuickCalc.MonthlyEquivalent;
+
+            var stockCode = isSimMode ? simStockSymbol : qcStockSymbol;
 
             var newMine = new Mine
             {
@@ -1019,14 +1044,23 @@
                 Name = stockTitle,
                 Category = MineCategory.Investments,
                 Type = MineType.Stocks,
-                Institution = !string.IsNullOrWhiteSpace(qcStockSymbol) ? qcStockSymbol : "Stock Portfolio",
+                Institution = !string.IsNullOrWhiteSpace(stockCode) ? stockCode : "Bursa Malaysia",
                 Currency = userCurrency,
                 CurrentValue = currentVal,
                 PurchaseCost = costVal,
                 Growth = growthVal,
                 GrowthPct = growthPct,
-                MonthlyIncome = CurrentQuickCalc.MonthlyEquivalent,
-                Holdings = $"{qcShares:N0} shares" + (qcSharePrice > 0 ? $" @ {dcCurrencySymbol}{qcSharePrice:N2}" : ""),
+                MonthlyIncome = monthlyIncome,
+                Holdings = $"{sharesCount:N0} shares" + (curPrice > 0 ? $" @ {dcCurrencySymbol}{curPrice:N2}" : ""),
+                Metadata = new MineMetadata
+                {
+                    StockCode = !string.IsNullOrWhiteSpace(stockCode) ? stockCode : null,
+                    Exchange = "Bursa",
+                    SharesOwned = sharesCount,
+                    PurchasePricePerShare = buyPrice > 0 ? buyPrice : null,
+                    CurrentSharePrice = curPrice > 0 ? curPrice : null,
+                    DividendYieldPct = divYield > 0 ? Math.Round(divYield, 2) : null
+                },
                 Status = "active",
                 UpdatedAt = DateTime.Today.ToString("yyyy-MM-dd")
             };

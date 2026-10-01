@@ -1,7 +1,10 @@
 @page "/mines/{Id}"
 @layout DashboardLayout
 @attribute [Authorize]
+@using OMM.Public.Data.Entities
+@using OMM.Public.Models
 @using OMM.Public.Services
+@using OMM.Public.Components.Shared.Mines
 @inject DatabaseMineService MineService
 @inject NavigationManager Navigation
 
@@ -37,7 +40,7 @@ else
         <div class="d-flex align-items-center gap-3">
             <div class="rounded-4 bg-dark text-warning p-3 d-flex align-items-center justify-content-center shadow-xs"
                  style="width: 56px; height: 56px;">
-                <i class="ti @FormatHelper.CategoryToIcon(currentMine.Category) fs-2"></i>
+                <i class="ti @FormatHelper.MineTypeToIcon(currentMine.Type) fs-2"></i>
             </div>
             <div>
                 <h1 class="h3 fw-bold text-dark font-display mb-1">@currentMine.Name</h1>
@@ -50,6 +53,10 @@ else
         </div>
 
         <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-outline-dark btn-sm rounded-3 px-3 d-inline-flex align-items-center gap-1" @onclick="OpenEditModal">
+                <i class="ti ti-edit"></i>
+                <span>Edit Mine</span>
+            </button>
             <button class="btn btn-outline-danger btn-sm rounded-3 px-3 d-inline-flex align-items-center gap-1" @onclick="ConfirmDelete">
                 <i class="ti ti-trash"></i>
                 <span>Delete</span>
@@ -117,7 +124,11 @@ else
     <div class="d-flex gap-2 mb-4 border-bottom border-light-subtle pb-2 animate-fade-up">
         <button class="btn btn-sm rounded-3 px-3 py-2 fw-semibold @(activeTab == "overview" ? "btn-dark text-white" : "btn-light text-dark")"
                 @onclick="@(() => activeTab = "overview")">
-            <i class="ti ti-info-circle me-1"></i> Overview
+            <i class="ti ti-info-circle me-1"></i> Overview & Details
+        </button>
+        <button class="btn btn-sm rounded-3 px-3 py-2 fw-semibold @(activeTab == "history" ? "btn-dark text-white" : "btn-light text-dark")"
+                @onclick="@(() => activeTab = "history")">
+            <i class="ti ti-history me-1"></i> Yield History @(yieldHistories.Count > 0 ? $"({yieldHistories.Count})" : "")
         </button>
         <button class="btn btn-sm rounded-3 px-3 py-2 fw-semibold @(activeTab == "submines" ? "btn-dark text-white" : "btn-light text-dark")"
                 @onclick="@(() => activeTab = "submines")">
@@ -135,7 +146,7 @@ else
         {
             <!-- Mine Details Card -->
             <div class="col-12 col-lg-7">
-                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white animate-fade-up">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white animate-fade-up mb-4">
                     <h3 class="h6 fw-bold text-dark font-display mb-3">Mine Specifications</h3>
                     <div class="d-flex flex-column gap-3">
                         <div class="d-flex justify-content-between py-2 border-bottom border-light-subtle">
@@ -170,6 +181,151 @@ else
                         </div>
                     </div>
                 </div>
+
+                <!-- Asset-Specific Typed Metadata Attributes -->
+                @if (currentMine.Metadata != null)
+                {
+                    var meta = currentMine.Metadata;
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white animate-fade-up">
+                        <h3 class="h6 fw-bold text-dark font-display mb-3 d-flex align-items-center gap-2">
+                            <i class="ti ti-adjustments-alt text-warning"></i>
+                            <span>Asset Class Attributes</span>
+                        </h3>
+                        <div class="d-flex flex-column gap-2">
+                            @if (!string.IsNullOrWhiteSpace(meta.AccountType))
+                            {
+                                <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                    <span class="text-muted">Account Scheme</span>
+                                    <span class="fw-semibold text-dark">@meta.AccountType</span>
+                                </div>
+                            }
+                            @if (meta.Akaun1Balance.HasValue || meta.Akaun2Balance.HasValue || meta.Akaun3Balance.HasValue)
+                            {
+                                <div class="py-2 border-bottom border-light-subtle">
+                                    <span class="text-muted small d-block mb-2">EPF Account Tranches</span>
+                                    <div class="row g-2 text-center">
+                                        <div class="col-4">
+                                            <div class="p-2 bg-light rounded-3">
+                                                <small class="text-muted d-block" style="font-size: 0.65rem;">Akaun Persaraan (75%)</small>
+                                                <span class="fw-bold small text-dark">@FormatHelper.FormatCurrency(meta.Akaun1Balance ?? 0, currentMine.Currency)</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="p-2 bg-light rounded-3">
+                                                <small class="text-muted d-block" style="font-size: 0.65rem;">Akaun Sejahtera (15%)</small>
+                                                <span class="fw-bold small text-dark">@FormatHelper.FormatCurrency(meta.Akaun2Balance ?? 0, currentMine.Currency)</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="p-2 bg-light rounded-3">
+                                                <small class="text-muted d-block" style="font-size: 0.65rem;">Akaun Fleksibel (10%)</small>
+                                                <span class="fw-bold small text-dark">@FormatHelper.FormatCurrency(meta.Akaun3Balance ?? 0, currentMine.Currency)</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            @if (meta.UnitsHeld.HasValue)
+                            {
+                                <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                    <span class="text-muted">Units Owned</span>
+                                    <span class="fw-semibold text-dark">@meta.UnitsHeld.Value.ToString("N2") units</span>
+                                </div>
+                            }
+                            @if (meta.NavPerUnit.HasValue)
+                            {
+                                <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                    <span class="text-muted">NAV / Price per Unit</span>
+                                    <span class="fw-semibold text-dark">@FormatHelper.FormatCurrencyPrecise(meta.NavPerUnit.Value, currentMine.Currency)</span>
+                                </div>
+                            }
+                            @if (meta.InterestRatePct.HasValue)
+                            {
+                                <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                    <span class="text-muted">Interest / APY Rate</span>
+                                    <span class="fw-semibold text-success">@meta.InterestRatePct.Value.ToString("0.00")% p.a.</span>
+                                </div>
+                            }
+                            @if (meta.ExpectedDividendRate.HasValue)
+                            {
+                                <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                    <span class="text-muted">Expected Annual Dividend</span>
+                                    <span class="fw-semibold text-success">@meta.ExpectedDividendRate.Value.ToString("0.00")% p.a.</span>
+                                </div>
+                            }
+                            @if (meta.DividendYieldPct.HasValue)
+                            {
+                                <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                    <span class="text-muted">Dividend Yield Estimate</span>
+                                    <span class="fw-semibold text-success">@meta.DividendYieldPct.Value.ToString("0.00")% p.a.</span>
+                                </div>
+                            }
+                            @if (meta.TenureMonths.HasValue)
+                            {
+                                <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                    <span class="text-muted">Placement Tenure</span>
+                                    <span class="fw-semibold text-dark">@meta.TenureMonths.Value Months</span>
+                                </div>
+                            }
+                            @if (meta.MaturityDate.HasValue)
+                            {
+                                <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                    <span class="text-muted">Maturity Date</span>
+                                    <span class="fw-semibold text-dark">@meta.MaturityDate.Value.ToString("dd MMM yyyy")</span>
+                                </div>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(meta.RolloverBehavior))
+                            {
+                                <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                    <span class="text-muted">Maturity Rollover</span>
+                                    <span class="fw-semibold text-dark">@meta.RolloverBehavior</span>
+                                </div>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(meta.StockCode))
+                            {
+                                <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                    <span class="text-muted">Stock Symbol / Ticker</span>
+                                    <span class="fw-semibold text-dark">@meta.StockCode (@(meta.Exchange ?? "Bursa"))</span>
+                                </div>
+                            }
+                            @if (meta.SharesOwned.HasValue)
+                            {
+                                <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                    <span class="text-muted">Shares Owned</span>
+                                    <span class="fw-semibold text-dark">@meta.SharesOwned.Value.ToString("N0") shares</span>
+                                </div>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(meta.Address))
+                            {
+                                <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                    <span class="text-muted">Property Location</span>
+                                    <span class="fw-semibold text-dark">@meta.Address</span>
+                                </div>
+                            }
+                            @if (meta.RentalIncomeMonthly.HasValue)
+                            {
+                                <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                    <span class="text-muted">Gross Monthly Rental</span>
+                                    <span class="fw-semibold text-success">@FormatHelper.FormatCurrency(meta.RentalIncomeMonthly.Value, currentMine.Currency)/mo</span>
+                                </div>
+                            }
+                            @if (meta.WeightGrams.HasValue)
+                            {
+                                <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                    <span class="text-muted">Weight / Form</span>
+                                    <span class="fw-semibold text-dark">@meta.WeightGrams.Value.ToString("N1")g (@(meta.GoldForm ?? "Physical"))</span>
+                                </div>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(meta.CoinSymbol))
+                            {
+                                <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                    <span class="text-muted">Coin / Platform</span>
+                                    <span class="fw-semibold text-dark">@meta.CoinsHeld @meta.CoinSymbol (@(meta.WalletOrExchange ?? "Wallet"))</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
             </div>
 
             <!-- Linked Burden / Net Equity Position -->
@@ -191,11 +347,11 @@ else
                             <div class="d-flex flex-column gap-2 text-dark small">
                                 <div class="d-flex justify-content-between">
                                     <span class="text-muted">Outstanding balance</span>
-                            <span class="fw-semibold">@FormatHelper.FormatCurrency(linkedBurden.Balance, linkedBurden.Currency)</span>
+                                    <span class="fw-semibold">@FormatHelper.FormatCurrency(linkedBurden.Balance, linkedBurden.Currency)</span>
                                 </div>
                                 <div class="d-flex justify-content-between">
                                     <span class="text-muted">Monthly payment</span>
-                            <span class="fw-semibold">@FormatHelper.FormatCurrency(linkedBurden.MonthlyPayment, linkedBurden.Currency)</span>
+                                    <span class="fw-semibold">@FormatHelper.FormatCurrency(linkedBurden.MonthlyPayment, linkedBurden.Currency)</span>
                                 </div>
                                 <div class="d-flex justify-content-between">
                                     <span class="text-muted">Interest rate</span>
@@ -235,6 +391,72 @@ else
                 }
             </div>
         }
+        else if (activeTab == "history")
+        {
+            <!-- Yield & Rate History Timeline Tab -->
+            <div class="col-12">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white animate-fade-up">
+                    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-4">
+                        <div>
+                            <h3 class="h6 fw-bold text-dark font-display mb-0">Rate &amp; Dividend History</h3>
+                            <p class="text-muted small mb-0">Track year-over-year declared dividend rates, FD renewals, or yield revisions</p>
+                        </div>
+                    </div>
+
+                    @if (yieldHistories.Count > 0)
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Year</th>
+                                        <th>Record Date</th>
+                                        <th>Declared Rate</th>
+                                        <th>Balance at Time</th>
+                                        <th>Annual Return</th>
+                                        <th>Notes</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var record in yieldHistories)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <span class="badge bg-dark fw-bold">@record.EffectiveYear</span>
+                                            </td>
+                                            <td class="small text-muted">@record.RecordDate.ToString("dd MMM yyyy")</td>
+                                            <td>
+                                                <span class="fw-bold text-success">@record.RatePct.ToString("0.00")% p.a.</span>
+                                            </td>
+                                            <td class="small">
+                                                @(record.BalanceAtTime.HasValue ? FormatHelper.FormatCurrency(record.BalanceAtTime.Value, currentMine.Currency) : "—")
+                                            </td>
+                                            <td class="small fw-semibold text-dark">
+                                                @(record.DeclaredAmount.HasValue ? FormatHelper.FormatCurrency(record.DeclaredAmount.Value, currentMine.Currency) : "—")
+                                            </td>
+                                            <td class="small text-muted">
+                                                @(string.IsNullOrWhiteSpace(record.Notes) ? "—" : record.Notes)
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5 text-muted">
+                            <i class="ti ti-history fs-1 mb-2 text-muted"></i>
+                            <div class="fw-bold text-dark small">No Yield History Logged Yet</div>
+                            <p class="small text-muted mb-3">When you update interest rates or annual dividends via "Edit Mine", check "Record to Yield History timeline" to track past years.</p>
+                            <button class="btn btn-outline-dark btn-sm rounded-3 px-3" @onclick="OpenEditModal">
+                                <i class="ti ti-edit me-1"></i> Edit Mine to Record Rate
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
         else if (activeTab == "submines")
         {
             <div class="col-12">
@@ -268,7 +490,7 @@ else
                                             {
                                                 <div class="d-flex justify-content-between">
                                                     <span>Principal:</span>
-                                                <span class="fw-semibold text-dark">@FormatHelper.FormatCurrency(sm.Principal.Value, currentMine.Currency)</span>
+                                                    <span class="fw-semibold text-dark">@FormatHelper.FormatCurrency(sm.Principal.Value, currentMine.Currency)</span>
                                                 </div>
                                             }
                                             @if (sm.Rate.HasValue)
@@ -289,7 +511,7 @@ else
                                             {
                                                 <div class="d-flex justify-content-between">
                                                     <span>Purchase Price:</span>
-                                                <span class="fw-semibold text-dark">@FormatHelper.FormatCurrencyPrecise(sm.PurchasePrice.Value, currentMine.Currency)</span>
+                                                    <span class="fw-semibold text-dark">@FormatHelper.FormatCurrencyPrecise(sm.PurchasePrice.Value, currentMine.Currency)</span>
                                                 </div>
                                             }
                                             @if (!string.IsNullOrEmpty(sm.MaturityDate))
@@ -351,6 +573,12 @@ else
             </div>
         }
     </div>
+
+    <!-- Edit Mine Modal -->
+    <AddMineModal IsOpen="showEditModal"
+                  ExistingMine="currentMine"
+                  OnClose="CloseEditModal"
+                  OnSaved="HandleMineSaved" />
 }
 
 @code {
@@ -359,7 +587,9 @@ else
 
     private Mine? currentMine;
     private Burden? linkedBurden;
+    private List<MineYieldHistoryEntity> yieldHistories = [];
     private string activeTab = "overview";
+    private bool showEditModal = false;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -369,14 +599,27 @@ else
     private async Task LoadMineData()
     {
         currentMine = await MineService.GetMineByIdAsync(Id);
-        if (currentMine != null && !string.IsNullOrEmpty(currentMine.LinkedBurdenId))
+        if (currentMine != null)
         {
-            linkedBurden = await MineService.GetLinkedBurdenAsync(currentMine.LinkedBurdenId);
+            if (!string.IsNullOrEmpty(currentMine.LinkedBurdenId))
+            {
+                linkedBurden = await MineService.GetLinkedBurdenAsync(currentMine.LinkedBurdenId);
+            }
+            else
+            {
+                linkedBurden = null;
+            }
+
+            yieldHistories = await MineService.GetYieldHistoriesAsync(currentMine.Id);
         }
-        else
-        {
-            linkedBurden = null;
-        }
+    }
+
+    private void OpenEditModal() => showEditModal = true;
+    private void CloseEditModal() => showEditModal = false;
+
+    private async Task HandleMineSaved()
+    {
+        await LoadMineData();
     }
 
     private async Task ConfirmDelete()

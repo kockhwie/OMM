@@ -7,7 +7,6 @@
 @using OMM.Public.Services
 @inject DatabaseMineService MineService
 @inject NavigationManager Navigation
-@inject IDbContextFactory<ApplicationDbContext> DbContextFactory
 @inject IMinerProfileService ProfileService
 
 <PageTitle>My Mines - OhMyMine</PageTitle>
@@ -125,8 +124,14 @@
                     }
                 </div>
 
-                <!-- Status Badge — overlaid on top right corner, inside card -->
-                <div class="position-absolute top-0 end-0 mine-status-overlay">
+                <!-- Status Badge & Quick Actions — overlaid on top right corner, inside card -->
+                <div class="position-absolute top-0 end-0 mine-status-overlay d-flex align-items-center gap-1">
+                    <button class="btn btn-sm btn-light border-0 rounded-circle p-1 text-muted card-hover"
+                            title="Edit Mine"
+                            @onclick:stopPropagation="true"
+                            @onclick="() => OpenEditModal(mine)">
+                        <i class="ti ti-edit fs-6"></i>
+                    </button>
                     <StatusBadge Status="@mine.Status" Compact="true" />
                 </div>
             </div>
@@ -147,137 +152,17 @@ else
     </div>
 }
 
-<!-- Add Mine Modal -->
-@if (showAddModal)
-{
-    <div class="modal fade show d-block omm-modal-backdrop" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="add-mine-title">
-        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
-            <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
-                <div class="modal-header bg-dark text-white px-4 py-3 border-0">
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="ti ti-pick text-gold fs-4"></i>
-                        <h2 id="add-mine-title" class="h5 modal-title fw-bold font-display mb-0">Add New Mine</h2>
-                    </div>
-                    <button type="button" class="btn-close btn-close-white" aria-label="Close" @onclick="CloseAddModal"></button>
-                </div>
-
-                <div class="modal-body p-4 bg-light">
-                    @if (!string.IsNullOrEmpty(inputError))
-                    {
-                        <div class="alert alert-danger rounded-3 d-flex align-items-center gap-2 mb-3" role="alert">
-                            <i class="ti ti-alert-triangle"></i>
-                            <small>@inputError</small>
-                        </div>
-                    }
-
-                    <div class="card border-0 rounded-4">
-                        <div class="card-body">
-                            <div class="omm-form-section">
-                                <div class="omm-form-field">
-                                    <label class="omm-form-label" for="mine-name">Mine Name <span class="text-danger">*</span></label>
-                                    <input id="mine-name" type="text" class="form-control rounded-3" maxlength="200"
-                                           placeholder="e.g. EPF / KWSP, Maybank Shares" @bind="newMine.Name" />
-                                </div>
-
-                                <div class="omm-form-field">
-                                    <label class="omm-form-label" for="mine-institution">Institution / Issuer</label>
-                                    <select id="mine-institution" class="form-select rounded-3" @bind="newMine.Institution">
-                                        <option value="">Select an institution</option>
-                                        @foreach (var institution in institutions)
-                                        {
-                                            <option value="@institution.InstitutionName_EN">@institution.InstitutionCode - @institution.InstitutionName_EN</option>
-                                        }
-                                    </select>
-                                </div>
-
-                                <div class="omm-form-grid">
-                                    <div class="omm-form-field">
-                                        <label class="omm-form-label" for="mine-category">Category <span class="text-danger">*</span></label>
-                                        <select id="mine-category" class="form-select rounded-3"
-                                                value="@newMine.Category"
-                                                @onchange="OnCategoryChanged">
-                                            @foreach (var cat in Enum.GetValues<MineCategory>())
-                                            {
-                                                <option value="@cat">@FormatHelper.CategoryLabel(cat)</option>
-                                            }
-                                        </select>
-                                    </div>
-                                    <div class="omm-form-field">
-                                        <label class="omm-form-label" for="mine-type">Asset Type <span class="text-danger">*</span></label>
-                                        <select id="mine-type" class="form-select rounded-3" @bind="newMine.Type">
-                                            @foreach (var typ in FormatHelper.GetTypesForCategory(newMine.Category))
-                                            {
-                                                <option value="@typ">@FormatHelper.MineTypeLabel(typ)</option>
-                                            }
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card border-0 rounded-4 mt-3">
-                        <div class="card-body">
-                            <div class="omm-form-section">
-                                <div class="omm-form-grid">
-                                    <div class="omm-form-field">
-                                        <label class="omm-form-label" for="mine-current-value">Current Market Value <span class="text-danger">*</span></label>
-                                        <div class="dc-currency-group">
-                                            <span class="dc-currency-addon">@currencySymbol</span>
-                                            <input id="mine-current-value" type="number" class="form-control" min="0" step="0.01"
-                                                   placeholder="0.00" @bind="newMine.CurrentValue" @bind:event="oninput" />
-                                        </div>
-                                    </div>
-                                    <div class="omm-form-field">
-                                        <label class="omm-form-label" for="mine-purchase-cost">Purchase Price</label>
-                                        <div class="dc-currency-group">
-                                            <span class="dc-currency-addon">@currencySymbol</span>
-                                            <input id="mine-purchase-cost" type="number" class="form-control" min="0" step="0.01"
-                                                   placeholder="0.00" @bind="newMine.PurchaseCost" @bind:event="oninput" />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="omm-form-field">
-                                    <label class="omm-form-label" for="mine-monthly-income">Est. Monthly Passive Income</label>
-                                    <div class="dc-currency-group">
-                                        <span class="dc-currency-addon">@currencySymbol</span>
-                                        <input id="mine-monthly-income" type="number" class="form-control" min="0" step="0.01"
-                                               placeholder="0.00" @bind="newMine.MonthlyIncome" @bind:event="oninput" />
-                                        <span class="dc-currency-suffix">/ mo</span>
-                                    </div>
-                                    <div class="omm-form-help">Dividends, rent, or interest this mine produces. Counts toward your Freedom Ratio.</div>
-                                </div>
-
-                                <div class="omm-form-field">
-                                    <label class="omm-form-label" for="mine-holdings">Holdings / Details</label>
-                                    <input id="mine-holdings" type="text" class="form-control rounded-3" maxlength="200"
-                                           placeholder="e.g. 1,000 shares, 50 grams" @bind="newMine.Holdings" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="modal-footer bg-light px-4 py-3 border-0">
-                    <button type="button" class="btn-omm-secondary" @onclick="CloseAddModal">Cancel</button>
-                    <button type="button" class="btn-omm-accent" @onclick="SaveMine">
-                        <i class="ti ti-device-floppy"></i> Save Mine
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-}
+<AddMineModal IsOpen="showAddModal"
+              ExistingMine="selectedMineForEdit"
+              OnClose="CloseAddModal"
+              OnSaved="HandleMineSaved" />
 
 @code {
     private List<Mine> allMines = [];
-    private List<OMM.Shared.Models.MasterData.Institution> institutions = [];
     private string searchQuery = string.Empty;
     private MineCategory? selectedCategory;
     private bool showAddModal = false;
-    private Mine newMine = new();
-    private string? inputError;
+    private Mine? selectedMineForEdit;
     private string currencySymbol = string.Empty;
 
     protected override async Task OnInitializedAsync()
@@ -288,22 +173,11 @@ else
             currencySymbol = FormatHelper.GetCurrencySymbol(profile.CurrencyCode);
         }
 
-        await LoadInstitutions();
         await LoadMines();
         if (Navigation.Uri.TrimEnd('/').EndsWith("/mines/new", StringComparison.OrdinalIgnoreCase))
         {
             OpenAddModal();
         }
-    }
-
-    private async Task LoadInstitutions()
-    {
-        await using var db = await DbContextFactory.CreateDbContextAsync();
-        institutions = await db.Institutions
-            .AsNoTracking()
-            .Where(i => i.IsActive)
-            .OrderBy(i => i.InstitutionName_EN)
-            .ToListAsync();
     }
 
     private async Task LoadMines()
@@ -348,80 +222,24 @@ else
 
     private void OpenAddModal()
     {
-        inputError = null;
-        var defaultCategory = MineCategory.Investments;
-        newMine = new Mine
-        {
-            Category = defaultCategory,
-            Type = FormatHelper.GetTypesForCategory(defaultCategory)[0],
-            Currency = string.Empty,
-            Status = "active"
-        };
+        selectedMineForEdit = null;
         showAddModal = true;
     }
 
-    private void OnCategoryChanged(ChangeEventArgs e)
+    private void OpenEditModal(Mine mine)
     {
-        if (Enum.TryParse<MineCategory>(e.Value?.ToString(), out var category))
-        {
-            newMine.Category = category;
-            newMine.Type = FormatHelper.GetTypesForCategory(category)[0];
-        }
+        selectedMineForEdit = mine;
+        showAddModal = true;
     }
 
     private void CloseAddModal()
     {
-        inputError = null;
+        selectedMineForEdit = null;
         showAddModal = false;
     }
 
-    private async Task SaveMine()
+    private async Task HandleMineSaved()
     {
-        inputError = PublicInputValidator.GetDisplayTextError("Mine name", newMine.Name)
-            ?? PublicInputValidator.GetDisplayTextError("Holdings / details", newMine.Holdings, optional: true);
-        if (inputError is not null)
-            return;
-
-        if (newMine.PurchaseCost > 0)
-        {
-            newMine.Growth = newMine.CurrentValue - newMine.PurchaseCost;
-            newMine.GrowthPct = Math.Round((newMine.Growth / newMine.PurchaseCost) * 100m, 1);
-        }
-        else
-        {
-            newMine.PurchaseCost = newMine.CurrentValue;
-            newMine.Growth = 0;
-            newMine.GrowthPct = 0;
-        }
-
-        // Validate numeric inputs
-        if (newMine.CurrentValue <= 0)
-        {
-            inputError = "Enter a current market value greater than zero.";
-            return;
-        }
-        if (newMine.PurchaseCost < 0 || newMine.MonthlyIncome < 0)
-        {
-            inputError = "Purchase price and monthly income cannot be negative.";
-            return;
-        }
-
-        try
-        {
-            await MineService.AddMineAsync(newMine);
-            showAddModal = false;
-            await LoadMines();
-        }
-        catch (ArgumentException exception)
-        {
-            inputError = exception.Message;
-        }
-        catch (InvalidOperationException exception)
-        {
-            inputError = exception.Message;
-        }
-
-
-
+        await LoadMines();
     }
 }

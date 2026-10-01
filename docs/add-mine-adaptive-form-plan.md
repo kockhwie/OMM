@@ -840,25 +840,25 @@ For yield-bearing mine types (`EpfKwsp`, `UnitTrustAsb`, `FixedDeposit`, `Stocks
 
 ---
 
-## Implementation Order Summary
+## Implementation Order Summary & Status
 
 ```
-Task 1.1  Expand enums + add MineMetadata POCO to Mine.cs
-Task 1.2  Add MetadataJson column to MineEntity + EF migration
-Task 1.3  Update FormatHelper (labels, icons, type mappings, CurrentValueLabel, MineTypeToIcon)
-Task 1.4  Add MineYieldHistoryEntity + EF migration (Yield & Rate Growth Tracing)
-Task 2.1  Extract AddMineModal component from Mines.razor (Add + Edit mode)
-Task 2.2  Build Step 1: visual category card grid + type pill picker
-Task 2.3  Build Step 2: type-specific adaptive field sets (10 types)
-Task 2.4  Build Step 3: review & confirm panel
-Task 2.5  Step navigation + per-type validation + auto-calculation logic
-Task 3.1  Update DatabaseMineService.AddMineAsync for metadata serialisation
-Task 3.2  Add DatabaseMineService.UpdateMineAsync (with history retention prompt)
-Task 3.3  Add Delete UI with confirmation to Mine cards
-Task 3.4  Upgrade Tools Integration: "Save as Mine to Track" in Dividend & FD Calculators
-Task 4.1  Type-aware value labels on Mine cards
-Task 4.2  Update MineDetail.razor: metadata panel + income history + Edit button
-Task 4.3  Add Yield & Rate History Timeline & Growth Tracking to MineDetail.razor
+Task 1.1  [DONE] Expand enums + add MineMetadata POCO to Mine.cs
+Task 1.2  [DONE] Add MetadataJson column to MineEntity + EF migration (applied to DB)
+Task 1.3  [DONE] Update FormatHelper (labels, icons, type mappings, CurrentValueLabel, MineTypeToIcon)
+Task 1.4  [DONE] Add MineYieldHistoryEntity + EF migration (applied to DB)
+Task 2.1  [DONE] Extract AddMineModal component from Mines.razor (Add + Edit mode)
+Task 2.2  [DONE] Build Step 1: visual category card grid + type pill picker
+Task 2.3  [DONE] Build Step 2: type-specific adaptive field sets (10 Malaysian asset classes)
+Task 2.4  [DONE] Build Step 3: review & confirm panel + optional yield history archiving
+Task 2.5  [DONE] Step navigation + per-type validation + auto-calculation logic
+Task 3.1  [DONE] Update DatabaseMineService.AddMineAsync for metadata serialisation
+Task 3.2  [DONE] Add DatabaseMineService.UpdateMineAsync & RecordYieldHistoryAsync
+Task 3.3  [DONE] Add Delete UI with confirmation & Edit Mine actions on Mine cards
+Task 3.4  [DONE] Upgrade Tools Integration: "Save as Mine to Track" in Dividend Calculator (Quick + Advanced)
+Task 4.1  [DONE] Type-aware value labels & metadata attributes on Mine cards
+Task 4.2  [DONE] Update MineDetail.razor: metadata specifications panel + Edit Mine modal integration
+Task 4.3  [DONE] Add Yield & Rate History Timeline & Growth Tracking to MineDetail.razor
 ```
 
 > **Note on Phase 2 (future):** Tabung Haji type, `IncomeEventType` enum on `IncomeRecordEntity`, and portfolio value snapshots (`MineValueSnapshotEntity`) are deferred but the architecture above is designed to accommodate them without migrations.

@@ -118,7 +118,22 @@ public static class FormatHelper
         MineType.Property => "Real Estate",
         MineType.Gold => "Physical Gold / Savings",
         MineType.Silver => "Silver",
+        MineType.Others => "Others",
         _ => type.ToString()
+    };
+
+    /// <summary>
+    /// Returns the valid <see cref="MineType"/> values for a given <see cref="MineCategory"/>.
+    /// Used to cascade the Asset Type dropdown in the Add Mine form.
+    /// </summary>
+    public static IReadOnlyList<MineType> GetTypesForCategory(MineCategory category) => category switch
+    {
+        MineCategory.Retirement     => [MineType.EpfKwsp, MineType.Others],
+        MineCategory.CashAndDeposits => [MineType.FixedDeposit, MineType.Others],
+        MineCategory.Investments    => [MineType.Stocks, MineType.Reit, MineType.Funds, MineType.Others],
+        MineCategory.Property       => [MineType.Property, MineType.Others],
+        MineCategory.PreciousMetals => [MineType.Gold, MineType.Silver, MineType.Others],
+        _                           => [MineType.Others]
     };
 
     public static string BurdenTypeLabel(BurdenType type) => type switch

@@ -31,6 +31,13 @@ public sealed class DatabaseMineService(
         PublicInputValidator.ValidateDisplayText("Mine name", mine.Name);
         PublicInputValidator.ValidateDisplayText("Holdings / details", mine.Holdings, optional: true);
 
+        if (!FormatHelper.GetTypesForCategory(mine.Category).Contains(mine.Type))
+        {
+            throw new ArgumentException(
+                $"'{FormatHelper.MineTypeLabel(mine.Type)}' is not a valid asset type for the '{FormatHelper.CategoryLabel(mine.Category)}' category.",
+                nameof(mine));
+        }
+
         var profile = await profileService.GetCurrentAsync(cancellationToken)
             ?? throw new InvalidOperationException("Complete your miner profile before adding a mine.");
         if (!profile.CurrencyId.HasValue || string.IsNullOrWhiteSpace(profile.CurrencyCode))

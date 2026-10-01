@@ -20,7 +20,7 @@ public enum MineType
     Property,
     Gold,
     Silver,
-    OtherMine
+    Others
 }
 
 public class SubMine

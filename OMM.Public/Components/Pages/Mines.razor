@@ -193,7 +193,9 @@ else
                                 <div class="omm-form-grid">
                                     <div class="omm-form-field">
                                         <label class="omm-form-label" for="mine-category">Category <span class="text-danger">*</span></label>
-                                        <select id="mine-category" class="form-select rounded-3" @bind="newMine.Category">
+                                        <select id="mine-category" class="form-select rounded-3"
+                                                value="@newMine.Category"
+                                                @onchange="OnCategoryChanged">
                                             @foreach (var cat in Enum.GetValues<MineCategory>())
                                             {
                                                 <option value="@cat">@FormatHelper.CategoryLabel(cat)</option>
@@ -203,7 +205,7 @@ else
                                     <div class="omm-form-field">
                                         <label class="omm-form-label" for="mine-type">Asset Type <span class="text-danger">*</span></label>
                                         <select id="mine-type" class="form-select rounded-3" @bind="newMine.Type">
-                                            @foreach (var typ in Enum.GetValues<MineType>())
+                                            @foreach (var typ in FormatHelper.GetTypesForCategory(newMine.Category))
                                             {
                                                 <option value="@typ">@FormatHelper.MineTypeLabel(typ)</option>
                                             }
@@ -347,14 +349,24 @@ else
     private void OpenAddModal()
     {
         inputError = null;
+        var defaultCategory = MineCategory.Investments;
         newMine = new Mine
         {
-            Category = MineCategory.Investments,
-            Type = MineType.Stocks,
+            Category = defaultCategory,
+            Type = FormatHelper.GetTypesForCategory(defaultCategory)[0],
             Currency = string.Empty,
             Status = "active"
         };
         showAddModal = true;
+    }
+
+    private void OnCategoryChanged(ChangeEventArgs e)
+    {
+        if (Enum.TryParse<MineCategory>(e.Value?.ToString(), out var category))
+        {
+            newMine.Category = category;
+            newMine.Type = FormatHelper.GetTypesForCategory(category)[0];
+        }
     }
 
     private void CloseAddModal()

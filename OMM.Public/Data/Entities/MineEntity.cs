@@ -31,6 +31,9 @@ public class MineEntity : UserOwnedEntity
 
     public string? Holdings { get; set; }
 
+    /// <summary>Type-specific metadata. Schema varies by MineType. Stored as PostgreSQL jsonb.</summary>
+    public string? MetadataJson { get; set; }
+
     public Guid? LinkedBurdenId { get; set; }
 
     public BurdenEntity? LinkedBurden { get; set; }
@@ -42,4 +45,6 @@ public class MineEntity : UserOwnedEntity
     public ICollection<MinePositionEntity> Positions { get; set; } = [];
 
     public ICollection<GoalMineEntity> GoalLinks { get; set; } = [];
+
+    public ICollection<MineYieldHistoryEntity> YieldHistories { get; set; } = [];
 }

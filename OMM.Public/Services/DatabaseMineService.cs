@@ -212,8 +212,12 @@ public sealed class DatabaseMineService(
     private static PositionType InferPositionType(MineType type, SubMine position) => type switch
     {
         MineType.FixedDeposit => PositionType.FixedDeposit,
-        MineType.Stocks or MineType.Reit or MineType.Funds => PositionType.StockLot,
-        MineType.Property => PositionType.PropertyDetail,
+        MineType.Stocks or MineType.StocksUs
+            or MineType.Reit or MineType.Etf
+            or MineType.UnitTrustGeneral
+            or MineType.UnitTrustAsb => PositionType.StockLot,
+        MineType.PropertyResidential
+            or MineType.PropertyCommercial => PositionType.PropertyDetail,
         MineType.Gold => PositionType.GoldLot,
         MineType.Silver => PositionType.SilverLot,
         _ => PositionType.Other

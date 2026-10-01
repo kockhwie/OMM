@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using OMM.Public.Data;
@@ -11,9 +12,11 @@ using OMM.Public.Data;
 namespace OMM.Public.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261001182346_AddMineMetadataJson")]
+    partial class AddMineMetadataJson
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -748,65 +751,6 @@ namespace OMM.Public.Data.Migrations
                     b.HasIndex("UserId", "IsDeleted");
 
                     b.ToTable("MinePosition", (string)null);
-                });
-
-            modelBuilder.Entity("OMM.Public.Data.Entities.MineYieldHistoryEntity", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<decimal?>("BalanceAtTime")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<decimal?>("DeclaredAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
-
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("EffectiveYear")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<Guid>("MineId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<decimal>("RatePct")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("numeric(5,2)");
-
-                    b.Property<DateOnly>("RecordDate")
-                        .HasColumnType("date");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MineId", "EffectiveYear");
-
-                    b.HasIndex("UserId", "Id")
-                        .IsUnique();
-
-                    b.HasIndex("UserId", "IsDeleted");
-
-                    b.ToTable("MineYieldHistory", (string)null);
                 });
 
             modelBuilder.Entity("OMM.Public.Data.Entities.MinerProfileEntity", b =>
@@ -2566,25 +2510,6 @@ namespace OMM.Public.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("OMM.Public.Data.Entities.MineYieldHistoryEntity", b =>
-                {
-                    b.HasOne("OMM.Public.Data.Entities.MineEntity", "Mine")
-                        .WithMany("YieldHistories")
-                        .HasForeignKey("MineId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("OMM.Public.Data.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Mine");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("OMM.Public.Data.Entities.MinerProfileEntity", b =>
                 {
                     b.HasOne("OMM.Shared.Models.MasterData.Country", "Country")
@@ -2709,8 +2634,6 @@ namespace OMM.Public.Data.Migrations
                     b.Navigation("GoalLinks");
 
                     b.Navigation("Positions");
-
-                    b.Navigation("YieldHistories");
                 });
 
             modelBuilder.Entity("OMM.Shared.Models.MasterData.Country", b =>

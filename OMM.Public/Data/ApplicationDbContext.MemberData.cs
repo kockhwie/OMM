@@ -17,6 +17,7 @@ public partial class ApplicationDbContext
     public DbSet<GoalEntity> Goals => Set<GoalEntity>();
     public DbSet<GoalMineEntity> GoalMines => Set<GoalMineEntity>();
     public DbSet<NotificationEntity> Notifications => Set<NotificationEntity>();
+    public DbSet<MineYieldHistoryEntity> MineYieldHistories => Set<MineYieldHistoryEntity>();
 
     partial void ConfigureMemberData(ModelBuilder modelBuilder)
     {
@@ -30,6 +31,7 @@ public partial class ApplicationDbContext
         ConfigureGoal(modelBuilder);
         ConfigureGoalMine(modelBuilder);
         ConfigureNotification(modelBuilder);
+        ConfigureMineYieldHistory(modelBuilder);
     }
 
     private static void ConfigureCurrency(ModelBuilder modelBuilder)
@@ -81,6 +83,7 @@ public partial class ApplicationDbContext
             entity.Property(e => e.Growth).HasPrecision(18, 2);
             entity.Property(e => e.GrowthPct).HasPrecision(18, 4);
             entity.Property(e => e.MonthlyIncome).HasPrecision(18, 2);
+            entity.Property(e => e.MetadataJson).HasColumnType("jsonb");
             entity.HasOne(e => e.Institution).WithMany().HasForeignKey(e => e.InstitutionId).OnDelete(DeleteBehavior.SetNull);
             entity.HasOne(e => e.Currency).WithMany().HasForeignKey(e => e.CurrencyId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(e => e.LinkedBurden).WithMany().HasForeignKey(e => e.LinkedBurdenId).OnDelete(DeleteBehavior.SetNull);
@@ -179,6 +182,20 @@ public partial class ApplicationDbContext
             entity.Property(e => e.DedupeKey).HasMaxLength(128).IsRequired();
             entity.HasIndex(e => new { e.UserId, e.DedupeKey }).IsUnique();
             entity.HasIndex(e => new { e.UserId, e.ReadAt, e.DismissedAt });
+        });
+    }
+
+    private static void ConfigureMineYieldHistory(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<MineYieldHistoryEntity>(entity =>
+        {
+            ConfigureUserOwnedEntity(entity, "MineYieldHistory");
+            entity.Property(e => e.RatePct).HasPrecision(5, 2);
+            entity.Property(e => e.DeclaredAmount).HasPrecision(18, 2);
+            entity.Property(e => e.BalanceAtTime).HasPrecision(18, 2);
+            entity.Property(e => e.Notes).HasMaxLength(200);
+            entity.HasIndex(e => new { e.MineId, e.EffectiveYear });
+            entity.HasOne(e => e.Mine).WithMany(m => m.YieldHistories).HasForeignKey(e => e.MineId).OnDelete(DeleteBehavior.Cascade);
         });
     }
 

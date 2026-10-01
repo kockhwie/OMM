@@ -105,21 +105,63 @@ public static class FormatHelper
         MineCategory.Investments => "Investments",
         MineCategory.Property => "Property",
         MineCategory.PreciousMetals => "Precious Metals",
+        MineCategory.Digital => "Digital Assets",
+        MineCategory.Other => "Others",
         _ => category.ToString()
     };
 
     public static string MineTypeLabel(MineType type) => type switch
     {
         MineType.EpfKwsp => "EPF / KWSP",
-        MineType.FixedDeposit => "Fixed Deposit",
-        MineType.Stocks => "Stocks",
+        MineType.SavingsAccount => "Savings Account",
+        MineType.FixedDeposit => "Fixed Deposit (FD)",
+        MineType.CashInHand => "Cash in Hand",
+        MineType.UnitTrustAsb => "ASB / ASM",
+        MineType.UnitTrustGeneral => "Unit Trust / Mutual Fund",
+        MineType.Stocks => "Stocks (Bursa Malaysia)",
+        MineType.StocksUs => "Stocks (US / Foreign)",
         MineType.Reit => "REIT",
-        MineType.Funds => "Unit Trust / Funds",
-        MineType.Property => "Real Estate",
-        MineType.Gold => "Physical Gold / Savings",
+        MineType.Etf => "ETF",
+        MineType.PropertyResidential => "Residential Property",
+        MineType.PropertyCommercial => "Commercial Property",
+        MineType.Gold => "Gold",
         MineType.Silver => "Silver",
+        MineType.Cryptocurrency => "Cryptocurrency",
         MineType.Others => "Others",
         _ => type.ToString()
+    };
+
+    public static string CurrentValueLabel(MineType type) => type switch
+    {
+        MineType.EpfKwsp or MineType.SavingsAccount or MineType.CashInHand => "Balance",
+        MineType.FixedDeposit => "Projected Value",
+        MineType.UnitTrustAsb or MineType.UnitTrustGeneral
+            or MineType.Stocks or MineType.StocksUs
+            or MineType.Reit or MineType.Etf => "Market Value",
+        MineType.PropertyResidential or MineType.PropertyCommercial => "Valuation",
+        MineType.Gold or MineType.Silver => "Est. Value",
+        MineType.Cryptocurrency => "Value (MYR)",
+        _ => "Current Value"
+    };
+
+    public static string MineTypeToIcon(MineType type) => type switch
+    {
+        MineType.EpfKwsp => "ti-shield-lock",
+        MineType.SavingsAccount => "ti-building-bank",
+        MineType.FixedDeposit => "ti-lock-dollar",
+        MineType.CashInHand => "ti-cash",
+        MineType.UnitTrustAsb => "ti-chart-area-filled",
+        MineType.UnitTrustGeneral => "ti-chart-pie",
+        MineType.Stocks => "ti-trending-up",
+        MineType.StocksUs => "ti-globe",
+        MineType.Reit => "ti-building-skyscraper",
+        MineType.Etf => "ti-chart-bar",
+        MineType.PropertyResidential => "ti-home-dollar",
+        MineType.PropertyCommercial => "ti-building-store",
+        MineType.Gold => "ti-coins",
+        MineType.Silver => "ti-coin",
+        MineType.Cryptocurrency => "ti-currency-bitcoin",
+        _ => "ti-folder"
     };
 
     /// <summary>
@@ -128,12 +170,13 @@ public static class FormatHelper
     /// </summary>
     public static IReadOnlyList<MineType> GetTypesForCategory(MineCategory category) => category switch
     {
-        MineCategory.Retirement     => [MineType.EpfKwsp, MineType.Others],
-        MineCategory.CashAndDeposits => [MineType.FixedDeposit, MineType.Others],
-        MineCategory.Investments    => [MineType.Stocks, MineType.Reit, MineType.Funds, MineType.Others],
-        MineCategory.Property       => [MineType.Property, MineType.Others],
-        MineCategory.PreciousMetals => [MineType.Gold, MineType.Silver, MineType.Others],
-        _                           => [MineType.Others]
+        MineCategory.Retirement      => [MineType.EpfKwsp, MineType.Others],
+        MineCategory.CashAndDeposits => [MineType.SavingsAccount, MineType.FixedDeposit, MineType.CashInHand, MineType.Others],
+        MineCategory.Investments     => [MineType.UnitTrustAsb, MineType.UnitTrustGeneral, MineType.Stocks, MineType.StocksUs, MineType.Reit, MineType.Etf, MineType.Others],
+        MineCategory.Property        => [MineType.PropertyResidential, MineType.PropertyCommercial, MineType.Others],
+        MineCategory.PreciousMetals  => [MineType.Gold, MineType.Silver, MineType.Others],
+        MineCategory.Digital         => [MineType.Cryptocurrency, MineType.Others],
+        _                            => [MineType.Others]
     };
 
     public static string BurdenTypeLabel(BurdenType type) => type switch
@@ -164,6 +207,7 @@ public static class FormatHelper
             MineCategory.Investments => "ti-chart-pie",
             MineCategory.Property => "ti-home-dollar",
             MineCategory.PreciousMetals => "ti-coins",
+            MineCategory.Digital => "ti-currency-bitcoin",
             _ => "ti-folder"
         };
     }

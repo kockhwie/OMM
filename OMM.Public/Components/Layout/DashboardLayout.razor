@@ -10,70 +10,56 @@
     {
     <!-- Desktop Sidebar -->
     <aside class="dashboard-sidebar d-none d-lg-flex flex-column position-fixed top-0 bottom-0 start-0 bg-white border-end" style="width: 256px; z-index: 1020;">
-        <div class="dashboard-sidebar-brand d-flex align-items-center px-4 border-bottom" style="height: 64px;">
-            <Logo Size="sm" Href="/" />
+        <div class="dashboard-sidebar-brand d-flex align-items-center px-3 border-bottom" style="height: 64px;">
+            <Logo Size="sm" Href="/" TaglineTwoLines="true" />
         </div>
 
         <nav class="flex-grow-1 px-3 py-3 overflow-y-auto d-flex flex-column gap-1">
             <NavLink class="sidebar-link" href="dashboard" Match="NavLinkMatch.All">
-                <i class="ti ti-layout-dashboard fs-5"></i>
+                <i class="ti ti-layout-dashboard fs-5 sidebar-icon-dashboard"></i>
                 <span>Mine Board</span>
             </NavLink>
             <NavLink class="sidebar-link" href="mines">
-                <i class="ti ti-shovel fs-5"></i>
+                <i class="ti ti-shovel fs-5 sidebar-icon-mines"></i>
                 <span>My Mines</span>
             </NavLink>
             <NavLink class="sidebar-link" href="burdens">
-                <i class="ti ti-scale fs-5"></i>
+                <i class="ti ti-scale fs-5 sidebar-icon-burdens"></i>
                 <span>Burdens</span>
             </NavLink>
             <NavLink class="sidebar-link" href="income">
-                <i class="ti ti-trending-up fs-5"></i>
+                <i class="ti ti-trending-up fs-5 sidebar-icon-income"></i>
                 <span>Income</span>
             </NavLink>
             <NavLink class="sidebar-link" href="goals">
-                <i class="ti ti-target fs-5"></i>
+                <i class="ti ti-target fs-5 sidebar-icon-goals"></i>
                 <span>Goals</span>
             </NavLink>
             <NavLink class="sidebar-link" href="expenses">
-                <i class="ti ti-receipt fs-5"></i>
+                <i class="ti ti-receipt fs-5 sidebar-icon-expenses"></i>
                 <span>Expenses</span>
             </NavLink>
             <NavLink class="sidebar-link" href="dashboard/tools">
-                <i class="ti ti-calculator fs-5"></i>
+                <i class="ti ti-calculator fs-5 sidebar-icon-tools"></i>
                 <span>Tools</span>
             </NavLink>
             <NavLink class="sidebar-link" href="learn">
-                <i class="ti ti-book fs-5"></i>
+                <i class="ti ti-book fs-5 sidebar-icon-learn"></i>
                 <span>Learn</span>
             </NavLink>
         </nav>
 
-        <div class="p-3 border-top">
-            <NavLink class="sidebar-link mb-2" href="settings">
-                <i class="ti ti-settings fs-5"></i>
+        <div class="dashboard-sidebar-footer border-top">
+            <NavLink class="sidebar-link" href="settings">
+                <i class="ti ti-settings fs-5 sidebar-icon-settings"></i>
                 <span>Settings</span>
             </NavLink>
-
-            @if (profile != null)
-            {
-                <div class="d-flex align-items-center gap-2 p-2 rounded-3 mb-2" style="background-color: var(--omm-ink-50);">
-                    <div class="rounded-circle text-white d-flex align-items-center justify-content-center fw-bold flex-shrink-0" 
-                         style="width: 36px; height: 36px; background-color: var(--omm-clay-500); font-size: 0.8rem;">
-                        @GetInitials(profile.Name)
-                    </div>
-                    <div class="flex-grow-1 overflow-hidden" style="line-height: 1.2;">
-                        <div class="fw-semibold text-truncate" style="font-size: 0.85rem;">@profile.Name</div>
-                        <div class="text-muted text-truncate" style="font-size: 0.75rem;">@profile.Email</div>
-                    </div>
-                </div>
-            }
 
             <form action="Account/Logout" method="post" class="w-100">
                 <AntiforgeryToken />
                 <input type="hidden" name="ReturnUrl" value="/" />
-                <button type="submit" class="sidebar-link w-100 border-0 bg-transparent text-start text-danger d-flex align-items-center gap-2">
-                    <i class="ti ti-logout fs-5"></i>
+                <button type="submit" class="sidebar-link sidebar-logout w-100 text-start">
+                    <i class="ti ti-logout fs-5 sidebar-icon-signout"></i>
                     <span>Sign Out</span>
                 </button>
             </form>
@@ -86,60 +72,60 @@
         <div class="dashboard-mobile-overlay position-fixed top-0 bottom-0 start-0 end-0 d-lg-none" style="z-index: 1040;">
             <div class="position-absolute top-0 bottom-0 start-0 end-0 bg-dark opacity-50" @onclick="ToggleMobileNav"></div>
             <div class="dashboard-mobile-sidebar position-relative bg-white h-100 d-flex flex-column" style="width: 280px;">
-                <div class="dashboard-sidebar-brand d-flex align-items-center justify-content-between px-4 border-bottom" style="height: 64px;">
-                    <Logo Size="sm" Href="/" />
+                <div class="dashboard-sidebar-brand d-flex align-items-center justify-content-between ps-3 pe-2 border-bottom" style="height: 64px;">
+                    <Logo Size="sm" Href="/" TaglineTwoLines="true" />
                     <button class="dashboard-sidebar-close btn btn-sm" @onclick="ToggleMobileNav" aria-label="Close navigation">
                         <i class="ti ti-x fs-4"></i>
                     </button>
                 </div>
-                <nav class="flex-grow-1 px-3 py-3 overflow-y-auto d-flex flex-column gap-1">
+                <nav class="px-3 py-3 overflow-y-auto d-flex flex-column gap-1">
                     <NavLink class="sidebar-link" href="dashboard" Match="NavLinkMatch.All" @onclick="ToggleMobileNav">
-                        <i class="ti ti-layout-dashboard fs-5"></i>
+                        <i class="ti ti-layout-dashboard fs-5 sidebar-icon-dashboard"></i>
                         <span>Mine Board</span>
                     </NavLink>
                     <NavLink class="sidebar-link" href="mines" @onclick="ToggleMobileNav">
-                        <i class="ti ti-shovel fs-5"></i>
+                        <i class="ti ti-shovel fs-5 sidebar-icon-mines"></i>
                         <span>My Mines</span>
                     </NavLink>
                     <NavLink class="sidebar-link" href="burdens" @onclick="ToggleMobileNav">
-                        <i class="ti ti-scale fs-5"></i>
+                        <i class="ti ti-scale fs-5 sidebar-icon-burdens"></i>
                         <span>Burdens</span>
                     </NavLink>
                     <NavLink class="sidebar-link" href="income" @onclick="ToggleMobileNav">
-                        <i class="ti ti-trending-up fs-5"></i>
+                        <i class="ti ti-trending-up fs-5 sidebar-icon-income"></i>
                         <span>Income</span>
                     </NavLink>
                     <NavLink class="sidebar-link" href="goals" @onclick="ToggleMobileNav">
-                        <i class="ti ti-target fs-5"></i>
+                        <i class="ti ti-target fs-5 sidebar-icon-goals"></i>
                         <span>Goals</span>
                     </NavLink>
                     <NavLink class="sidebar-link" href="expenses" @onclick="ToggleMobileNav">
-                        <i class="ti ti-receipt fs-5"></i>
+                        <i class="ti ti-receipt fs-5 sidebar-icon-expenses"></i>
                         <span>Expenses</span>
                     </NavLink>
                     <NavLink class="sidebar-link" href="dashboard/tools" @onclick="ToggleMobileNav">
-                        <i class="ti ti-calculator fs-5"></i>
+                        <i class="ti ti-calculator fs-5 sidebar-icon-tools"></i>
                         <span>Tools</span>
                     </NavLink>
                     <NavLink class="sidebar-link" href="learn" @onclick="ToggleMobileNav">
-                        <i class="ti ti-book fs-5"></i>
+                        <i class="ti ti-book fs-5 sidebar-icon-learn"></i>
                         <span>Learn</span>
                     </NavLink>
+                </nav>
+                <div class="dashboard-sidebar-footer border-top">
                     <NavLink class="sidebar-link" href="settings" @onclick="ToggleMobileNav">
-                        <i class="ti ti-settings fs-5"></i>
+                        <i class="ti ti-settings fs-5 sidebar-icon-settings"></i>
                         <span>Settings</span>
                     </NavLink>
-                    <div class="pt-2 border-top mt-2">
-                        <form action="Account/Logout" method="post" class="w-100">
-                            <AntiforgeryToken />
-                            <input type="hidden" name="ReturnUrl" value="/" />
-                            <button type="submit" class="sidebar-link w-100 border-0 bg-transparent text-start text-danger d-flex align-items-center gap-2">
-                                <i class="ti ti-logout fs-5"></i>
-                                <span>Sign Out</span>
-                            </button>
-                        </form>
-                    </div>
-                </nav>
+                    <form action="Account/Logout" method="post" class="w-100">
+                        <AntiforgeryToken />
+                        <input type="hidden" name="ReturnUrl" value="/" />
+                        <button type="submit" class="sidebar-link sidebar-logout w-100 text-start">
+                            <i class="ti ti-logout fs-5 sidebar-icon-signout"></i>
+                            <span>Sign Out</span>
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     }
@@ -163,22 +149,35 @@
                 </div>
             </div>
 
-            <div class="d-flex align-items-center gap-2 position-relative">
+            <div class="dashboard-topbar-actions d-flex align-items-center position-relative">
+                @if (!requiresOnboarding && profile != null)
+                {
+                    <a href="settings" class="dashboard-profile-card d-flex align-items-center text-decoration-none flex-shrink-0"
+                       title="Account Settings (@profile.Name)">
+                        <div class="dashboard-profile-details" aria-hidden="true">
+                            <div class="fw-semibold text-dark text-truncate">@profile.Name</div>
+                            <div class="text-muted text-truncate">@profile.Email</div>
+                        </div>
+                        <div class="dashboard-profile-avatar flex-shrink-0">
+                            @GetInitials(profile.Name)
+                        </div>
+                    </a>
+                }
+
                 <!-- Stealth Mode Toggle -->
-                <button class="btn btn-sm btn-light p-2 rounded-circle border-0 btn-stealth-toggle @(isStealthMode ? "active" : "")" 
+                <button class="dashboard-topbar-action btn-stealth-toggle @(isStealthMode ? "active" : "")" 
                         @onclick="ToggleStealthMode" 
                         title="@(isStealthMode ? "Stealth Mode active: click to unhide amounts" : "Enable Stealth Mode (hide amounts in public)")" 
-                        aria-label="Toggle Stealth Mode"
-                        style="background-color: var(--omm-ink-100); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
-                    <i class="ti @(isStealthMode ? "ti-eye-off text-warning" : "ti-eye text-dark") fs-5"></i>
+                        aria-label="Toggle Stealth Mode">
+                    <i class="ti @(isStealthMode ? "ti-eye-off" : "ti-eye")"></i>
                 </button>
 
                 <!-- Notification Bell -->
                 <div class="position-relative">
-                    <button class="btn btn-sm btn-light position-relative p-2 rounded-circle border-0" 
+                    <button class="dashboard-topbar-action position-relative" 
                             @onclick="ToggleNotifDropdown" 
-                            style="background-color: var(--omm-ink-100); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;" aria-label="Notifications">
-                        <i class="ti ti-bell fs-5 text-dark"></i>
+                            aria-label="Notifications">
+                        <i class="ti ti-bell"></i>
                         @if (unreadNotifCount > 0)
                         {
                             <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
@@ -221,26 +220,13 @@
                     }
                 </div>
 
-                <!-- User Profile Pill & Sign Out -->
-                <div class="d-flex align-items-center gap-2">
-                    @if (!requiresOnboarding && profile != null)
-                    {
-                        <a href="settings" class="d-flex align-items-center text-decoration-none flex-shrink-0" title="Account Settings (@profile.Name)">
-                            <div class="rounded-circle text-white d-flex align-items-center justify-content-center fw-bold shadow-sm flex-shrink-0"
-                                 style="width: 36px; height: 36px; min-width: 36px; background-color: var(--omm-clay-500); font-size: 0.85rem;">
-                                @GetInitials(profile.Name)
-                            </div>
-                        </a>
-                    }
-                    <form action="Account/Logout" method="post" class="d-inline m-0">
-                        <AntiforgeryToken />
-                        <input type="hidden" name="ReturnUrl" value="/" />
-                        <button type="submit" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 rounded-3 px-2 py-1" title="Sign Out">
-                            <i class="ti ti-logout"></i>
-                            <span class="d-none d-md-inline" style="font-size: 0.8rem;">Sign Out</span>
-                        </button>
-                    </form>
-                </div>
+                <form action="Account/Logout" method="post" class="d-inline m-0">
+                    <AntiforgeryToken />
+                    <input type="hidden" name="ReturnUrl" value="/" />
+                    <button type="submit" class="dashboard-signout-button" title="Sign Out">
+                        <i class="ti ti-logout"></i>
+                    </button>
+                </form>
             </div>
         </header>
 

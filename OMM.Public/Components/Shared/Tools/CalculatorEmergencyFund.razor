@@ -10,30 +10,32 @@
         <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
             <h3 class="h6 fw-bold text-dark font-display mb-4">Living Outflows</h3>
             
-            <div class="mb-3">
-                <label class="form-label text-dark">Monthly Essential Living Expenses</label>
+            <div class="omm-form-section">
+                <div class="omm-form-field">
+                    <label class="omm-form-label" for="ef-monthly-expense">Monthly Essential Living Expenses</label>
                 <div class="dc-currency-group">
                     <span class="dc-currency-addon">@CurrencySymbol</span>
-                    <input type="number" class="form-control" step="200" @bind="efMonthlyExpense" @bind:event="oninput" />
+                    <input id="ef-monthly-expense" type="number" class="form-control" step="200" @bind="efMonthlyExpense" @bind:event="oninput" />
                 </div>
-            </div>
+                </div>
 
-            <div class="mb-3">
-                <label class="form-label text-dark">Current Liquid Cash &amp; Deposits</label>
+                <div class="omm-form-field">
+                    <label class="omm-form-label" for="ef-current-cash">Current Liquid Cash &amp; Deposits</label>
                 <div class="dc-currency-group">
                     <span class="dc-currency-addon">@CurrencySymbol</span>
-                    <input type="number" class="form-control" step="1000" @bind="efCurrentCash" @bind:event="oninput" />
+                    <input id="ef-current-cash" type="number" class="form-control" step="1000" @bind="efCurrentCash" @bind:event="oninput" />
                 </div>
-            </div>
+                </div>
 
-            <div class="mb-3">
-                <label class="form-label text-dark">Target Runway Coverage</label>
-                <select class="form-select rounded-3" @bind="efTargetMonths">
+                <div class="omm-form-field">
+                    <label class="omm-form-label" for="ef-target-months">Target Runway Coverage</label>
+                    <select id="ef-target-months" class="form-select rounded-3" @bind="efTargetMonths">
                     <option value="3">3 Months (Standard Employee)</option>
                     <option value="6">6 Months (Recommended Balanced Buffer)</option>
                     <option value="9">9 Months (Single Income / Family)</option>
                     <option value="12">12 Months (Business Owner / Freelancer)</option>
-                </select>
+                    </select>
+                </div>
             </div>
         </div>
     </div>
@@ -50,7 +52,7 @@
             }
 
             <div class="p-4 rounded-4 bg-light border border-light-subtle text-center mb-3">
-                <span class="text-uppercase text-muted fw-semibold" style="font-size: 0.7rem;">Current Runway</span>
+                <span class="text-uppercase text-muted fw-semibold dc-result-label">Current Runway</span>
                 <div class="fs-1 fw-bold text-dark font-display my-1">
                     @efMonthsCurrent Months
                 </div>

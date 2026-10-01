@@ -10,35 +10,37 @@
         <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
             <h3 class="h6 fw-bold text-dark font-display mb-4">Cashflow Assumptions</h3>
             
-            <div class="mb-3">
-                <label class="form-label text-dark">Monthly Recurring Living Expenses</label>
+            <div class="omm-form-section">
+                <div class="omm-form-field">
+                    <label class="omm-form-label" for="freedom-expenses">Monthly Recurring Living Expenses</label>
                 <div class="dc-currency-group">
                     <span class="dc-currency-addon">@CurrencySymbol</span>
-                    <input type="number" class="form-control" step="250" @bind="simExpenses" @bind:event="oninput" />
+                    <input id="freedom-expenses" type="number" class="form-control" step="250" @bind="simExpenses" @bind:event="oninput" />
                 </div>
-            </div>
+                </div>
 
-            <div class="mb-3">
-                <label class="form-label text-dark">Current Monthly Passive Income</label>
+                <div class="omm-form-field">
+                    <label class="omm-form-label" for="freedom-passive">Current Monthly Passive Income</label>
                 <div class="dc-currency-group">
                     <span class="dc-currency-addon">@CurrencySymbol</span>
-                    <input type="number" class="form-control" step="100" @bind="simPassive" @bind:event="oninput" />
+                    <input id="freedom-passive" type="number" class="form-control" step="100" @bind="simPassive" @bind:event="oninput" />
                 </div>
-            </div>
+                </div>
 
-            <div class="mb-3">
-                <label class="form-label text-dark">Monthly Savings Invested into Mines</label>
+                <div class="omm-form-field">
+                    <label class="omm-form-label" for="freedom-savings">Monthly Savings Invested into Mines</label>
                 <div class="dc-currency-group">
                     <span class="dc-currency-addon">@CurrencySymbol</span>
-                    <input type="number" class="form-control" step="250" @bind="simMonthlySaving" @bind:event="oninput" />
+                    <input id="freedom-savings" type="number" class="form-control" step="250" @bind="simMonthlySaving" @bind:event="oninput" />
                 </div>
-            </div>
+                </div>
 
-            <div class="mb-3">
-                <label class="form-label text-dark">Assumed Average Mine Yield (% p.a.)</label>
+                <div class="omm-form-field">
+                    <label class="omm-form-label" for="freedom-yield">Assumed Average Mine Yield (% p.a.)</label>
                 <div class="dc-currency-group">
-                    <input type="number" class="form-control" step="0.5" @bind="simYield" @bind:event="oninput" />
+                    <input id="freedom-yield" type="number" class="form-control" step="0.5" @bind="simYield" @bind:event="oninput" />
                     <span class="dc-currency-suffix">%</span>
+                </div>
                 </div>
             </div>
         </div>
@@ -56,7 +58,7 @@
             }
 
             <div class="p-4 rounded-4 bg-success-subtle border border-success-subtle text-center mb-3">
-                <span class="text-uppercase text-muted fw-semibold" style="font-size: 0.7rem;">Current Freedom Score</span>
+                <span class="text-uppercase text-muted fw-semibold dc-result-label">Current Freedom Score</span>
                 <div class="fs-1 fw-bold text-success font-display my-1">
                     @Math.Round(currentRatio, 1)%
                 </div>

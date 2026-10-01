@@ -11,33 +11,35 @@
         <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
             <h3 class="h6 fw-bold text-dark font-display mb-4">Placement Parameters</h3>
             
-            <div class="mb-3">
-                <label class="form-label text-dark">Principal Amount</label>
+            <div class="omm-form-section">
+                <div class="omm-form-field">
+                    <label class="omm-form-label" for="fd-principal">Principal Amount</label>
                 <div class="dc-currency-group">
                     <span class="dc-currency-addon">@CurrencySymbol</span>
-                    <input type="number" class="form-control" step="1000" @bind="fdPrincipal" @bind:event="oninput" />
+                    <input id="fd-principal" type="number" class="form-control" step="1000" @bind="fdPrincipal" @bind:event="oninput" />
                 </div>
-            </div>
+                </div>
 
-            <div class="mb-3">
-                <label class="form-label text-dark">Interest Rate (% p.a.)</label>
+                <div class="omm-form-field">
+                    <label class="omm-form-label" for="fd-rate">Interest Rate (% p.a.)</label>
                 <div class="dc-currency-group">
-                    <input type="number" class="form-control" step="0.05" @bind="fdRate" @bind:event="oninput" />
+                    <input id="fd-rate" type="number" class="form-control" step="0.05" @bind="fdRate" @bind:event="oninput" />
                     <span class="dc-currency-suffix">%</span>
                 </div>
-            </div>
+                </div>
 
-            <div class="mb-3">
+                <div class="omm-form-field">
                 <div class="d-flex justify-content-between align-items-center mb-1">
-                    <label class="form-label text-dark mb-0">Tenure: <span class="text-primary fw-bold">@fdTenureMonths months</span></label>
+                    <label class="omm-form-label mb-0" for="fd-tenure">Tenure: <span class="text-primary fw-bold">@fdTenureMonths months</span></label>
                     <span class="text-muted small">(@(fdTenureMonths >= 12 ? $"{fdTenureMonths / 12} yr {(fdTenureMonths % 12 > 0 ? $"{fdTenureMonths % 12} mo" : "")}" : $"{fdTenureMonths} mo"))</span>
                 </div>
-                <input type="range" class="form-range" min="1" max="60" @bind="fdTenureMonths" @bind:event="oninput" />
+                <input id="fd-tenure" type="range" class="form-range" min="1" max="60" @bind="fdTenureMonths" @bind:event="oninput" />
                 <div class="d-flex justify-content-between small text-muted">
                     <span>1 mo</span>
                     <span>12 mo (1 yr)</span>
                     <span>36 mo (3 yr)</span>
                     <span>60 mo (5 yr)</span>
+                </div>
                 </div>
             </div>
         </div>
@@ -49,7 +51,7 @@
             <h3 class="h6 fw-bold text-dark font-display mb-4">Maturity Yield Breakdown</h3>
 
             <div class="p-4 rounded-4 bg-dark text-white text-center mb-3">
-                <span class="text-uppercase text-white-50 fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.05em;">Total Maturity Proceeds</span>
+                <span class="text-uppercase text-white-50 fw-semibold dc-result-label">Total Maturity Proceeds</span>
                 <div class="fs-2 fw-bold text-warning font-display my-1">
                     @FormatHelper.FormatCurrency(FdMaturityValue, UserCurrency)
                 </div>

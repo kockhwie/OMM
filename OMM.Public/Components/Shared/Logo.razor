@@ -8,8 +8,16 @@
         <span class="omm-logo-title @TextSizeClass @TextClass font-display fw-bold">
             OhMyMine
         </span>
-        <span class="omm-logo-tagline text-uppercase">
-            Personal Wealth Planning
+        <span class="omm-logo-tagline text-uppercase @(TaglineTwoLines ? "omm-logo-tagline-two-line" : string.Empty)">
+            @if (TaglineTwoLines)
+            {
+                <span>Personal Wealth</span>
+                <span>Planning</span>
+            }
+            else
+            {
+                @:Personal Wealth Planning
+            }
         </span>
     </div>
 </a>
@@ -18,6 +26,7 @@
     [Parameter] public string Variant { get; set; } = "dark"; // "dark" | "light"
     [Parameter] public string Size { get; set; } = "md"; // "sm" | "md" | "lg"
     [Parameter] public string Href { get; set; } = "/";
+    [Parameter] public bool TaglineTwoLines { get; set; }
 
     private string TextClass => Variant == "dark" ? "text-dark" : "text-white";
     private string SubTextClass => Variant == "dark" ? "text-muted" : "text-light-50 text-white-50";

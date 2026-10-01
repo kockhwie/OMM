@@ -1,21 +1,20 @@
 @namespace OMM.Public.Components.Shared
 @using OMM.Public.Services
 
-<div class="omm-card p-4 h-100 d-flex flex-column justify-content-between position-relative overflow-hidden">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-start mb-2">
-        <div>
-            <span class="text-muted text-uppercase fw-bold d-block" style="font-size: 0.75rem; letter-spacing: 0.05em;">Freedom Speedometer</span>
-            <h3 class="h6 font-display fw-bold text-dark mb-0 mt-1">Passive Coverage</h3>
+<div class="omm-card freedom-gauge-card p-4 h-100 d-flex flex-column position-relative overflow-hidden">
+    <div class="freedom-gauge-header">
+        <div class="freedom-gauge-heading">
+            <h3 class="freedom-gauge-title font-display">Freedom score</h3>
+            <p class="freedom-gauge-description">Passive income / recurring expenses</p>
         </div>
-        <span class="freedom-stage-badge @StageBadgeClass">
-            <i class="ti @StageIcon"></i>
-            <span>@StageName</span>
-        </span>
+        <div class="freedom-gauge-status @StageStatusClass" aria-live="polite" title="Passive income coverage stage">
+            <span class="freedom-gauge-status-dot"></span>
+            <span>Current stage: @StageName</span>
+        </div>
     </div>
 
     <!-- SVG Gauge Visual -->
-    <div class="freedom-gauge-container my-auto py-2">
+    <div class="freedom-gauge-container">
         <svg class="freedom-gauge-svg" viewBox="0 0 260 145" preserveAspectRatio="xMidYMid meet">
             <defs>
                 <!-- Gradient for active gauge arc -->
@@ -58,10 +57,10 @@
                   stroke-dashoffset="@DashOffset" />
 
             <!-- Center readout inside arc -->
-            <text x="130" y="110" text-anchor="middle" class="font-display fw-bold text-dark metric-card-value" style="font-size: 2.2rem; font-weight: 800; fill: var(--omm-ink-900);">
+            <text x="130" y="110" text-anchor="middle" class="freedom-gauge-value font-display fw-bold metric-card-value">
                 @($"{ClampedPercentage:F0}%")
             </text>
-            <text x="130" y="130" text-anchor="middle" class="text-muted" style="font-size: 0.725rem; font-weight: 600; fill: var(--omm-ink-500); letter-spacing: 0.04em;">
+            <text x="130" y="130" text-anchor="middle" class="freedom-gauge-caption">
                 OF LIVING EXPENSES
             </text>
         </svg>
@@ -69,34 +68,34 @@
 
     <!-- Milestone Roadmap Stages -->
     <div class="mt-2 pt-2 border-top border-light-subtle">
-        <div class="d-flex justify-content-between align-items-center mb-2" style="font-size: 0.75rem;">
+        <div class="freedom-gauge-summary d-flex justify-content-between align-items-center mb-2">
             <span class="text-muted">Current: <strong class="text-dark metric-card-value">@FormatHelper.FormatCurrency(PassiveMonthly)/mo</strong></span>
             <span class="text-muted">Target: <strong class="text-dark metric-card-value">@FormatHelper.FormatCurrency(RecurringMonthly)/mo</strong></span>
         </div>
 
         <!-- 4-step Milestone Breadcrumb -->
-        <div class="d-flex gap-1 justify-content-between">
-            <div class="flex-grow-1 p-1 rounded text-center @(ClampedPercentage >= 0 ? "bg-success-subtle text-success fw-bold" : "bg-light text-muted")" style="font-size: 0.675rem;">
-                <i class="ti ti-shield fs-7"></i>
-                <span class="d-none d-sm-inline"> 0-25%</span>
-            </div>
-            <div class="flex-grow-1 p-1 rounded text-center @(ClampedPercentage >= 25 ? "bg-success-subtle text-success fw-bold" : (ClampedPercentage >= 0 ? "bg-warning-subtle text-warning-emphasis fw-bold" : "bg-light text-muted"))" style="font-size: 0.675rem;">
-                <i class="ti ti-plane-departure fs-7"></i>
-                <span class="d-none d-sm-inline"> 25-50%</span>
-            </div>
-            <div class="flex-grow-1 p-1 rounded text-center @(ClampedPercentage >= 50 ? "bg-success-subtle text-success fw-bold" : "bg-light text-muted")" style="font-size: 0.675rem;">
-                <i class="ti ti-sailboat fs-7"></i>
-                <span class="d-none d-sm-inline"> 50-75%</span>
-            </div>
-            <div class="flex-grow-1 p-1 rounded text-center @(ClampedPercentage >= 100 ? "bg-success-subtle text-success fw-bold" : "bg-light text-muted")" style="font-size: 0.675rem;">
-                <i class="ti ti-crown fs-7"></i>
-                <span class="d-none d-sm-inline"> 100%</span>
-            </div>
+        <div class="freedom-stage-scale">
+                <div class="freedom-stage-step freedom-stage-step-1 @(ClampedPercentage >= 0 ? "is-reached" : "")" aria-label="0 to 25 percent covered: starting coverage">
+                    <strong>0~25%</strong>
+                    <span>Starting</span>
+                </div>
+            <div class="freedom-stage-step freedom-stage-step-2 @(ClampedPercentage >= 25 ? "is-reached" : "")" aria-label="25 to 50 percent covered: building runway">
+                    <strong>25~50%</strong>
+                    <span>Runway</span>
+                </div>
+            <div class="freedom-stage-step freedom-stage-step-3 @(ClampedPercentage >= 50 ? "is-reached" : "")" aria-label="50 to 75 percent covered: coast FIRE">
+                    <strong>50~75%</strong>
+                    <span>Coast FIRE</span>
+                </div>
+            <div class="freedom-stage-step freedom-stage-step-4 @(ClampedPercentage >= 75 ? "is-reached" : "")" aria-label="75 to 100 percent covered: nearly covered">
+                    <strong>75~100%</strong>
+                    <span>Nearly covered</span>
+                </div>
         </div>
 
         @if (!string.IsNullOrEmpty(NextTierMessage))
         {
-            <div class="text-center text-muted mt-2 small" style="font-size: 0.725rem;">
+            <div class="freedom-gauge-next text-center text-muted mt-2 small">
                 <i class="ti ti-sparkles text-warning me-1"></i>
                 @NextTierMessage
             </div>
@@ -123,29 +122,20 @@
 
     private string StageName => Percentage switch
     {
-        < 25 => "Survival Buffer",
-        < 50 => "Runway Builder",
+        < 25 => "Starting",
+        < 50 => "Runway",
         < 75 => "Coast FIRE",
-        < 100 => "Near Sovereign",
-        _ => "Sovereign Freedom"
+        < 100 => "Nearly covered",
+        _ => "Fully covered"
     };
 
-    private string StageIcon => Percentage switch
+    private string StageStatusClass => ClampedPercentage switch
     {
-        < 25 => "ti-shield",
-        < 50 => "ti-plane-departure",
-        < 75 => "ti-sailboat",
-        < 100 => "ti-sun",
-        _ => "ti-crown"
-    };
-
-    private string StageBadgeClass => Percentage switch
-    {
-        < 25 => "bg-light text-dark border",
-        < 50 => "bg-warning-subtle text-warning-emphasis border border-warning-subtle",
-        < 75 => "bg-primary-subtle text-primary border border-primary-subtle",
-        < 100 => "bg-info-subtle text-info-emphasis border border-info-subtle",
-        _ => "bg-success-subtle text-success border border-success-subtle"
+        < 25 => "freedom-stage-status-1",
+        < 50 => "freedom-stage-status-2",
+        < 75 => "freedom-stage-status-3",
+        < 100 => "freedom-stage-status-4",
+        _ => "freedom-stage-status-complete"
     };
 
     private string NextTierMessage
@@ -158,18 +148,18 @@
             {
                 var target = RecurringMonthly * 0.25m;
                 var gap = Math.Max(0, target - PassiveMonthly);
-                return $"Add {FormatHelper.FormatCurrency(gap)}/mo passive to unlock Runway Builder (25%)";
+                return $"Add {FormatHelper.FormatCurrency(gap)}/mo passive to cover 25% of recurring expenses";
             }
             if (Percentage < 50)
             {
                 var target = RecurringMonthly * 0.50m;
                 var gap = Math.Max(0, target - PassiveMonthly);
-                return $"Add {FormatHelper.FormatCurrency(gap)}/mo passive to reach Coast FIRE (50%)";
+                return $"Add {FormatHelper.FormatCurrency(gap)}/mo passive to cover 50% of recurring expenses";
             }
             if (Percentage < 100)
             {
                 var gap = Math.Max(0, RecurringMonthly - PassiveMonthly);
-                return $"{FormatHelper.FormatCurrency(gap)}/mo more to achieve Sovereign Freedom (100%)";
+                return $"{FormatHelper.FormatCurrency(gap)}/mo more to cover all recurring expenses";
             }
             return "Congratulations! Your mines completely fund your recurring living expenses.";
         }

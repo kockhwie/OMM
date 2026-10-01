@@ -50,6 +50,9 @@
             document.querySelectorAll('[data-bs-toggle="popover"]').forEach(el =>
                 bootstrap.Popover.getInstance(el)?.hide());
         });
+
+        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el =>
+            bootstrap.Tooltip.getOrCreateInstance(el));
     </script>
 
     <script src="@Assets["_framework/blazor.web.js"]"></script>

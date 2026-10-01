@@ -8,14 +8,14 @@
 
 <PageTitle>Admin Dashboard - OMM</PageTitle>
 
-<div class="container-fluid p-0">
-    <div class="d-flex align-items-center justify-content-between mb-4">
+<div class="container-fluid p-0 admin-dashboard">
+    <div class="admin-dashboard-header d-flex align-items-center justify-content-between mb-4">
         <div>
             <h1 class="h3 fw-bold text-dark mb-1">System Overview</h1>
             <p class="text-muted mb-0">Master data entities and administrative status across the OMM platform.</p>
         </div>
-        <div class="d-flex gap-2">
-            <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" @onclick="LoadCountsAsync">
+        <div class="admin-dashboard-actions d-flex gap-2">
+            <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" @onclick="LoadCountsAsync" title="Refresh dashboard" aria-label="Refresh dashboard">
                 <i class="ti ti-refresh @(isLoading ? "ti-spin" : "")"></i>
                 <span>Refresh</span>
             </button>
@@ -34,7 +34,7 @@
     else
     {
         <!-- Admin Accounts Stat -->
-        <div class="row g-3 mb-4">
+        <div class="row g-3 mb-4 admin-dashboard-metrics">
             <div class="col-12 col-md-6 col-xl-3">
                 <div class="omm-card metric-card border-danger-subtle bg-danger-subtle bg-opacity-10">
                     <div class="d-flex align-items-center justify-content-between">
@@ -91,10 +91,10 @@
         </div>
 
         <!-- Master Data Tables Detail Section -->
-        <div class="row g-4">
+        <div class="row g-4 admin-dashboard-detail-row">
             <div class="col-12 col-lg-8">
-                <div class="omm-card p-4">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="omm-card p-4 admin-master-card">
+                    <div class="admin-master-card-header d-flex align-items-center justify-content-between mb-3">
                         <h2 class="h5 fw-bold mb-0">Master Data Breakdown</h2>
                         <span class="badge bg-secondary-subtle text-secondary">7 Tables</span>
                     </div>
@@ -194,27 +194,27 @@
             </div>
 
             <div class="col-12 col-lg-4">
-                <div class="omm-card p-4 h-100 d-flex flex-column justify-content-between">
+                <div class="omm-card p-4 h-100 d-flex flex-column justify-content-between admin-system-card">
                     <div>
                         <h2 class="h5 fw-bold mb-3">System Information</h2>
                         <ul class="list-group list-group-flush small">
-                            <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                            <li class="list-group-item px-0 d-flex justify-content-between align-items-center admin-system-info-item">
                                 <span class="text-muted">Application</span>
                                 <span class="fw-semibold">OMM.Admin</span>
                             </li>
-                            <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                            <li class="list-group-item px-0 d-flex justify-content-between align-items-center admin-system-info-item">
                                 <span class="text-muted">Target Framework</span>
                                 <span class="badge bg-dark-subtle text-dark">.NET 10.0</span>
                             </li>
-                            <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                            <li class="list-group-item px-0 d-flex justify-content-between align-items-center admin-system-info-item">
                                 <span class="text-muted">Database Engine</span>
                                 <span class="badge bg-primary-subtle text-primary">PostgreSQL / Neon</span>
                             </li>
-                            <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                            <li class="list-group-item px-0 d-flex justify-content-between align-items-center admin-system-info-item">
                                 <span class="text-muted">Identity Schema</span>
                                 <code>admin.*</code>
                             </li>
-                            <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                            <li class="list-group-item px-0 d-flex justify-content-between align-items-center admin-system-info-item">
                                 <span class="text-muted">Master Data Schema</span>
                                 <code>public.*</code>
                             </li>
@@ -222,7 +222,7 @@
                     </div>
 
                     <div class="mt-4 p-3 rounded-3 bg-light border">
-                        <div class="d-flex align-items-center gap-2 text-muted small">
+                        <div class="admin-system-notice d-flex align-items-center gap-2 text-muted small">
                             <i class="ti ti-info-circle fs-5"></i>
                             <span>Admin access is restricted to users with <code>SuperAdmin</code> or <code>Admin</code> roles.</span>
                         </div>

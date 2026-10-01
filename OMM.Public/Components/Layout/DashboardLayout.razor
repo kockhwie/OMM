@@ -5,62 +5,65 @@
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JS
 
-<div class="dashboard-layout d-flex min-vh-100" style="background-color: #f3f8fe;">
+    <div class="dashboard-layout d-flex min-vh-100">
     @if (!requiresOnboarding)
     {
     <!-- Desktop Sidebar -->
-    <aside class="dashboard-sidebar d-none d-lg-flex flex-column position-fixed top-0 bottom-0 start-0 bg-white border-end" style="width: 256px; z-index: 1020;">
+    <aside class="dashboard-sidebar d-none d-lg-flex flex-column position-fixed top-0 bottom-0 start-0 bg-white border-end @(isDesktopSidebarCollapsed ? "is-collapsed" : string.Empty)">
         <div class="dashboard-sidebar-brand d-flex align-items-center px-3 border-bottom" style="height: 64px;">
             <Logo Size="sm" Href="/" TaglineTwoLines="true" />
         </div>
+        <button type="button" class="dashboard-sidebar-collapse-toggle" @onclick="ToggleDesktopSidebar" aria-label="@(isDesktopSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar")" title="@(isDesktopSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar")" data-bs-toggle="tooltip" data-bs-placement="right">
+            <i class="ti @(isDesktopSidebarCollapsed ? "ti-chevron-right" : "ti-chevron-left")"></i>
+        </button>
 
         <nav class="flex-grow-1 px-3 py-3 overflow-y-auto d-flex flex-column gap-1">
-            <NavLink class="sidebar-link" href="dashboard" Match="NavLinkMatch.All">
+            <NavLink class="sidebar-link" href="dashboard" Match="NavLinkMatch.All" data-bs-toggle="tooltip" data-bs-placement="right" title="Mine Board">
                 <i class="ti ti-layout-dashboard fs-5 sidebar-icon-dashboard"></i>
-                <span>Mine Board</span>
+                <span class="dashboard-sidebar-label">Mine Board</span>
             </NavLink>
-            <NavLink class="sidebar-link" href="mines">
+            <NavLink class="sidebar-link" href="mines" data-bs-toggle="tooltip" data-bs-placement="right" title="My Mines">
                 <i class="ti ti-shovel fs-5 sidebar-icon-mines"></i>
-                <span>My Mines</span>
+                <span class="dashboard-sidebar-label">My Mines</span>
             </NavLink>
-            <NavLink class="sidebar-link" href="burdens">
+            <NavLink class="sidebar-link" href="burdens" data-bs-toggle="tooltip" data-bs-placement="right" title="Burdens">
                 <i class="ti ti-scale fs-5 sidebar-icon-burdens"></i>
-                <span>Burdens</span>
+                <span class="dashboard-sidebar-label">Burdens</span>
             </NavLink>
-            <NavLink class="sidebar-link" href="income">
+            <NavLink class="sidebar-link" href="income" data-bs-toggle="tooltip" data-bs-placement="right" title="Income">
                 <i class="ti ti-trending-up fs-5 sidebar-icon-income"></i>
-                <span>Income</span>
+                <span class="dashboard-sidebar-label">Income</span>
             </NavLink>
-            <NavLink class="sidebar-link" href="goals">
+            <NavLink class="sidebar-link" href="goals" data-bs-toggle="tooltip" data-bs-placement="right" title="Goals">
                 <i class="ti ti-target fs-5 sidebar-icon-goals"></i>
-                <span>Goals</span>
+                <span class="dashboard-sidebar-label">Goals</span>
             </NavLink>
-            <NavLink class="sidebar-link" href="expenses">
+            <NavLink class="sidebar-link" href="expenses" data-bs-toggle="tooltip" data-bs-placement="right" title="Expenses">
                 <i class="ti ti-receipt fs-5 sidebar-icon-expenses"></i>
-                <span>Expenses</span>
+                <span class="dashboard-sidebar-label">Expenses</span>
             </NavLink>
-            <NavLink class="sidebar-link" href="dashboard/tools">
+            <NavLink class="sidebar-link" href="dashboard/tools" data-bs-toggle="tooltip" data-bs-placement="right" title="Tools">
                 <i class="ti ti-calculator fs-5 sidebar-icon-tools"></i>
-                <span>Tools</span>
+                <span class="dashboard-sidebar-label">Tools</span>
             </NavLink>
-            <NavLink class="sidebar-link" href="learn">
+            <NavLink class="sidebar-link" href="learn" data-bs-toggle="tooltip" data-bs-placement="right" title="Learn">
                 <i class="ti ti-book fs-5 sidebar-icon-learn"></i>
-                <span>Learn</span>
+                <span class="dashboard-sidebar-label">Learn</span>
             </NavLink>
         </nav>
 
         <div class="dashboard-sidebar-footer border-top">
-            <NavLink class="sidebar-link" href="settings">
+            <NavLink class="sidebar-link" href="settings" data-bs-toggle="tooltip" data-bs-placement="right" title="Settings">
                 <i class="ti ti-settings fs-5 sidebar-icon-settings"></i>
-                <span>Settings</span>
+                <span class="dashboard-sidebar-label">Settings</span>
             </NavLink>
 
             <form action="Account/Logout" method="post" class="w-100">
                 <AntiforgeryToken />
                 <input type="hidden" name="ReturnUrl" value="/" />
-                <button type="submit" class="sidebar-link sidebar-logout w-100 text-start">
+                <button type="submit" class="sidebar-link sidebar-logout w-100 text-start" data-bs-toggle="tooltip" data-bs-placement="right" title="Sign Out" aria-label="Sign Out">
                     <i class="ti ti-logout fs-5 sidebar-icon-signout"></i>
-                    <span>Sign Out</span>
+                    <span class="dashboard-sidebar-label">Sign Out</span>
                 </button>
             </form>
         </div>
@@ -132,7 +135,7 @@
     }
 
     <!-- Main Content Area -->
-    <div class="flex-grow-1 d-flex flex-column dashboard-content-wrapper" style="min-width: 0;">
+    <div class="flex-grow-1 d-flex flex-column dashboard-content-wrapper @(isDesktopSidebarCollapsed ? "sidebar-collapsed" : string.Empty)">
         <!-- Top Bar -->
         <header class="sticky-top bg-white bg-opacity-95 border-bottom px-4 px-lg-5 d-flex align-items-center justify-content-between" 
                 style="height: 64px; backdrop-filter: blur(8px); z-index: 1010; width: 100%;">
@@ -241,6 +244,7 @@
     private MinerProfile? profile;
     private List<Notification>? notifications;
     private bool isMobileNavOpen = false;
+    private bool isDesktopSidebarCollapsed = false;
     private bool isNotifOpen = false;
     private bool isStealthMode = false;
     private bool requiresOnboarding = true;
@@ -333,6 +337,7 @@
     }
 
     private void ToggleMobileNav() => isMobileNavOpen = !isMobileNavOpen;
+    private void ToggleDesktopSidebar() => isDesktopSidebarCollapsed = !isDesktopSidebarCollapsed;
     private void ToggleNotifDropdown() => isNotifOpen = !isNotifOpen;
 
     private string GetInitials(string name)

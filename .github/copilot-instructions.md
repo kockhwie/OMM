@@ -14,6 +14,7 @@
 - For OMM.Admin, remove inline styles from shared layout and dashboard markup where possible, reuse existing centralized CSS classes, and follow DRY principles consistently with the prior public-project cleanup.
 - Prioritize restrained, intentional UI styling. Avoid generic AI-looking visual treatments such as excessive rounded cards, heavy shadows, and decorative gradients. Ensure controls do not look cheap or overly pill-shaped; focus on simple premium geometry and optical alignment.
 - For OMM.Admin mobile layouts, preserve usable single-column content and avoid cramped two-column card grids with excessive right-side whitespace; mobile sign-out controls should remain compact and visually aligned rather than wrapping awkwardly.
+- Admin sidebar Bootstrap tooltips should use a white bubble with dark text and a subtle border/shadow for contrast against the black sidebar; public tooltip styling can remain separate.
 
 ## OMM Color System
 - Use semantic color roles consistently across dashboard cards, sidebar icons, and related UI: Net Wealth uses warm gold; Mines uses matcha/olive green; Passive Income uses blue; positive Growth uses plum/purple; Loss and Burdens use muted red; Goals may use ochre/gold; Expenses use muted terracotta.

@@ -61,6 +61,24 @@
     
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        window.ommTooltips = {
+            init: function () {
+                document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el =>
+                    bootstrap.Tooltip.getOrCreateInstance(el, {
+                        container: 'body',
+                        boundary: 'viewport'
+                    }));
+            }
+        };
+
+        window.ommTooltips.init();
+        document.addEventListener('enhancedload', window.ommTooltips.init);
+        new MutationObserver(window.ommTooltips.init).observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    </script>
     
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>

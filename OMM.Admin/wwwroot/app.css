@@ -259,6 +259,34 @@ h1:focus {
     font-size: 0.725rem;
 }
 
+/* Admin sidebar tooltips need contrast against the dark navigation surface. */
+.tooltip {
+    --bs-tooltip-bg: #ffffff;
+    --bs-tooltip-color: var(--omm-ink-900);
+}
+
+.tooltip .tooltip-inner {
+    border: 1px solid var(--omm-ink-200);
+    box-shadow: 0 4px 12px rgba(8, 9, 12, 0.16);
+    font-weight: 600;
+}
+
+.bs-tooltip-end .tooltip-arrow::before {
+    border-right-color: #ffffff;
+}
+
+.bs-tooltip-start .tooltip-arrow::before {
+    border-left-color: #ffffff;
+}
+
+.bs-tooltip-top .tooltip-arrow::before {
+    border-top-color: #ffffff;
+}
+
+.bs-tooltip-bottom .tooltip-arrow::before {
+    border-bottom-color: #ffffff;
+}
+
 .admin-console-badge {
     white-space: nowrap;
 }

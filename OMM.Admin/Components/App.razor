@@ -51,8 +51,22 @@
                 bootstrap.Popover.getInstance(el)?.hide());
         });
 
-        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el =>
-            bootstrap.Tooltip.getOrCreateInstance(el));
+        window.ommAdminTooltips = {
+            init: function () {
+                document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el =>
+                    bootstrap.Tooltip.getOrCreateInstance(el, {
+                        container: 'body',
+                        boundary: 'viewport'
+                    }));
+            }
+        };
+
+        window.ommAdminTooltips.init();
+        document.addEventListener('enhancedload', window.ommAdminTooltips.init);
+        new MutationObserver(window.ommAdminTooltips.init).observe(document.body, {
+            childList: true,
+            subtree: true
+        });
     </script>
 
     <script src="@Assets["_framework/blazor.web.js"]"></script>

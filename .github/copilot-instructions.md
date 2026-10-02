@@ -15,6 +15,8 @@
 - Prioritize restrained, intentional UI styling. Avoid generic AI-looking visual treatments such as excessive rounded cards, heavy shadows, and decorative gradients. Ensure controls do not look cheap or overly pill-shaped; focus on simple premium geometry and optical alignment.
 - For OMM.Admin mobile layouts, preserve usable single-column content and avoid cramped two-column card grids with excessive right-side whitespace; mobile sign-out controls should remain compact and visually aligned rather than wrapping awkwardly.
 - Admin sidebar Bootstrap tooltips should use a white bubble with dark text and a subtle border/shadow for contrast against the black sidebar; public tooltip styling can remain separate.
+- For the OMMv2 solution, use Bootstrap as the UI/component styling framework for Blazor projects. Do not use daisyUI or ask about daisyUI unless the user explicitly requests it; preserve existing Bootstrap conventions and dependencies.
+- For the Add Mine category selector, prioritize readable card width and clean UI over fitting four cards per desktop row: use a wider three-column desktop grid, keep icon and title together in a compact header row, place description below, and avoid title clipping or awkward character wrapping.
 
 ## OMM Color System
 - Use semantic color roles consistently across dashboard cards, sidebar icons, and related UI: Net Wealth uses warm gold; Mines uses matcha/olive green; Passive Income uses blue; positive Growth uses plum/purple; Loss and Burdens use muted red; Goals may use ochre/gold; Expenses use muted terracotta.
@@ -27,3 +29,6 @@
 
 ## Bilingual Column Guidelines
 - For Admin CRUD bilingual columns, prefer compact generic labels `Name (EN)` and `Name (TW)` instead of entity-specific labels such as `Market Name (EN)` or the abbreviation `ZHTW`. Keep the Traditional Chinese field visible.
+
+## Form Consistency
+- For Add Mine form consistency, show currency units in input adornments/text boxes (for example RM), never in field labels. Use semantic names for labels such as 'Total Purchase Cost' rather than 'Total Purchase Cost (MYR)' or other currency suffixes.

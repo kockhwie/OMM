@@ -255,6 +255,76 @@ public sealed class DatabaseMineService(
         UpdatedAt = entity.UpdatedOn.ToString("yyyy-MM-dd")
     };
 
+    public async Task<bool> RecordYieldDeclarationAsync(
+        string mineId,
+        int effectiveYear,
+        DateOnly recordDate,
+        decimal ratePct,
+        decimal? declaredAmount = null,
+        decimal? balanceAtTime = null,
+        string? notes = null,
+        bool createIncomeRecord = false,
+        CancellationToken cancellationToken = default)
+    {
+        if (!Guid.TryParse(mineId, out var parsedMineId)) return false;
+        if (effectiveYear is < 1 or > 9999) throw new ArgumentOutOfRangeException(nameof(effectiveYear));
+        if (recordDate == default) throw new ArgumentException("A record date is required.", nameof(recordDate));
+        if (ratePct <= 0) throw new ArgumentOutOfRangeException(nameof(ratePct), "Rate percentage must be greater than zero.");
+        if (declaredAmount < 0 || balanceAtTime < 0) throw new ArgumentException("Amounts cannot be negative.");
+        if (createIncomeRecord && (!declaredAmount.HasValue || declaredAmount <= 0))
+        {
+            throw new ArgumentException("A positive declared amount is required for the matching income record.", nameof(declaredAmount));
+        }
+
+        var profile = await profileService.GetCurrentAsync(cancellationToken);
+        if (profile is null) return false;
+
+        await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        var mine = await db.Mines
+            .SingleOrDefaultAsync(item => item.Id == parsedMineId && item.UserId == profile.UserId, cancellationToken);
+        if (mine is null) return false;
+
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            db.MineYieldHistories.Add(new MineYieldHistoryEntity
+            {
+                UserId = profile.UserId,
+                MineId = mine.Id,
+                EffectiveYear = effectiveYear,
+                RecordDate = recordDate,
+                RatePct = ratePct,
+                DeclaredAmount = declaredAmount,
+                BalanceAtTime = balanceAtTime,
+                Notes = notes
+            });
+
+            if (createIncomeRecord)
+            {
+                db.IncomeRecords.Add(new IncomeRecordEntity
+                {
+                    UserId = profile.UserId,
+                    Source = $"{mine.Name} rate declaration",
+                    Classification = IncomeClass.PassiveMineGenerated,
+                    Amount = declaredAmount!.Value,
+                    CurrencyId = mine.CurrencyId,
+                    Frequency = RecordFrequency.Annual,
+                    MineId = mine.Id,
+                    RecordDate = recordDate
+                });
+            }
+
+            await db.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+            return true;
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
+    }
+
     public async Task<bool> RecordYieldHistoryAsync(
         string mineId,
         int effectiveYear,

@@ -401,10 +401,59 @@ else
                             <h3 class="h6 fw-bold text-dark font-display mb-0">Rate &amp; Dividend History</h3>
                             <p class="text-muted small mb-0">Track year-over-year declared dividend rates, FD renewals, or yield revisions</p>
                         </div>
+                        <button type="button" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1 align-self-start align-self-md-center"
+                                @onclick="OpenYieldDeclarationModal">
+                            <i class="ti ti-plus"></i>
+                            <span>Log Rate Declaration</span>
+                        </button>
                     </div>
+
+                    @if (!string.IsNullOrWhiteSpace(yieldMessage))
+                    {
+                        <div class="alert @(yieldMessageIsError ? "alert-danger" : "alert-success") rounded-3 d-flex align-items-center gap-2 mb-3 py-2" role="alert">
+                            <i class="ti @(yieldMessageIsError ? "ti-alert-triangle" : "ti-circle-check") flex-shrink-0 fs-5"></i>
+                            <span class="small">@yieldMessage</span>
+                        </div>
+                    }
 
                     @if (yieldHistories.Count > 0)
                     {
+                        @if (yieldHistories.Count >= 2)
+                        {
+                            var newestRecords = yieldHistories
+                                .OrderByDescending(record => record.EffectiveYear)
+                                .ThenByDescending(record => record.RecordDate)
+                                .Take(2)
+                                .ToList();
+                            var currentRecord = newestRecords[0];
+                            var previousRecord = newestRecords[1];
+                            var delta = currentRecord.RatePct - previousRecord.RatePct;
+                            var relativeGrowth = previousRecord.RatePct != 0
+                                ? delta / previousRecord.RatePct * 100m
+                                : (decimal?)null;
+                            var badgeClass = delta > 0
+                                ? "bg-success-subtle text-success border border-success-subtle"
+                                : delta < 0
+                                    ? "bg-danger-subtle text-danger border border-danger-subtle"
+                                    : "bg-light text-muted border";
+                            var iconClass = delta > 0
+                                ? "ti-trending-up"
+                                : delta < 0
+                                    ? "ti-trending-down"
+                                    : "ti-minus";
+
+                            <div class="mb-3">
+                                <span class="badge @badgeClass fw-semibold d-inline-flex align-items-center gap-1">
+                                    <i class="ti @iconClass"></i>
+                                    @((delta >= 0 ? "+" : "") + delta.ToString("0.00")) percentage points YoY
+                                    @if (relativeGrowth.HasValue)
+                                    {
+                                        <span>(@((relativeGrowth.Value >= 0 ? "+" : "") + relativeGrowth.Value.ToString("0.0"))% growth vs @previousRecord.EffectiveYear)</span>
+                                    }
+                                </span>
+                            </div>
+                        }
+
                         <div class="table-responsive">
                             <table class="table table-hover align-middle mb-0">
                                 <thead class="table-light">
@@ -579,6 +628,100 @@ else
                   ExistingMine="currentMine"
                   OnClose="CloseEditModal"
                   OnSaved="HandleMineSaved" />
+
+    @if (showYieldDeclarationModal)
+    {
+        <div class="modal fade show d-block omm-modal-backdrop" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="yield-declaration-modal-title">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+                    <div class="modal-header bg-dark text-white px-4 py-3 border-0">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="ti ti-percentage text-gold fs-4"></i>
+                            <div>
+                                <h2 id="yield-declaration-modal-title" class="h5 modal-title fw-bold font-display mb-0">Log Rate Declaration</h2>
+                                <small class="text-white-50">Add a rate snapshot for @currentMine.Name</small>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white" aria-label="Close" @onclick="CloseYieldDeclarationModal" disabled="@isSavingYieldDeclaration"></button>
+                    </div>
+
+                    <div class="modal-body p-4 bg-light">
+                        @if (!string.IsNullOrWhiteSpace(yieldInputError))
+                        {
+                            <div class="alert alert-danger rounded-3 d-flex align-items-center gap-2 mb-3 py-2" role="alert">
+                                <i class="ti ti-alert-triangle flex-shrink-0 fs-5"></i>
+                                <span class="small">@yieldInputError</span>
+                            </div>
+                        }
+
+                        <div class="omm-form-section">
+                            <div class="omm-form-grid">
+                                <div class="omm-form-field">
+                                    <label class="omm-form-label" for="yield-effective-year">Effective year <span class="text-danger">*</span></label>
+                                    <input id="yield-effective-year" type="number" class="form-control" min="1" max="9999" @bind="yieldEffectiveYear" />
+                                </div>
+                                <div class="omm-form-field">
+                                    <label class="omm-form-label" for="yield-record-date">Record date <span class="text-danger">*</span></label>
+                                    <input id="yield-record-date" type="date" class="form-control" @bind="yieldRecordDate" />
+                                </div>
+                            </div>
+
+                            <div class="omm-form-field">
+                                <label class="omm-form-label" for="yield-rate-pct">Rate percentage <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input id="yield-rate-pct" type="number" class="form-control" min="0" step="0.01" @bind="yieldRatePct" />
+                                    <span class="input-group-text">%</span>
+                                </div>
+                            </div>
+
+                            <div class="omm-form-grid">
+                                <div class="omm-form-field">
+                                    <label class="omm-form-label" for="yield-declared-amount">Declared amount <span class="text-muted fw-normal">(optional)</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">@currentMine.Currency</span>
+                                        <input id="yield-declared-amount" type="number" class="form-control" min="0" step="0.01" @bind="yieldDeclaredAmount" />
+                                    </div>
+                                </div>
+                                <div class="omm-form-field">
+                                    <label class="omm-form-label" for="yield-balance">Balance at time <span class="text-muted fw-normal">(optional)</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">@currentMine.Currency</span>
+                                        <input id="yield-balance" type="number" class="form-control" min="0" step="0.01" @bind="yieldBalanceAtTime" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="omm-form-field">
+                                <label class="omm-form-label" for="yield-notes">Notes <span class="text-muted fw-normal">(optional)</span></label>
+                                <textarea id="yield-notes" class="form-control" rows="3" maxlength="500" @bind="yieldNotes"></textarea>
+                            </div>
+
+                            <div class="form-check">
+                                <input id="yield-create-income" type="checkbox" class="form-check-input" @bind="createIncomeRecord" />
+                                <label class="form-check-label small" for="yield-create-income">Also create matching cash income record in Freedom Income log</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer px-4 py-3 border-0 bg-white">
+                        <button type="button" class="btn btn-light border" @onclick="CloseYieldDeclarationModal" disabled="@isSavingYieldDeclaration">Cancel</button>
+                        <button type="button" class="btn btn-primary d-inline-flex align-items-center gap-1" @onclick="SaveYieldDeclarationAsync" disabled="@isSavingYieldDeclaration">
+                            @if (isSavingYieldDeclaration)
+                            {
+                                <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                                <span>Saving...</span>
+                            }
+                            else
+                            {
+                                <i class="ti ti-device-floppy"></i>
+                                <span>Save Declaration</span>
+                            }
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 }
 
 @code {
@@ -590,6 +733,18 @@ else
     private List<MineYieldHistoryEntity> yieldHistories = [];
     private string activeTab = "overview";
     private bool showEditModal = false;
+    private bool showYieldDeclarationModal = false;
+    private bool isSavingYieldDeclaration;
+    private int yieldEffectiveYear;
+    private DateOnly yieldRecordDate;
+    private decimal yieldRatePct;
+    private decimal? yieldDeclaredAmount;
+    private decimal? yieldBalanceAtTime;
+    private string yieldNotes = string.Empty;
+    private bool createIncomeRecord;
+    private string? yieldInputError;
+    private string? yieldMessage;
+    private bool yieldMessageIsError;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -617,9 +772,109 @@ else
     private void OpenEditModal() => showEditModal = true;
     private void CloseEditModal() => showEditModal = false;
 
+    private void OpenYieldDeclarationModal()
+    {
+        yieldEffectiveYear = DateTime.UtcNow.Year;
+        yieldRecordDate = DateOnly.FromDateTime(DateTime.UtcNow);
+        yieldRatePct = 0;
+        yieldDeclaredAmount = null;
+        yieldBalanceAtTime = null;
+        yieldNotes = string.Empty;
+        createIncomeRecord = false;
+        yieldInputError = null;
+        yieldMessage = null;
+        showYieldDeclarationModal = true;
+    }
+
+    private void CloseYieldDeclarationModal()
+    {
+        if (isSavingYieldDeclaration)
+        {
+            return;
+        }
+
+        yieldInputError = null;
+        showYieldDeclarationModal = false;
+    }
+
     private async Task HandleMineSaved()
     {
         await LoadMineData();
+    }
+
+    private async Task SaveYieldDeclarationAsync()
+    {
+        if (isSavingYieldDeclaration || currentMine is null || !ValidateYieldDeclaration())
+        {
+            return;
+        }
+
+        isSavingYieldDeclaration = true;
+        yieldMessage = null;
+
+        try
+        {
+            var saved = await MineService.RecordYieldDeclarationAsync(
+                currentMine.Id,
+                yieldEffectiveYear,
+                yieldRecordDate,
+                yieldRatePct,
+                declaredAmount: yieldDeclaredAmount,
+                balanceAtTime: yieldBalanceAtTime,
+                notes: string.IsNullOrWhiteSpace(yieldNotes) ? null : yieldNotes.Trim(),
+                createIncomeRecord: createIncomeRecord);
+
+            if (!saved)
+            {
+                yieldMessage = "The rate declaration could not be saved.";
+                yieldMessageIsError = true;
+                return;
+            }
+
+            await LoadMineData();
+            yieldMessage = createIncomeRecord
+                ? "Rate declaration and matching income record saved."
+                : "Rate declaration saved.";
+            yieldMessageIsError = false;
+            showYieldDeclarationModal = false;
+        }
+        catch (Exception ex)
+        {
+            yieldMessage = ex.Message;
+            yieldMessageIsError = true;
+        }
+        finally
+        {
+            isSavingYieldDeclaration = false;
+        }
+    }
+
+    private bool ValidateYieldDeclaration()
+    {
+        yieldInputError = null;
+
+        if (yieldEffectiveYear is < 1 or > 9999)
+        {
+            yieldInputError = "Enter a valid effective year.";
+        }
+        else if (yieldRecordDate == default)
+        {
+            yieldInputError = "Enter a record date.";
+        }
+        else if (yieldRatePct <= 0)
+        {
+            yieldInputError = "Enter a rate percentage greater than zero.";
+        }
+        else if (yieldDeclaredAmount is < 0 || yieldBalanceAtTime is < 0)
+        {
+            yieldInputError = "Amounts cannot be negative.";
+        }
+        else if (createIncomeRecord && (!yieldDeclaredAmount.HasValue || yieldDeclaredAmount <= 0))
+        {
+            yieldInputError = "Enter a declared amount greater than zero to create the matching income record.";
+        }
+
+        return yieldInputError is null;
     }
 
     private async Task ConfirmDelete()

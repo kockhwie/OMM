@@ -68,17 +68,21 @@
         @foreach (var mine in FilteredMines)
         {
             var growthPositive = mine.Growth >= 0;
-            <div class="col-12 col-md-6 col-xl-4 position-relative">
+            <div class="col-12 col-md-6 col-xl-4 mine-card-shell">
 
-                <div class="card h-100 border-0 shadow-sm rounded-4 p-4 card-hover cursor-pointer"
+                <div class="card h-100 border-0 shadow-sm rounded-4 p-4 pt-5 card-hover cursor-pointer mine-card mine-category-card @GetMineCategoryClass(mine.Category)"
                      @onclick="() => NavigateToDetail(mine.Id)">
 
+                    <div class="mine-card-status" aria-label="Mine status">
+                        <StatusBadge Status="@mine.Status" Compact="true" />
+                    </div>
+
                     <!-- Header: Icon, Name & Category (wraps, no truncation, full width) -->
-                    <div class="d-flex align-items-start gap-3 mb-3">
-                        <div class="rounded-3 bg-dark-subtle text-dark d-flex align-items-center justify-content-center p-2 flex-shrink-0 mine-category-icon">
+                    <div class="d-flex align-items-start gap-3 mine-card-header">
+                        <div class="rounded-3 d-flex align-items-center justify-content-center p-2 flex-shrink-0 mine-category-icon">
                             <i class="ti @FormatHelper.CategoryToIcon(mine.Category) fs-5"></i>
                         </div>
-                        <div class="min-w-0">
+                        <div class="min-w-0 flex-grow-1">
                             <h3 class="h6 fw-bold mb-0 text-dark font-display mine-name">
                                 @mine.Name
                             </h3>
@@ -88,8 +92,10 @@
                         </div>
                     </div>
 
+                    <div class="mine-card-divider" aria-hidden="true"></div>
+
                     <!-- Metrics Grid -->
-                    <div class="row g-2 pt-2 border-top border-light-subtle text-center text-sm-start">
+                    <div class="row g-2 pt-2 text-center text-sm-start">
                         <div class="col-4 min-w-0">
                             <span class="text-uppercase text-muted fw-semibold d-block mine-metric-label">Current</span>
                             <div class="fw-bold text-dark mine-metric-value" title="@FormatHelper.FormatCurrency(mine.CurrentValue, mine.Currency)">
@@ -122,17 +128,16 @@
                             <i class="ti ti-chevron-right fs-6"></i>
                         </div>
                     }
-                </div>
 
-                <!-- Status Badge & Quick Actions — overlaid on top right corner, inside card -->
-                <div class="position-absolute top-0 end-0 mine-status-overlay d-flex align-items-center gap-1">
-                    <button class="btn btn-sm btn-light border-0 rounded-circle p-1 text-muted card-hover"
-                            title="Edit Mine"
-                            @onclick:stopPropagation="true"
-                            @onclick="() => OpenEditModal(mine)">
-                        <i class="ti ti-edit fs-6"></i>
-                    </button>
-                    <StatusBadge Status="@mine.Status" Compact="true" />
+                    <div class="mine-card-actions">
+                        <button class="btn btn-sm btn-outline-primary rounded-3 px-2 py-1 mine-edit-button"
+                                title="Edit Mine"
+                                @onclick:stopPropagation="true"
+                                @onclick="() => OpenEditModal(mine)">
+                            <i class="ti ti-edit fs-6"></i>
+                            <span>Edit Mine</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         }
@@ -231,6 +236,17 @@ else
         selectedMineForEdit = mine;
         showAddModal = true;
     }
+
+    private static string GetMineCategoryClass(MineCategory category) => category switch
+    {
+        MineCategory.Retirement => "mine-category-retirement",
+        MineCategory.CashAndDeposits => "mine-category-cash",
+        MineCategory.Investments => "mine-category-investment",
+        MineCategory.Property => "mine-category-property",
+        MineCategory.PreciousMetals => "mine-category-metals",
+        MineCategory.Digital => "mine-category-digital",
+        _ => "mine-category-other"
+    };
 
     private void CloseAddModal()
     {

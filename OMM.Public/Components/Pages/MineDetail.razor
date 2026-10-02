@@ -121,24 +121,24 @@ else
     </div>
 
     <!-- Navigation Tabs -->
-    <div class="d-flex gap-2 mb-4 border-bottom border-light-subtle pb-2 animate-fade-up">
-        <button class="btn btn-sm rounded-3 px-3 py-2 fw-semibold @(activeTab == "overview" ? "btn-dark text-white" : "btn-light text-dark")"
+    <nav class="mine-detail-tabs mb-4 border-bottom border-light-subtle pb-2 animate-fade-up" aria-label="Mine details sections">
+                        <button type="button" class="mine-detail-tab btn btn-sm rounded-3 px-3 py-2 fw-semibold @(activeTab == "overview" ? "btn-dark text-white" : "btn-light text-dark")"
                 @onclick="@(() => activeTab = "overview")">
             <i class="ti ti-info-circle me-1"></i> Overview & Details
         </button>
-        <button class="btn btn-sm rounded-3 px-3 py-2 fw-semibold @(activeTab == "history" ? "btn-dark text-white" : "btn-light text-dark")"
+        <button type="button" class="mine-detail-tab btn btn-sm rounded-3 px-3 py-2 fw-semibold @(activeTab == "history" ? "btn-dark text-white" : "btn-light text-dark")"
                 @onclick="@(() => activeTab = "history")">
             <i class="ti ti-history me-1"></i> Yield History @(yieldHistories.Count > 0 ? $"({yieldHistories.Count})" : "")
         </button>
-        <button class="btn btn-sm rounded-3 px-3 py-2 fw-semibold @(activeTab == "submines" ? "btn-dark text-white" : "btn-light text-dark")"
+        <button type="button" class="mine-detail-tab btn btn-sm rounded-3 px-3 py-2 fw-semibold @(activeTab == "submines" ? "btn-dark text-white" : "btn-light text-dark")"
                 @onclick="@(() => activeTab = "submines")">
             <i class="ti ti-layers-intersect me-1"></i> Sub-Mines @(currentMine.SubMines?.Count > 0 ? $"({currentMine.SubMines.Count})" : "")
         </button>
-        <button class="btn btn-sm rounded-3 px-3 py-2 fw-semibold @(activeTab == "income" ? "btn-dark text-white" : "btn-light text-dark")"
+        <button type="button" class="mine-detail-tab btn btn-sm rounded-3 px-3 py-2 fw-semibold @(activeTab == "income" ? "btn-dark text-white" : "btn-light text-dark")"
                 @onclick="@(() => activeTab = "income")">
             <i class="ti ti-cash me-1"></i> Income Impact
         </button>
-    </div>
+    </nav>
 
     <!-- Tab Contents -->
     <div class="row g-4">
@@ -148,34 +148,34 @@ else
             <div class="col-12 col-lg-7">
                 <div class="card border-0 shadow-sm rounded-4 p-4 bg-white animate-fade-up mb-4">
                     <h3 class="h6 fw-bold text-dark font-display mb-3">Mine Specifications</h3>
-                    <div class="d-flex flex-column gap-3">
-                        <div class="d-flex justify-content-between py-2 border-bottom border-light-subtle">
+                    <div class="mine-specifications">
+                        <div class="mine-specification-row">
                             <span class="text-muted small">Category</span>
                             <span class="fw-semibold text-dark small">@FormatHelper.CategoryLabel(currentMine.Category)</span>
                         </div>
-                        <div class="d-flex justify-content-between py-2 border-bottom border-light-subtle">
+                        <div class="mine-specification-row">
                             <span class="text-muted small">Asset Type</span>
                             <span class="fw-semibold text-dark small">@FormatHelper.MineTypeLabel(currentMine.Type)</span>
                         </div>
                         @if (!string.IsNullOrEmpty(currentMine.Institution))
                         {
-                            <div class="d-flex justify-content-between py-2 border-bottom border-light-subtle">
+                            <div class="mine-specification-row">
                                 <span class="text-muted small">Institution / Platform</span>
                                 <span class="fw-semibold text-dark small">@currentMine.Institution</span>
                             </div>
                         }
                         @if (!string.IsNullOrEmpty(currentMine.Holdings))
                         {
-                            <div class="d-flex justify-content-between py-2 border-bottom border-light-subtle">
+                            <div class="mine-specification-row">
                                 <span class="text-muted small">Holdings / Volume</span>
                                 <span class="fw-semibold text-dark small">@currentMine.Holdings</span>
                             </div>
                         }
-                        <div class="d-flex justify-content-between py-2 border-bottom border-light-subtle">
+                        <div class="mine-specification-row">
                             <span class="text-muted small">Currency</span>
                             <span class="fw-semibold text-dark small">@currentMine.Currency</span>
                         </div>
-                        <div class="d-flex justify-content-between py-2">
+                        <div class="mine-specification-row">
                             <span class="text-muted small">Last Updated</span>
                             <span class="fw-semibold text-dark small">@currentMine.UpdatedAt</span>
                         </div>

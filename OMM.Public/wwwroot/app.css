@@ -122,7 +122,7 @@ body {
 }
 
 .omm-logo-mark .ti {
-    stroke-width: 2.2;
+    stroke-width: 2.2px;
 }
 
 .omm-logo-copy {
@@ -1349,6 +1349,61 @@ i.ti {
     text-align: right;
     font-weight: 600;
     color: var(--omm-ink-900);
+}
+
+/* Centralized mine detail tabs and specification rows */
+.mine-detail-tabs {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+}
+
+.mine-detail-tab {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding-inline: 0.5rem;
+}
+
+.mine-specifications {
+    display: flex;
+    flex-direction: column;
+}
+
+.mine-specification-row {
+    display: grid;
+    grid-template-columns: minmax(7rem, 0.8fr) minmax(0, 1.2fr);
+    align-items: start;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--omm-ink-100);
+}
+
+.mine-specification-row:last-child {
+    border-bottom: 0;
+}
+
+.mine-specification-row > :last-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    text-align: right;
+}
+
+@media (max-width: 575.98px) {
+    .mine-detail-tabs {
+        margin-inline: -0.25rem;
+        padding-inline: 0.25rem;
+    }
+
+    .mine-detail-tab {
+        padding-inline: 0.7rem !important;
+    }
+
+    .mine-specification-row {
+        grid-template-columns: minmax(6.5rem, 0.75fr) minmax(0, 1.25fr);
+        gap: 0.75rem;
+    }
 }
 
 /* Quick action links */

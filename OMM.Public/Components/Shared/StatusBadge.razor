@@ -3,7 +3,10 @@
 @if (Status.Equals("active", StringComparison.OrdinalIgnoreCase) || Status.Equals("on-track", StringComparison.OrdinalIgnoreCase) || Status.Equals("achieved", StringComparison.OrdinalIgnoreCase))
 {
     <span class="badge-pill-mine @(Compact ? "badge-pill-compact" : "")">
-        <i class="ti ti-check" style="font-size: 0.9em;"></i>
+        @if (!Compact)
+        {
+            <i class="ti ti-check" style="font-size: 0.9em;"></i>
+        }
         @LabelText
     </span>
 }

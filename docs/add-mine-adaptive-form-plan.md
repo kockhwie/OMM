@@ -855,7 +855,7 @@ Task 2.5  [DONE] Step navigation + per-type validation + auto-calculation logic
 Task 3.1  [DONE] Update DatabaseMineService.AddMineAsync for metadata serialisation
 Task 3.2  [DONE] Add DatabaseMineService.UpdateMineAsync & RecordYieldHistoryAsync
 Task 3.3  [DONE] Add Delete UI with confirmation & Edit Mine actions on Mine cards
-Task 3.4  [DONE] Upgrade Tools Integration: "Save as Mine to Track" in Dividend Calculator (Quick + Advanced)
+Task 3.4  [DONE] Upgrade Tools Integration: "Save as Mine to Track" in Dividend Calculator (Quick + Advanced) and FD Calculator
 Task 4.1  [DONE] Type-aware value labels & metadata attributes on Mine cards
 Task 4.2  [DONE] Update MineDetail.razor: metadata specifications panel + Edit Mine modal integration
 Task 4.3  [DONE] Add Yield & Rate History Timeline & Growth Tracking to MineDetail.razor

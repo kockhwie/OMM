@@ -30,6 +30,7 @@ Metadata remains type-specific and is serialized to the existing PostgreSQL `jso
 - Growth progression badge added to MineDetail Yield History.
 - Lightweight Log Rate Declaration modal added to MineDetail.
 - Yield declaration and optional income-record creation are persisted atomically through `DatabaseMineService.RecordYieldDeclarationAsync`.
+- The FD Calculator now saves a typed Fixed Deposit Mine with principal, rate, tenure, maturity date, rollover behavior, and calculated values.
 
 ## Persistence and testing
 
@@ -61,9 +62,8 @@ Blocked or pending:
 1. Compare the current `ApplicationDbContext` model with `OMM.Public/Data/Migrations/ApplicationDbContextModelSnapshot.cs`.
 2. Add and review a migration if the model changes are intentional, or correct unintended model drift.
 3. Rerun `PublicYieldDeclarationTests` against local PostgreSQL after migration alignment.
-4. Add the FD Calculator to Mine bridge if that feature remains in scope.
-5. Consider contextual provider fields for Savings/FD, Stocks/ETF/REIT, general Unit Trust, Property, and Crypto rather than restoring a universal provider field.
-6. Perform a browser pass at mobile, tablet, and desktop widths for all asset types, especially long labels, stock-picker suggestions, EPF scheme controls, and validation focus behavior.
+4. Consider contextual provider fields for Savings/FD, Stocks/ETF/REIT, general Unit Trust, Property, and Crypto rather than restoring a universal provider field.
+5. Perform a browser pass at mobile, tablet, and desktop widths for all asset types, especially long labels, stock-picker suggestions, EPF scheme controls, and validation focus behavior.
 
 ## UI standards to preserve
 

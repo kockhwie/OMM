@@ -1,3 +1,5 @@
+@inject DatabaseMineService MineService
+@using OMM.Public.Models
 @using OMM.Public.Services
 
 <div class="mb-2 mb-md-3 animate-fade-up">
@@ -41,6 +43,7 @@
                     <span>60 mo (5 yr)</span>
                 </div>
                 </div>
+
             </div>
         </div>
     </div>
@@ -76,6 +79,34 @@
                     <span class="fw-semibold text-dark">@fdRate.ToString("F2")% p.a.</span>
                 </div>
             </div>
+
+            @if (savedNotification)
+            {
+                <div class="alert alert-success py-2 px-3 mt-3 mb-0 d-flex align-items-center gap-2 small rounded-3" role="status">
+                    <i class="ti ti-check fs-5"></i>
+                    <span>Fixed deposit saved to your <strong>Mines</strong> portfolio.</span>
+                </div>
+            }
+
+            @if (saveError is not null)
+            {
+                <div class="alert alert-danger py-2 px-3 mt-3 mb-0 small rounded-3" role="alert">@saveError</div>
+            }
+
+            <div class="dc-actions mt-3">
+                <button type="button" class="btn-omm-accent w-100" @onclick="SaveAsMineAsync" disabled="@isSaving">
+                    @if (isSaving)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                        <span>Saving...</span>
+                    }
+                    else
+                    {
+                        <i class="ti ti-device-floppy me-1"></i>
+                        <span>Save as Mine to Track</span>
+                    }
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -87,8 +118,65 @@
     private decimal fdPrincipal = 50000m;
     private decimal fdRate = 3.85m;
     private int fdTenureMonths = 12;
+    private bool isSaving;
+    private bool savedNotification;
+    private string? saveError;
 
     private decimal FdMaturityValue => fdPrincipal * (decimal)Math.Pow((double)(1m + (fdRate / 100m)), (double)fdTenureMonths / 12.0);
     private decimal FdTotalInterest => FdMaturityValue - fdPrincipal;
     private decimal FdMonthlyEquivalent => fdTenureMonths > 0 ? FdTotalInterest / fdTenureMonths : 0;
+
+    private async Task SaveAsMineAsync()
+    {
+        saveError = null;
+
+        if (fdPrincipal <= 0 || fdRate <= 0 || fdTenureMonths <= 0)
+        {
+            saveError = "Enter a principal, interest rate, and tenure greater than zero before saving.";
+            return;
+        }
+
+        if (isSaving) return;
+        isSaving = true;
+
+        try
+        {
+            var maturityDate = DateOnly.FromDateTime(DateTime.Today.AddMonths(fdTenureMonths));
+            var newMine = new Mine
+            {
+                Id = $"mine-fd-{Guid.NewGuid():N}"[..18],
+                Name = $"Fixed Deposit ({fdTenureMonths} months)",
+                Category = MineCategory.CashAndDeposits,
+                Type = MineType.FixedDeposit,
+                Currency = UserCurrency,
+                CurrentValue = FdMaturityValue,
+                PurchaseCost = fdPrincipal,
+                Growth = FdTotalInterest,
+                GrowthPct = fdPrincipal > 0 ? FdTotalInterest / fdPrincipal * 100m : 0,
+                MonthlyIncome = FdMonthlyEquivalent,
+                Holdings = $"{fdTenureMonths} months at {fdRate:F2} percent p.a.",
+                Metadata = new MineMetadata
+                {
+                    Principal = fdPrincipal,
+                    InterestRatePct = fdRate,
+                    TenureMonths = fdTenureMonths,
+                    MaturityDate = maturityDate,
+                    RolloverBehavior = "auto-renew"
+                },
+                Status = "active",
+                UpdatedAt = DateTime.Today.ToString("yyyy-MM-dd")
+            };
+
+            await MineService.AddMineAsync(newMine);
+            savedNotification = true;
+        }
+        catch (Exception ex)
+        {
+            saveError = ex.Message;
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
 }

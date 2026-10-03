@@ -68,9 +68,9 @@
         @foreach (var mine in FilteredMines)
         {
             var growthPositive = mine.Growth >= 0;
-            <div class="col-12 col-md-6 col-xl-4 mine-card-shell">
+            <div class="col-12 col-md-6 col-xl-4 mine-card-shell mt-3">
 
-                <div class="card h-100 border-0 shadow-sm rounded-4 p-4 pt-5 card-hover cursor-pointer mine-card mine-category-card @GetMineCategoryClass(mine.Category)"
+                <div class="card h-100 border-0 shadow-sm rounded-4 p-4 card-hover cursor-pointer mine-card mine-category-card @GetMineCategoryClass(mine.Category)"
                      @onclick="() => NavigateToDetail(mine.Id)">
 
                     <div class="mine-card-status" aria-label="Mine status">
@@ -129,13 +129,12 @@
                         </div>
                     }
 
-                    <div class="mine-card-actions">
-                        <button class="btn btn-sm btn-outline-primary rounded-3 px-2 py-1 mine-edit-button"
+                    <div class="mine-card-actions d-flex justify-content-center mt-2">
+                        <button class="btn btn-xs btn-primary rounded-3 px-2"
                                 title="Edit Mine"
                                 @onclick:stopPropagation="true"
                                 @onclick="() => OpenEditModal(mine)">
-                            <i class="ti ti-edit fs-6"></i>
-                            <span>Edit Mine</span>
+                            <span>Edit</span>
                         </button>
                     </div>
                 </div>

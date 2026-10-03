@@ -1797,8 +1797,9 @@ i.ti {
 /* Create a custom extra-small button class */
 .btn-xs {
     --bs-btn-padding-y: .15rem;
-    --bs-btn-padding-x: .4rem;
+    --bs-btn-padding-x: .5rem;
     --bs-btn-font-size: .75rem;
+    --bs-btn-line-height: 1;
     --bs-btn-border-radius: .2rem;
 }
 

@@ -60,11 +60,17 @@ if (string.IsNullOrWhiteSpace(googleClientSecret))
     googleClientSecret = builder.Configuration["ClientSecret"];
 }
 
-authBuilder.AddGoogle(options =>
+var googleAuthenticationConfigured = !string.IsNullOrWhiteSpace(googleClientId)
+    && !string.IsNullOrWhiteSpace(googleClientSecret);
+
+if (googleAuthenticationConfigured)
 {
-    options.ClientId = googleClientId ?? string.Empty;
-    options.ClientSecret = googleClientSecret ?? string.Empty;
-});
+    authBuilder.AddGoogle(options =>
+    {
+        options.ClientId = googleClientId!;
+        options.ClientSecret = googleClientSecret!;
+    });
+}
 
 builder.Services.AddAuthorizationBuilder(); // Non-Admin
 
@@ -100,7 +106,8 @@ builder.Services.AddSingleton<IKlseStockLookupService, KlseStockLookupService>()
 var app = builder.Build();
 
 app.Logger.LogInformation(
-    "Google external authentication registered. Client ID configured: {ClientIdConfigured}; client secret configured: {ClientSecretConfigured}.",
+    "Google external authentication {GoogleAuthenticationStatus}. Client ID configured: {ClientIdConfigured}; client secret configured: {ClientSecretConfigured}.",
+    googleAuthenticationConfigured ? "registered" : "not registered",
     !string.IsNullOrWhiteSpace(googleClientId),
     !string.IsNullOrWhiteSpace(googleClientSecret));
 

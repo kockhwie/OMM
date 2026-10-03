@@ -6,7 +6,7 @@
 <div class="position-relative">
     <div class="search-input-group">
         <i class="ti ti-search"></i>
-        <input type="text" autocomplete="off" class="form-control"
+        <input id="@InputId" type="text" autocomplete="off" class="form-control @(IsInvalid ? "is-invalid" : "")"
                placeholder="@Placeholder"
                value="@searchText"
                @oninput="@(e => OnInput(e.Value?.ToString()))"
@@ -59,6 +59,8 @@
     [Parameter] public EventCallback<KlseStock> OnStockSelected { get; set; }
 
     [Parameter] public string Placeholder { get; set; } = "Search by stock code or name, e.g. 1155 or Maybank";
+    [Parameter] public bool IsInvalid { get; set; }
+    [Parameter] public string? InputId { get; set; }
 
     private List<KlseStock> allStocks = [];
     private List<KlseStock> filtered = [];

@@ -238,7 +238,7 @@
                                         <!-- ASB / ASM Fixed-Price Unit Trust -->
                                         <div class="omm-form-field">
                                             <label class="omm-form-label" for="asb-fund">PNB Fund Selection</label>
-                                            <select id="asb-fund" class="form-select rounded-3" @bind="metadata.FundCode" @bind:after="OnAsbFundChanged">
+                                            <select id="asb-fund" class="form-select rounded-3 @(HasFieldError("asb-fund") ? "is-invalid" : "")" @bind="metadata.FundCode" @bind:after="OnAsbFundChanged">
                                                 <option value="">Select an ASB or ASM fund</option>
                                                 <option value="ASB">Amanah Saham Bumiputera (ASB)</option>
                                                 <option value="ASB 2">Amanah Saham Bumiputera 2 (ASB 2)</option>
@@ -248,6 +248,10 @@
                                                 <option value="ASM 3">Amanah Saham Malaysia 3 (ASM 3)</option>
                                                 <option value="Other">Other Fixed Price Unit Trust</option>
                                             </select>
+                                            @if (HasFieldError("asb-fund"))
+                                            {
+                                                <div class="invalid-feedback d-block">@fieldError</div>
+                                            }
                                         </div>
 
                                         <div class="field-stack">
@@ -293,24 +297,32 @@
                                                 <label class="omm-form-label" for="fd-principal">Principal Deposit <span class="text-danger">*</span></label>
                                                 <div class="dc-currency-group">
                                                     <span class="dc-currency-addon">@currencySymbol</span>
-                                                    <input id="fd-principal" type="number" class="form-control" min="0" step="0.01"
+                                                    <input id="fd-principal" type="number" class="form-control @(HasFieldError("fd-principal") ? "is-invalid" : "")" min="0" step="0.01"
                                                            placeholder="0.00" @bind="metadata.Principal" @bind:event="oninput" @bind:after="RecalculateFd" />
+                                                    @if (HasFieldError("fd-principal"))
+                                                    {
+                                                        <div class="invalid-feedback d-block">@fieldError</div>
+                                                    }
                                                 </div>
                                             </div>
                                             <div class="omm-form-field">
                                                 <label class="omm-form-label" for="fd-rate">Interest Rate (% p.a.) <span class="text-danger">*</span></label>
                                                 <div class="input-group">
-                                                    <input id="fd-rate" type="number" class="form-control rounded-start-3" min="0" max="15" step="0.05"
+                                                    <input id="fd-rate" type="number" class="form-control rounded-start-3 @(HasFieldError("fd-rate") ? "is-invalid" : "")" min="0" max="15" step="0.05"
                                                            placeholder="3.85" @bind="metadata.InterestRatePct" @bind:event="oninput" @bind:after="RecalculateFd" />
                                                     <span class="input-group-text rounded-end-3">%</span>
                                                 </div>
+                                                @if (HasFieldError("fd-rate"))
+                                                {
+                                                    <div class="invalid-feedback d-block">@fieldError</div>
+                                                }
                                             </div>
                                         </div>
 
                                         <div class="field-stack">
                                             <div class="omm-form-field">
                                                 <label class="omm-form-label" for="fd-tenure">Tenure</label>
-                                                <select id="fd-tenure" class="form-select rounded-3" @bind="metadata.TenureMonths" @bind:after="RecalculateFd">
+                                                <select id="fd-tenure" class="form-select rounded-3 @(HasFieldError("fd-tenure") ? "is-invalid" : "")" @bind="metadata.TenureMonths" @bind:after="RecalculateFd">
                                                     <option value="1">1 Month</option>
                                                     <option value="3">3 Months</option>
                                                     <option value="6">6 Months</option>
@@ -320,6 +332,10 @@
                                                     <option value="36">36 Months (3 Years)</option>
                                                     <option value="60">60 Months (5 Years)</option>
                                                 </select>
+                                                @if (HasFieldError("fd-tenure"))
+                                                {
+                                                    <div class="invalid-feedback d-block">@fieldError</div>
+                                                }
                                             </div>
                                             <div class="omm-form-field">
                                                 <label class="omm-form-label" for="fd-placement">Placement Date <span class="text-danger">*</span></label>
@@ -366,10 +382,16 @@
                                         <div class="field-stack">
                                             <div class="omm-form-field">
                                                 <label class="omm-form-label" for="stock-code">Stock / REIT Symbol <span class="text-danger">*</span></label>
-                                                <StockSearchPicker @bind-Code="metadata.StockCode"
+                                             <StockSearchPicker @bind-Code="metadata.StockCode"
                                                                    @bind-Name="stockName"
                                                                    OnStockSelected="OnStockPicked"
+                                                                    IsInvalid="@HasFieldError("stock-code")"
+                                                                    InputId="stock-code"
                                                                    Placeholder="Search by stock code or name" />
+                                             @if (HasFieldError("stock-code"))
+                                             {
+                                                 <div class="invalid-feedback d-block">@fieldError</div>
+                                             }
                                             </div>
                                             <div class="omm-form-field">
                                                 <label class="omm-form-label" for="stock-exchange">Exchange <span class="text-danger">*</span></label>
@@ -380,8 +402,12 @@
                                         <div class="field-stack">
                                             <div class="omm-form-field">
                                                 <label class="omm-form-label" for="stock-shares">Shares Owned (Units) <span class="text-danger">*</span></label>
-                                                <input id="stock-shares" type="number" class="form-control rounded-3" min="1" step="1"
+                                                 <input id="stock-shares" type="number" class="form-control rounded-3 @(HasFieldError("stock-shares") ? "is-invalid" : "")" min="1" step="1"
                                                        placeholder="e.g. 1000 (10 lots)" @bind="metadata.SharesOwned" @bind:event="oninput" @bind:after="RecalculateStock" />
+                                                 @if (HasFieldError("stock-shares"))
+                                                 {
+                                                     <div class="invalid-feedback d-block">@fieldError</div>
+                                                 }
                                                 <div class="omm-form-help">Enter unit count (e.g. 10 lots = 1,000 shares).</div>
                                             </div>
                                             <div class="omm-form-field">
@@ -436,8 +462,12 @@
                                         <div class="omm-form-grid">
                                             <div class="omm-form-field">
                                                 <label class="omm-form-label" for="us-symbol">Stock Ticker <span class="text-danger">*</span></label>
-                                                <input id="us-symbol" type="text" class="form-control rounded-3 text-uppercase" maxlength="15"
+                                                 <input id="us-symbol" type="text" class="form-control rounded-3 text-uppercase @(HasFieldError("us-symbol") ? "is-invalid" : "")" maxlength="15"
                                                        placeholder="e.g. AAPL, NVDA, VOO" @bind="metadata.StockCode" @bind:after="OnStockCodeChanged" />
+                                                 @if (HasFieldError("us-symbol"))
+                                                 {
+                                                     <div class="invalid-feedback d-block">@fieldError</div>
+                                                 }
                                             </div>
                                             <div class="omm-form-field">
                                                 <label class="omm-form-label" for="us-exchange">Exchange <span class="text-danger">*</span></label>
@@ -452,8 +482,12 @@
                                         <div class="omm-form-grid">
                                             <div class="omm-form-field">
                                                 <label class="omm-form-label" for="us-shares">Shares Owned</label>
-                                                <input id="us-shares" type="number" class="form-control rounded-3" min="0" step="0.0001"
+                                                 <input id="us-shares" type="number" class="form-control rounded-3 @(HasFieldError("us-shares") ? "is-invalid" : "")" min="0" step="0.0001"
                                                        placeholder="e.g. 15.5" @bind="metadata.SharesOwned" />
+                                                 @if (HasFieldError("us-shares"))
+                                                 {
+                                                     <div class="invalid-feedback d-block">@fieldError</div>
+                                                 }
                                                 <div class="omm-form-help">Supports fractional shares.</div>
                                             </div>
                                             <div class="omm-form-field">
@@ -490,15 +524,23 @@
                                         <!-- Variable Unit Trust / Mutual Funds -->
                                         <div class="omm-form-field">
                                             <label class="omm-form-label" for="fund-name">Fund Name / Code <span class="text-danger">*</span></label>
-                                            <input id="fund-name" type="text" class="form-control rounded-3" maxlength="150"
+                                            <input id="fund-name" type="text" class="form-control rounded-3 @(HasFieldError("fund-name") ? "is-invalid" : "")" maxlength="150"
                                                    placeholder="e.g. Public Mutual Ittikal Fund, Kenanga Growth Fund" @bind="metadata.FundCode" />
+                                            @if (HasFieldError("fund-name"))
+                                            {
+                                                <div class="invalid-feedback d-block">@fieldError</div>
+                                            }
                                         </div>
 
                                         <div class="omm-form-grid">
                                             <div class="omm-form-field">
                                                 <label class="omm-form-label" for="fund-units">Units Held <span class="text-danger">*</span></label>
-                                                <input id="fund-units" type="number" class="form-control rounded-3" min="0" step="0.01"
+                                                <input id="fund-units" type="number" class="form-control rounded-3 @(HasFieldError("fund-units") ? "is-invalid" : "")" min="0" step="0.01"
                                                        placeholder="e.g. 12500" @bind="metadata.UnitsHeld" @bind:event="oninput" @bind:after="RecalculateFund" />
+                                                @if (HasFieldError("fund-units"))
+                                                {
+                                                    <div class="invalid-feedback d-block">@fieldError</div>
+                                                }
                                             </div>
                                             <div class="omm-form-field">
                                                 <label class="omm-form-label" for="fund-yield">Distribution Yield (% p.a.)</label>
@@ -560,7 +602,7 @@
                                             </div>
                                             <div class="omm-form-field">
                                                 <label class="omm-form-label" for="prop-type">Property Sub-Type <span class="text-danger">*</span></label>
-                                                <select id="prop-type" class="form-select rounded-3" @bind="metadata.PropertyType">
+                                                <select id="prop-type" class="form-select rounded-3 @(HasFieldError("property-type") ? "is-invalid" : "")" @bind="metadata.PropertyType">
                                                     <option value="Condominium">Condominium / Serviced Apt</option>
                                                     <option value="Terraced House">Terraced / Link House</option>
                                                     <option value="Semi-D">Semi-Detached (Semi-D)</option>
@@ -632,16 +674,24 @@
                                         <div class="omm-form-grid">
                                             <div class="omm-form-field">
                                                 <label class="omm-form-label" for="metal-form">Form / Holding Type <span class="text-danger">*</span></label>
-                                                <select id="metal-form" class="form-select rounded-3" @bind="metadata.GoldForm">
+                                                <select id="metal-form" class="form-select rounded-3 @(HasFieldError("metal-form") ? "is-invalid" : "")" @bind="metadata.GoldForm">
                                                     <option value="Physical Bar / Bullion">Physical Bar / Bullion</option>
                                                     <option value="Jewellery / Coins">Jewellery / Coins</option>
                                                     <option value="Digital Gold (GAP / GIA)">Digital Gold (Public Gold GAP / Maybank GIA)</option>
                                                 </select>
+                                                @if (HasFieldError("metal-form"))
+                                                {
+                                                    <div class="invalid-feedback d-block">@fieldError</div>
+                                                }
                                             </div>
                                             <div class="omm-form-field">
                                                 <label class="omm-form-label" for="metal-weight">Weight (Grams) <span class="text-danger">*</span></label>
-                                                <input id="metal-weight" type="number" class="form-control rounded-3" min="0.1" step="0.1"
+                                                <input id="metal-weight" type="number" class="form-control rounded-3 @(HasFieldError("metal-weight") ? "is-invalid" : "")" min="0.1" step="0.1"
                                                        placeholder="e.g. 50.0" @bind="metadata.WeightGrams" @bind:event="oninput" @bind:after="RecalculatePreciousMetals" />
+                                                @if (HasFieldError("metal-weight"))
+                                                {
+                                                    <div class="invalid-feedback d-block">@fieldError</div>
+                                                }
                                             </div>
                                         </div>
 
@@ -650,9 +700,13 @@
                                                 <label class="omm-form-label" for="metal-cost">Total Purchase Cost <span class="text-danger">*</span></label>
                                                 <div class="dc-currency-group">
                                                     <span class="dc-currency-addon">@currencySymbol</span>
-                                                    <input id="metal-cost" type="number" class="form-control" min="0" step="0.01"
+                                                    <input id="metal-cost" type="number" class="form-control @(HasFieldError("metal-cost") ? "is-invalid" : "")" min="0" step="0.01"
                                                            placeholder="0.00" @bind="workingMine.PurchaseCost" @bind:event="oninput" @bind:after="RecalculatePreciousMetals" />
                                                 </div>
+                                                @if (HasFieldError("metal-cost"))
+                                                {
+                                                    <div class="invalid-feedback d-block">@fieldError</div>
+                                                }
                                             </div>
                                             <div class="omm-form-field">
                                                 <label class="omm-form-label" for="metal-price">Buyback Price per Gram <span class="text-muted fw-normal">(optional)</span></label>
@@ -683,8 +737,12 @@
                                         <div class="omm-form-grid">
                                             <div class="omm-form-field">
                                                 <label class="omm-form-label" for="crypto-symbol">Coin / Token <span class="text-danger">*</span></label>
-                                                <input id="crypto-symbol" type="text" class="form-control rounded-3 text-uppercase" maxlength="10"
+                                                <input id="crypto-symbol" type="text" class="form-control rounded-3 text-uppercase @(HasFieldError("crypto-symbol") ? "is-invalid" : "")" maxlength="10"
                                                        placeholder="e.g. BTC, ETH, SOL" @bind="metadata.CoinSymbol" />
+                                                @if (HasFieldError("crypto-symbol"))
+                                                {
+                                                    <div class="invalid-feedback d-block">@fieldError</div>
+                                                }
                                             </div>
                                             <div class="omm-form-field">
                                                 <label class="omm-form-label" for="crypto-platform">Exchange / Custody</label>
@@ -701,8 +759,12 @@
                                         <div class="omm-form-grid">
                                             <div class="omm-form-field">
                                                 <label class="omm-form-label" for="crypto-qty">Quantity Held <span class="text-danger">*</span></label>
-                                                <input id="crypto-qty" type="number" class="form-control rounded-3" min="0" step="0.00000001"
+                                                <input id="crypto-qty" type="number" class="form-control rounded-3 @(HasFieldError("crypto-qty") ? "is-invalid" : "")" min="0" step="0.00000001"
                                                        placeholder="e.g. 0.0525" @bind="metadata.CoinsHeld" />
+                                                @if (HasFieldError("crypto-qty"))
+                                                {
+                                                    <div class="invalid-feedback d-block">@fieldError</div>
+                                                }
                                             </div>
                                             <div class="omm-form-field">
                                                 <label class="omm-form-label" for="crypto-staking">Staking / Earn Yield (% p.a.)</label>
@@ -749,17 +811,25 @@
                                         <div class="omm-form-grid">
                                             <div class="omm-form-field">
                                                 <label class="omm-form-label" for="fx-code">Foreign Currency <span class="text-danger">*</span></label>
-                                                <input id="fx-code" type="text" class="form-control rounded-3 text-uppercase" maxlength="3"
+                                                <input id="fx-code" type="text" class="form-control rounded-3 text-uppercase @(HasFieldError("fx-code") ? "is-invalid" : "")" maxlength="3"
                                                        placeholder="JPY" @bind="metadata.ForeignCurrencyCode" />
+                                                @if (HasFieldError("fx-code"))
+                                                {
+                                                    <div class="invalid-feedback d-block">@fieldError</div>
+                                                }
                                                 <div class="omm-form-help">Examples: JPY, USD, SGD, EUR.</div>
                                             </div>
                                             <div class="omm-form-field">
                                                 <label class="omm-form-label" for="fx-custody">Where is it held? <span class="text-danger">*</span></label>
-                                                <select id="fx-custody" class="form-select rounded-3" @bind="metadata.CurrencyCustodyType">
+                                                <select id="fx-custody" class="form-select rounded-3 @(HasFieldError("fx-custody") ? "is-invalid" : "")" @bind="metadata.CurrencyCustodyType">
                                                     <option value="Physical Cash">Physical Cash</option>
                                                     <option value="Online Wallet">Online Wallet</option>
                                                     <option value="Bank Account">Bank Account</option>
                                                 </select>
+                                                @if (HasFieldError("fx-custody"))
+                                                {
+                                                    <div class="invalid-feedback d-block">@fieldError</div>
+                                                }
                                             </div>
                                         </div>
                                         <div class="omm-form-field">
@@ -775,8 +845,12 @@
                                             </div>
                                             <div class="omm-form-field">
                                                 <label class="omm-form-label" for="fx-amount">Foreign Amount Received <span class="text-danger">*</span></label>
-                                                <input id="fx-amount" type="number" class="form-control rounded-3" min="0" step="0.000001"
+                                                <input id="fx-amount" type="number" class="form-control rounded-3 @(HasFieldError("fx-amount") ? "is-invalid" : "")" min="0" step="0.000001"
                                                        placeholder="386284.05" @bind="foreignInitialAmount" @bind:event="oninput" @bind:after="RecalculateForeignCurrency" />
+                                                @if (HasFieldError("fx-amount"))
+                                                {
+                                                    <div class="invalid-feedback d-block">@fieldError</div>
+                                                }
                                             </div>
                                         </div>
                                         <div class="omm-form-grid">
@@ -784,13 +858,21 @@
                                                 <label class="omm-form-label" for="fx-myr">MYR Amount Paid <span class="text-danger">*</span></label>
                                                 <div class="dc-currency-group">
                                                     <span class="dc-currency-addon">@currencySymbol</span>
-                                                    <input id="fx-myr" type="number" class="form-control" min="0" step="0.01"
+                                                    <input id="fx-myr" type="number" class="form-control @(HasFieldError("fx-myr") ? "is-invalid" : "")" min="0" step="0.01"
                                                            placeholder="10000.00" @bind="foreignInitialMyrAmount" @bind:event="oninput" @bind:after="RecalculateForeignCurrency" />
                                                 </div>
+                                                @if (HasFieldError("fx-myr"))
+                                                {
+                                                    <div class="invalid-feedback d-block">@fieldError</div>
+                                                }
                                             </div>
                                             <div class="omm-form-field">
                                                 <label class="omm-form-label" for="fx-rate">Exchange Rate</label>
-                                                <input id="fx-rate" type="number" class="form-control" readonly value="@foreignInitialRate.ToString("0.########")" />
+                                                <input id="fx-rate" type="number" class="form-control @(HasFieldError("fx-rate") ? "is-invalid" : "")" readonly value="@foreignInitialRate.ToString("0.########")" />
+                                                @if (HasFieldError("fx-rate"))
+                                                {
+                                                    <div class="invalid-feedback d-block">@fieldError</div>
+                                                }
                                                 <div class="omm-form-help">Foreign currency units per 1 @currencySymbol.</div>
                                             </div>
                                         </div>
@@ -828,9 +910,13 @@
                                                 <label class="omm-form-label" for="savings-balance">Account Balance <span class="text-danger">*</span></label>
                                                 <div class="dc-currency-group">
                                                     <span class="dc-currency-addon">@currencySymbol</span>
-                                                    <input id="savings-balance" type="number" class="form-control" min="0" step="0.01"
+                                                    <input id="savings-balance" type="number" class="form-control @(HasFieldError("savings-balance") ? "is-invalid" : "")" min="0" step="0.01"
                                                            placeholder="0.00" @bind="workingMine.CurrentValue" @bind:event="oninput" @bind:after="RecalculateSavings" />
                                                 </div>
+                                                @if (HasFieldError("savings-balance"))
+                                                {
+                                                    <div class="invalid-feedback d-block">@fieldError</div>
+                                                }
                                             </div>
                                             <div class="omm-form-field">
                                                 <label class="omm-form-label" for="savings-rate">Interest / APY Rate (% p.a.)</label>
@@ -849,9 +935,13 @@
                                             <label class="omm-form-label" for="cash-balance">Cash Amount <span class="text-danger">*</span></label>
                                             <div class="dc-currency-group">
                                                 <span class="dc-currency-addon">@currencySymbol</span>
-                                                <input id="cash-balance" type="number" class="form-control" min="0" step="0.01"
+                                                <input id="cash-balance" type="number" class="form-control @(HasFieldError("cash-balance") ? "is-invalid" : "")" min="0" step="0.01"
                                                        placeholder="0.00" @bind="workingMine.CurrentValue" @bind:event="oninput" @bind:after="RecalculateCash" />
                                             </div>
+                                            @if (HasFieldError("cash-balance"))
+                                            {
+                                                <div class="invalid-feedback d-block">@fieldError</div>
+                                            }
                                             <div class="omm-form-help">Physical cash or informal savings kept outside an account.</div>
                                         </div>
                                         break;
@@ -863,9 +953,13 @@
                                                 <label class="omm-form-label" for="mine-current-val">Current Value <span class="text-danger">*</span></label>
                                                 <div class="dc-currency-group">
                                                     <span class="dc-currency-addon">@currencySymbol</span>
-                                                    <input id="mine-current-val" type="number" class="form-control" min="0" step="0.01"
+                                                    <input id="mine-current-val" type="number" class="form-control @(HasFieldError("mine-current-val") ? "is-invalid" : "")" min="0" step="0.01"
                                                            placeholder="0.00" @bind="workingMine.CurrentValue" @bind:event="oninput" />
                                                 </div>
+                                                @if (HasFieldError("mine-current-val"))
+                                                {
+                                                    <div class="invalid-feedback d-block">@fieldError</div>
+                                                }
                                             </div>
                                             <div class="omm-form-field">
                                                 <label class="omm-form-label" for="mine-purchase-val">Total Invested Cost</label>
@@ -1939,10 +2033,10 @@
 
         if (step == 1)
         {
-            inputError = PublicInputValidator.GetDisplayTextError("Mine name", workingMine.Name);
-            if (inputError != null)
+            var nameError = PublicInputValidator.GetDisplayTextError("Mine name", workingMine.Name);
+            if (nameError != null)
             {
-                SetFieldError("mine-name", inputError);
+                SetValidationError("mine-name", nameError);
                 _ = FocusInvalidFieldAsync();
                 return;
             }
@@ -2041,7 +2135,7 @@
     {
         validationFieldId = fieldId;
         fieldError = message;
-        inputError = message;
+        inputError = fieldId is null ? message : null;
     }
 
     private async Task FocusInvalidFieldAsync()

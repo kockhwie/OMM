@@ -72,7 +72,12 @@
                                         {
                                             var isSelected = workingMine.Category == cat;
                                             <div class="category-card p-3 rounded-3 cursor-pointer d-flex flex-column justify-content-between @(isSelected ? "category-card-active" : "")"
-                                                 @onclick="() => SelectCategory(cat)">
+                                                 role="button"
+                                                 tabindex="0"
+                                                 aria-pressed="@isSelected"
+                                                 aria-label="Select @FormatHelper.CategoryLabel(cat)"
+                                                 @onclick="() => SelectCategory(cat)"
+                                                 @onkeydown="e => HandleCategoryKeyDown(e, cat)">
                                                 <div class="category-card-main d-flex align-items-center gap-2">
                                                     <div class="category-icon-wrapper rounded-3 @(isSelected ? "bg-warning text-dark" : "bg-light text-muted") p-2">
                                                         <i class="ti @FormatHelper.CategoryToIcon(cat) fs-4"></i>
@@ -1356,6 +1361,14 @@
         var types = FormatHelper.GetTypesForCategory(category);
         workingMine.Type = types[0];
         AutoSuggestMineName();
+    }
+
+    private void HandleCategoryKeyDown(KeyboardEventArgs e, MineCategory category)
+    {
+        if (e.Key is "Enter" or " ")
+        {
+            SelectCategory(category);
+        }
     }
 
     private void SelectType(MineType type)

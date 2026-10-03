@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/docs/">
+    <File Path="docs/add-mine-adaptive-form-plan.md" />
     <File Path="docs/admin-backend-tasks.md" />
     <File Path="docs/calculator-history-product-direction.md" />
     <File Path="docs/calculator-job-design.md" />
@@ -29,6 +30,6 @@
   <Project Path="OMM.Admin/OMM.Admin.csproj" />
   <Project Path="OMM.Integration.Tests/OMM.Integration.Tests.csproj" />
   <Project Path="OMM.Public/OMM.Public.csproj" />
-  <Project Path="OMM.Shared/OMM.Shared.csproj" />
   <Project Path="OMM.Shared.Tests/OMM.Shared.Tests.csproj" />
+  <Project Path="OMM.Shared/OMM.Shared.csproj" />
 </Solution>

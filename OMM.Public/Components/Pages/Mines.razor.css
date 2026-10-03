@@ -89,14 +89,14 @@
 
 /* Enough right clearance so the name/meta never slides under the status badge */
 .mine-card-header {
-    padding-right: 4.5rem;
+    /*padding-right: 4.5rem;*/
 }
 
 .mine-card-status {
     position: absolute;
     z-index: 2;
-    top: 0.65rem;
-    right: 0.75rem;
+    top: 0.0rem;
+    right: 0.3rem;
     pointer-events: auto;
     white-space: nowrap;
 }

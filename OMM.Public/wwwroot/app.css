@@ -282,7 +282,7 @@ body {
     white-space: nowrap;
 }
 
-.btn:not(.btn-sm):not(.btn-lg),
+.btn:not(.btn-sm):not(.btn-lg):not(.btn-xs),
 .btn-omm-primary,
 .btn-omm-secondary,
 .btn-omm-accent,
@@ -1802,6 +1802,8 @@ i.ti {
     --bs-btn-line-height: 1;
     --bs-btn-border-radius: .2rem;
 }
+
+ 
 
 /* 1. Warm the page, add depth under the cards */
 .dc-page {

@@ -32,3 +32,4 @@
 
 ## Form Consistency
 - For Add Mine form consistency, show currency units in input adornments/text boxes (for example RM), never in field labels. Use semantic names for labels such as 'Total Purchase Cost' rather than 'Total Purchase Cost (MYR)' or other currency suffixes.
+- For Add Mine, support a tracking-first workflow: members may add an asset without current selling price, buyback rate, dividend rate, or growth data. Optional valuation/rate fields should calculate gain/loss or income only when provided; purchase cost and placement details remain the baseline. Future backend market-price updates may populate optional current values automatically.

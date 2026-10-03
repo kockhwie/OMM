@@ -116,6 +116,7 @@ public static class FormatHelper
         MineType.SavingsAccount => "Savings Account",
         MineType.FixedDeposit => "Fixed Deposit (FD)",
         MineType.CashInHand => "Cash in Hand",
+        MineType.ForeignCurrency => "Foreign Currency",
         MineType.UnitTrustAsb => "ASB / ASM",
         MineType.UnitTrustGeneral => "Unit Trust / Mutual Fund",
         MineType.Stocks => "Stocks (Malaysia Stock Market)",
@@ -134,6 +135,7 @@ public static class FormatHelper
     public static string CurrentValueLabel(MineType type) => type switch
     {
         MineType.EpfKwsp or MineType.SavingsAccount or MineType.CashInHand => "Balance",
+        MineType.ForeignCurrency => "Value (MYR)",
         MineType.FixedDeposit => "Projected Value",
         MineType.UnitTrustAsb or MineType.UnitTrustGeneral
             or MineType.Stocks or MineType.StocksUs
@@ -150,6 +152,7 @@ public static class FormatHelper
         MineType.SavingsAccount => "ti-building-bank",
         MineType.FixedDeposit => "ti-lock-dollar",
         MineType.CashInHand => "ti-cash",
+        MineType.ForeignCurrency => "ti-world-dollar",
         MineType.UnitTrustAsb => "ti-chart-area",
         MineType.UnitTrustGeneral => "ti-chart-pie",
         MineType.Stocks => "ti-trending-up",
@@ -171,7 +174,7 @@ public static class FormatHelper
     public static IReadOnlyList<MineType> GetTypesForCategory(MineCategory category) => category switch
     {
         MineCategory.Retirement      => [MineType.EpfKwsp, MineType.Others],
-        MineCategory.CashAndDeposits => [MineType.SavingsAccount, MineType.FixedDeposit, MineType.CashInHand, MineType.Others],
+        MineCategory.CashAndDeposits => [MineType.SavingsAccount, MineType.FixedDeposit, MineType.CashInHand, MineType.ForeignCurrency, MineType.Others],
         MineCategory.Investments     => [MineType.UnitTrustAsb, MineType.UnitTrustGeneral, MineType.Stocks, MineType.StocksUs, MineType.Reit, MineType.Etf, MineType.Others],
         MineCategory.Property        => [MineType.PropertyResidential, MineType.PropertyCommercial, MineType.Others],
         MineCategory.PreciousMetals  => [MineType.Gold, MineType.Silver, MineType.Others],

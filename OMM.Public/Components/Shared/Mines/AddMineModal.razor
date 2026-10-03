@@ -239,6 +239,7 @@
                                         <div class="omm-form-field">
                                             <label class="omm-form-label" for="asb-fund">PNB Fund Selection</label>
                                             <select id="asb-fund" class="form-select rounded-3" @bind="metadata.FundCode" @bind:after="OnAsbFundChanged">
+                                                <option value="">Select an ASB or ASM fund</option>
                                                 <option value="ASB">Amanah Saham Bumiputera (ASB)</option>
                                                 <option value="ASB 2">Amanah Saham Bumiputera 2 (ASB 2)</option>
                                                 <option value="ASB 3 Didik">Amanah Saham Bumiputera 3 - Didik (ASB 3 Didik)</option>
@@ -319,6 +320,13 @@
                                                     <option value="36">36 Months (3 Years)</option>
                                                     <option value="60">60 Months (5 Years)</option>
                                                 </select>
+                                            </div>
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="fd-placement">Placement Date <span class="text-danger">*</span></label>
+                                                <input id="fd-placement" type="date" class="form-control rounded-3"
+                                                       value="@(metadata.PlacementDate?.ToString("yyyy-MM-dd") ?? DateTime.Today.ToString("yyyy-MM-dd"))"
+                                                       @onchange="OnPlacementDateChanged" />
+                                                <div class="omm-form-help">Use the original placement date, including for older FD certificates.</div>
                                             </div>
                                             <div class="omm-form-field">
                                                 <label class="omm-form-label" for="fd-maturity">Maturity Date</label>
@@ -512,7 +520,7 @@
                                                 </div>
                                             </div>
                                             <div class="omm-form-field">
-                                                <label class="omm-form-label" for="fund-current-nav">Current NAV <span class="text-danger">*</span></label>
+                                                <label class="omm-form-label" for="fund-current-nav">Current NAV <span class="text-muted fw-normal">(optional)</span></label>
                                                 <div class="dc-currency-group">
                                                     <span class="dc-currency-addon">@currencySymbol</span>
                                                     <input id="fund-current-nav" type="number" class="form-control" min="0" step="0.0001"
@@ -520,6 +528,25 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        <div class="omm-form-field mt-2">
+                                            <label class="omm-form-label" for="fund-purchase-cost">Total Cost Paid <span class="text-muted fw-normal">(optional)</span></label>
+                                            <div class="dc-currency-group">
+                                                <span class="dc-currency-addon">@currencySymbol</span>
+                                                <input id="fund-purchase-cost" type="number" class="form-control" min="0" step="0.01"
+                                                       placeholder="Enter total amount invested" @bind="workingMine.PurchaseCost" @bind:event="oninput" @bind:after="RecalculateFundManualCost" />
+                                            </div>
+                                        </div>
+                                        @if (!currentNavTemp.HasValue || currentNavTemp <= 0)
+                                        {
+                                            <div class="omm-form-field mt-2">
+                                                <label class="omm-form-label" for="fund-current-value">Current Estimated Value <span class="text-muted fw-normal">(optional)</span></label>
+                                                <div class="dc-currency-group">
+                                                    <span class="dc-currency-addon">@currencySymbol</span>
+                                                    <input id="fund-current-value" type="number" class="form-control" min="0" step="0.01"
+                                                           placeholder="Enter later when known" @bind="workingMine.CurrentValue" @bind:event="oninput" @bind:after="RecalculateFundManualValue" />
+                                                </div>
+                                            </div>
+                                        }
                                         break;
 
                                     case MineType.PropertyResidential:
@@ -532,7 +559,7 @@
                                                        placeholder="e.g. Unit 12-03, The Park Residences, Bangsar South" @bind="metadata.Address" />
                                             </div>
                                             <div class="omm-form-field">
-                                                <label class="omm-form-label" for="prop-type">Property Sub-Type</label>
+                                                <label class="omm-form-label" for="prop-type">Property Sub-Type <span class="text-danger">*</span></label>
                                                 <select id="prop-type" class="form-select rounded-3" @bind="metadata.PropertyType">
                                                     <option value="Condominium">Condominium / Serviced Apt</option>
                                                     <option value="Terraced House">Terraced / Link House</option>
@@ -604,7 +631,7 @@
                                         <!-- Precious Metals Form -->
                                         <div class="omm-form-grid">
                                             <div class="omm-form-field">
-                                                <label class="omm-form-label" for="metal-form">Form / Holding Type</label>
+                                                <label class="omm-form-label" for="metal-form">Form / Holding Type <span class="text-danger">*</span></label>
                                                 <select id="metal-form" class="form-select rounded-3" @bind="metadata.GoldForm">
                                                     <option value="Physical Bar / Bullion">Physical Bar / Bullion</option>
                                                     <option value="Jewellery / Coins">Jewellery / Coins</option>
@@ -620,7 +647,7 @@
 
                                         <div class="omm-form-grid">
                                             <div class="omm-form-field">
-                                                <label class="omm-form-label" for="metal-cost">Total Purchase Cost</label>
+                                                <label class="omm-form-label" for="metal-cost">Total Purchase Cost <span class="text-danger">*</span></label>
                                                 <div class="dc-currency-group">
                                                     <span class="dc-currency-addon">@currencySymbol</span>
                                                     <input id="metal-cost" type="number" class="form-control" min="0" step="0.01"
@@ -628,15 +655,27 @@
                                                 </div>
                                             </div>
                                             <div class="omm-form-field">
-                                                <label class="omm-form-label" for="metal-price">Current Price per Gram <span class="text-danger">*</span></label>
+                                                <label class="omm-form-label" for="metal-price">Buyback Price per Gram <span class="text-muted fw-normal">(optional)</span></label>
                                                 <div class="dc-currency-group">
                                                     <span class="dc-currency-addon">@currencySymbol</span>
                                                     <input id="metal-price" type="number" class="form-control" min="0" step="0.1"
-                                                           placeholder="e.g. 385.00" @bind="metadata.CurrentPricePerGram" @bind:event="oninput" @bind:after="RecalculatePreciousMetals" />
+                                                           placeholder="e.g. 385.00" @bind="metadata.BuybackPricePerGram" @bind:event="oninput" @bind:after="RecalculatePreciousMetals" />
                                                     <span class="dc-currency-suffix">/ g</span>
                                                 </div>
+                                                <div class="omm-form-help">Leave blank if you only want to track the holding. You can add the latest buyback price later.</div>
                                             </div>
                                         </div>
+                                        @if (!metadata.BuybackPricePerGram.HasValue || metadata.BuybackPricePerGram <= 0)
+                                        {
+                                            <div class="omm-form-field mt-2">
+                                                <label class="omm-form-label" for="metal-value">Current Estimated Value <span class="text-muted fw-normal">(optional)</span></label>
+                                                <div class="dc-currency-group">
+                                                    <span class="dc-currency-addon">@currencySymbol</span>
+                                                    <input id="metal-value" type="number" class="form-control" min="0" step="0.01"
+                                                           placeholder="Enter later when known" @bind="workingMine.CurrentValue" @bind:event="oninput" @bind:after="RecalculatePreciousMetalManualValue" />
+                                                </div>
+                                            </div>
+                                        }
                                         break;
 
                                     case MineType.Cryptocurrency:
@@ -661,7 +700,7 @@
 
                                         <div class="omm-form-grid">
                                             <div class="omm-form-field">
-                                                <label class="omm-form-label" for="crypto-qty">Quantity Held</label>
+                                                <label class="omm-form-label" for="crypto-qty">Quantity Held <span class="text-danger">*</span></label>
                                                 <input id="crypto-qty" type="number" class="form-control rounded-3" min="0" step="0.00000001"
                                                        placeholder="e.g. 0.0525" @bind="metadata.CoinsHeld" />
                                             </div>
@@ -674,6 +713,17 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        @if (!metadata.CurrentSharePrice.HasValue || metadata.CurrentSharePrice <= 0)
+                                        {
+                                            <div class="omm-form-field mt-2">
+                                                <label class="omm-form-label" for="stock-value">Current Estimated Value <span class="text-muted fw-normal">(optional)</span></label>
+                                                <div class="dc-currency-group">
+                                                    <span class="dc-currency-addon">@currencySymbol</span>
+                                                    <input id="stock-value" type="number" class="form-control" min="0" step="0.01"
+                                                           placeholder="Enter later when known" @bind="workingMine.CurrentValue" @bind:event="oninput" @bind:after="RecalculateStockManualValue" />
+                                                </div>
+                                            </div>
+                                        }
 
                                         <div class="omm-form-grid">
                                             <div class="omm-form-field">
@@ -695,8 +745,74 @@
                                         </div>
                                         break;
 
+                                    case MineType.ForeignCurrency:
+                                        <div class="omm-form-grid">
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="fx-code">Foreign Currency <span class="text-danger">*</span></label>
+                                                <input id="fx-code" type="text" class="form-control rounded-3 text-uppercase" maxlength="3"
+                                                       placeholder="JPY" @bind="metadata.ForeignCurrencyCode" />
+                                                <div class="omm-form-help">Examples: JPY, USD, SGD, EUR.</div>
+                                            </div>
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="fx-custody">Where is it held? <span class="text-danger">*</span></label>
+                                                <select id="fx-custody" class="form-select rounded-3" @bind="metadata.CurrencyCustodyType">
+                                                    <option value="Physical Cash">Physical Cash</option>
+                                                    <option value="Online Wallet">Online Wallet</option>
+                                                    <option value="Bank Account">Bank Account</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="omm-form-field">
+                                            <label class="omm-form-label" for="fx-provider">Provider / Location</label>
+                                            <input id="fx-provider" type="text" class="form-control rounded-3" maxlength="100"
+                                                   placeholder="e.g. Wise, Maybank, travel wallet" @bind="metadata.CurrencyProvider" />
+                                        </div>
+                                        <div class="omm-form-grid">
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="fx-date">Exchange Date <span class="text-danger">*</span></label>
+                                                <input id="fx-date" type="date" class="form-control rounded-3"
+                                                       value="@foreignInitialDate.ToString("yyyy-MM-dd")" @onchange="OnForeignInitialDateChanged" />
+                                            </div>
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="fx-amount">Foreign Amount Received <span class="text-danger">*</span></label>
+                                                <input id="fx-amount" type="number" class="form-control rounded-3" min="0" step="0.000001"
+                                                       placeholder="386284.05" @bind="foreignInitialAmount" @bind:event="oninput" @bind:after="RecalculateForeignCurrency" />
+                                            </div>
+                                        </div>
+                                        <div class="omm-form-grid">
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="fx-myr">MYR Amount Paid <span class="text-danger">*</span></label>
+                                                <div class="dc-currency-group">
+                                                    <span class="dc-currency-addon">@currencySymbol</span>
+                                                    <input id="fx-myr" type="number" class="form-control" min="0" step="0.01"
+                                                           placeholder="10000.00" @bind="foreignInitialMyrAmount" @bind:event="oninput" @bind:after="RecalculateForeignCurrency" />
+                                                </div>
+                                            </div>
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="fx-rate">Exchange Rate</label>
+                                                <input id="fx-rate" type="number" class="form-control" readonly value="@foreignInitialRate.ToString("0.########")" />
+                                                <div class="omm-form-help">Foreign currency units per 1 @currencySymbol.</div>
+                                            </div>
+                                        </div>
+                                        <div class="omm-form-grid">
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="fx-fees">Fees</label>
+                                                <div class="dc-currency-group">
+                                                    <span class="dc-currency-addon">@currencySymbol</span>
+                                                    <input id="fx-fees" type="number" class="form-control" min="0" step="0.01"
+                                                           placeholder="0.00" @bind="foreignInitialFees" @bind:event="oninput" @bind:after="RecalculateForeignCurrency" />
+                                                </div>
+                                            </div>
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="fx-current-rate">Current Sell Rate <span class="text-muted fw-normal">(optional)</span></label>
+                                                <input id="fx-current-rate" type="number" class="form-control" min="0" step="0.000001"
+                                                       placeholder="Enter later" @bind="metadata.CurrentSellRate" @bind:event="oninput" @bind:after="RecalculateForeignCurrency" />
+                                                <div class="omm-form-help">Enter the rate when you want to calculate current MYR value.</div>
+                                            </div>
+                                        </div>
+                                        break;
+
                                     case MineType.SavingsAccount:
-                                    case MineType.CashInHand:
                                         <!-- Cash & High-Yield Savings Form -->
                                         <div class="omm-form-field">
                                             <label class="omm-form-label" for="savings-type">Platform / Account Class</label>
@@ -725,6 +841,18 @@
                                                 </div>
                                                 <div class="omm-form-help">e.g. GXBank 3.0%, Versa 3.7%.</div>
                                             </div>
+                                        </div>
+                                        break;
+
+                                    case MineType.CashInHand:
+                                        <div class="omm-form-field">
+                                            <label class="omm-form-label" for="cash-balance">Cash Amount <span class="text-danger">*</span></label>
+                                            <div class="dc-currency-group">
+                                                <span class="dc-currency-addon">@currencySymbol</span>
+                                                <input id="cash-balance" type="number" class="form-control" min="0" step="0.01"
+                                                       placeholder="0.00" @bind="workingMine.CurrentValue" @bind:event="oninput" @bind:after="RecalculateCash" />
+                                            </div>
+                                            <div class="omm-form-help">Physical cash or informal savings kept outside an account.</div>
                                         </div>
                                         break;
 
@@ -798,7 +926,9 @@
                                 <div class="col-6 col-md-3">
                                     <div class="p-3 bg-light rounded-3 text-center">
                                         <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.68rem;">Current Value</small>
-                                        <div class="fs-5 fw-bold text-dark mt-1">@FormatHelper.FormatCurrency(workingMine.CurrentValue, currencySymbol)</div>
+                                            <div class="fs-5 fw-bold text-dark mt-1">
+                                                @(HasCurrentValuation ? FormatHelper.FormatCurrency(workingMine.CurrentValue, currencySymbol) : "Not entered")
+                                            </div>
                                     </div>
                                 </div>
                                 <div class="col-6 col-md-3">
@@ -810,8 +940,8 @@
                                 <div class="col-6 col-md-3">
                                     <div class="p-3 bg-light rounded-3 text-center">
                                         <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.68rem;">Unrealized P&L</small>
-                                        <div class="fs-5 fw-bold @(workingMine.Growth >= 0 ? "text-success" : "text-danger") mt-1">
-                                            @(workingMine.Growth >= 0 ? "+" : "")@FormatHelper.FormatCurrency(workingMine.Growth, currencySymbol)
+                                                <div class="fs-5 fw-bold @(HasGrowth ? (workingMine.Growth >= 0 ? "text-success" : "text-danger") : "text-muted") mt-1">
+                                                    @(HasGrowth ? $"{(workingMine.Growth >= 0 ? "+" : "")}{FormatHelper.FormatCurrency(workingMine.Growth, currencySymbol)}" : "Not available")
                                         </div>
                                     </div>
                                 </div>
@@ -822,6 +952,14 @@
                                             @(workingMine.MonthlyIncome > 0 ? FormatHelper.FormatCurrency(workingMine.MonthlyIncome, currencySymbol) : "—")
                                         </div>
                                     </div>
+
+                            @if (!HasCurrentValuation)
+                            {
+                                <div class="alert alert-light border rounded-3 small text-muted mb-3">
+                                    <i class="ti ti-info-circle me-1"></i>
+                                    This mine is being saved for tracking. Add a current price or valuation later to calculate gain or loss.
+                                </div>
+                            }
                                 </div>
                             </div>
 
@@ -1252,6 +1390,11 @@
     // Temporary reactive state holders
     private decimal? currentNavTemp;
     private string savingsClassTemp = "High-Yield Digital Bank";
+    private DateOnly foreignInitialDate = DateOnly.FromDateTime(DateTime.Today);
+    private decimal foreignInitialAmount;
+    private decimal foreignInitialMyrAmount;
+    private decimal foreignInitialRate;
+    private decimal foreignInitialFees;
 
     // History archiving options (Edit mode)
     private bool archiveYieldHistory = false;
@@ -1331,6 +1474,66 @@
             };
             metadata = new MineMetadata();
             currentNavTemp = null;
+        }
+
+        InitializeForeignCurrencyState();
+    }
+
+    private void InitializeForeignCurrencyState()
+    {
+        if (workingMine.Type != MineType.ForeignCurrency) return;
+
+        var initialTransaction = workingMine.ForeignCurrencyTransactions?
+            .Where(item => item.TransactionType == ForeignCurrencyTransactionType.Purchase)
+            .OrderBy(item => item.TransactionDate)
+            .FirstOrDefault();
+
+        if (initialTransaction is not null)
+        {
+            foreignInitialDate = initialTransaction.TransactionDate;
+            foreignInitialAmount = initialTransaction.ForeignAmount;
+            foreignInitialMyrAmount = initialTransaction.MyrAmount;
+            foreignInitialRate = initialTransaction.ExchangeRate;
+            foreignInitialFees = initialTransaction.FeesMyr;
+        }
+        else
+        {
+            foreignInitialDate = DateOnly.FromDateTime(DateTime.Today);
+            foreignInitialAmount = 0;
+            foreignInitialMyrAmount = 0;
+            foreignInitialRate = 0;
+            foreignInitialFees = 0;
+        }
+
+        RecalculateForeignCurrency();
+    }
+
+    private void RecalculateForeignCurrency()
+    {
+        foreignInitialRate = foreignInitialMyrAmount > 0
+            ? Math.Round(foreignInitialAmount / foreignInitialMyrAmount, 8)
+            : 0;
+        workingMine.PurchaseCost = foreignInitialMyrAmount + foreignInitialFees;
+        workingMine.CurrentValue = metadata.CurrentSellRate is > 0 && foreignInitialAmount > 0
+            ? Math.Round(foreignInitialAmount / metadata.CurrentSellRate.Value, 2)
+            : 0;
+        workingMine.MonthlyIncome = 0;
+        workingMine.Growth = workingMine.CurrentValue > 0
+            ? workingMine.CurrentValue - workingMine.PurchaseCost
+            : 0;
+        workingMine.GrowthPct = workingMine.PurchaseCost > 0 && workingMine.CurrentValue > 0
+            ? Math.Round(workingMine.Growth / workingMine.PurchaseCost * 100m, 1)
+            : 0;
+        workingMine.Holdings = foreignInitialAmount > 0
+            ? $"{foreignInitialAmount:N2} {metadata.ForeignCurrencyCode?.ToUpperInvariant()}"
+            : null;
+    }
+
+    private void OnForeignInitialDateChanged(ChangeEventArgs e)
+    {
+        if (DateOnly.TryParse(e.Value?.ToString(), out var date))
+        {
+            foreignInitialDate = date;
         }
     }
 
@@ -1483,16 +1686,32 @@
     private void RecalculateFd()
     {
         var principal = metadata.Principal ?? 0;
+        var rate = metadata.InterestRatePct ?? 0;
+        var tenureMonths = metadata.TenureMonths ?? 0;
+        var placementDate = metadata.PlacementDate ?? DateOnly.FromDateTime(DateTime.Today);
+        metadata.PlacementDate ??= placementDate;
         workingMine.PurchaseCost = principal;
-        workingMine.CurrentValue = principal;
-        workingMine.Growth = 0;
-        workingMine.GrowthPct = 0;
+        workingMine.CurrentValue = principal * (1m + (rate / 100m * tenureMonths / 12m));
+        workingMine.Growth = workingMine.CurrentValue - principal;
+        workingMine.GrowthPct = principal > 0
+            ? Math.Round((workingMine.Growth / principal) * 100m, 1)
+            : 0;
 
-        if (metadata.InterestRatePct.HasValue && metadata.InterestRatePct > 0)
+        if (rate > 0 && tenureMonths > 0)
         {
-            var annual = principal * (metadata.InterestRatePct.Value / 100m);
+            var annual = principal * (rate / 100m);
             workingMine.MonthlyIncome = Math.Round(annual / 12m, 2);
         }
+        else
+        {
+            workingMine.MonthlyIncome = 0;
+        }
+
+        if (tenureMonths > 0)
+        {
+            metadata.MaturityDate = placementDate.AddMonths(tenureMonths);
+        }
+
         workingMine.Holdings = $"{metadata.TenureMonths ?? 12} mos @ {metadata.InterestRatePct ?? 0:0.00}% p.a.";
     }
 
@@ -1508,6 +1727,15 @@
         }
     }
 
+    private void OnPlacementDateChanged(ChangeEventArgs e)
+    {
+        if (DateOnly.TryParse(e.Value?.ToString(), out var dt))
+        {
+            metadata.PlacementDate = dt;
+            RecalculateFd();
+        }
+    }
+
     private void OnStockCodeChanged()
     {
         if (!IsEditMode && !string.IsNullOrWhiteSpace(metadata.StockCode))
@@ -1520,18 +1748,36 @@
     {
         var shares = metadata.SharesOwned ?? 0;
         var costPerShare = metadata.PurchasePricePerShare ?? 0;
-        var currentPrice = metadata.CurrentSharePrice ?? costPerShare;
+        var currentPrice = metadata.CurrentSharePrice ?? 0;
 
-        workingMine.PurchaseCost = shares * costPerShare;
-        workingMine.CurrentValue = shares * currentPrice;
-        ComputeGrowth();
+        if (costPerShare > 0)
+        {
+            workingMine.PurchaseCost = shares * costPerShare;
+        }
+        if (currentPrice > 0)
+        {
+            workingMine.CurrentValue = shares * currentPrice;
+            ComputeGrowth();
+        }
+        else
+        {
+            workingMine.Growth = 0;
+            workingMine.GrowthPct = 0;
+            workingMine.MonthlyIncome = 0;
+        }
 
-        if (metadata.DividendYieldPct.HasValue && metadata.DividendYieldPct > 0)
+        if (currentPrice > 0 && metadata.DividendYieldPct.HasValue && metadata.DividendYieldPct > 0)
         {
             var annual = workingMine.CurrentValue * (metadata.DividendYieldPct.Value / 100m);
             workingMine.MonthlyIncome = Math.Round(annual / 12m, 2);
         }
         workingMine.Holdings = $"{shares:N0} shares @ {currentPrice:N2}";
+    }
+
+    private void RecalculateStockManualValue()
+    {
+        ComputeGrowth();
+        workingMine.MonthlyIncome = 0;
     }
 
     private void RecalculateUsStock()
@@ -1552,18 +1798,41 @@
     {
         var units = metadata.UnitsHeld ?? 0;
         var purchaseNav = metadata.NavPerUnit ?? 0;
-        var currentNav = currentNavTemp ?? purchaseNav;
+        var currentNav = currentNavTemp ?? 0;
 
-        workingMine.PurchaseCost = units * purchaseNav;
-        workingMine.CurrentValue = units * currentNav;
-        ComputeGrowth();
+        if (purchaseNav > 0)
+        {
+            workingMine.PurchaseCost = units * purchaseNav;
+        }
+        if (currentNav > 0)
+        {
+            workingMine.CurrentValue = units * currentNav;
+            ComputeGrowth();
+        }
+        else
+        {
+            workingMine.Growth = 0;
+            workingMine.GrowthPct = 0;
+            workingMine.MonthlyIncome = 0;
+        }
 
-        if (metadata.DividendYieldPct.HasValue && metadata.DividendYieldPct > 0)
+        if (currentNav > 0 && metadata.DividendYieldPct.HasValue && metadata.DividendYieldPct > 0)
         {
             var annual = workingMine.CurrentValue * (metadata.DividendYieldPct.Value / 100m);
             workingMine.MonthlyIncome = Math.Round(annual / 12m, 2);
         }
         workingMine.Holdings = $"{units:N2} units @ {currentNav:N4} NAV";
+    }
+
+    private void RecalculateFundManualCost()
+    {
+        ComputeGrowth();
+    }
+
+    private void RecalculateFundManualValue()
+    {
+        ComputeGrowth();
+        workingMine.MonthlyIncome = 0;
     }
 
     private void RecalculateProperty()
@@ -1580,13 +1849,25 @@
     private void RecalculatePreciousMetals()
     {
         var weight = metadata.WeightGrams ?? 0;
-        var pricePerG = metadata.CurrentPricePerGram ?? 0;
-        if (pricePerG > 0)
+        var buybackPricePerG = metadata.BuybackPricePerGram ?? 0;
+        if (buybackPricePerG > 0)
         {
-            workingMine.CurrentValue = weight * pricePerG;
+            workingMine.CurrentValue = weight * buybackPricePerG;
+            ComputeGrowth();
         }
-        ComputeGrowth();
+        else
+        {
+            workingMine.Growth = 0;
+            workingMine.GrowthPct = 0;
+            workingMine.MonthlyIncome = 0;
+        }
         workingMine.Holdings = $"{weight:N1}g {metadata.GoldForm ?? "Gold"}";
+    }
+
+    private void RecalculatePreciousMetalManualValue()
+    {
+        ComputeGrowth();
+        workingMine.MonthlyIncome = 0;
     }
 
     private void RecalculateCrypto()
@@ -1617,6 +1898,15 @@
         workingMine.Holdings = $"{metadata.InterestRatePct ?? 0:0.00}% p.a. - {savingsClassTemp}";
     }
 
+    private void RecalculateCash()
+    {
+        workingMine.PurchaseCost = workingMine.CurrentValue;
+        workingMine.MonthlyIncome = 0;
+        workingMine.Growth = 0;
+        workingMine.GrowthPct = 0;
+        workingMine.Holdings = "Physical cash";
+    }
+
     private void ComputeGrowth()
     {
         if (workingMine.PurchaseCost > 0)
@@ -1626,7 +1916,6 @@
         }
         else
         {
-            workingMine.PurchaseCost = workingMine.CurrentValue;
             workingMine.Growth = 0;
             workingMine.GrowthPct = 0;
         }
@@ -1639,6 +1928,10 @@
         3 => "Review & Confirm",
         _ => string.Empty
     };
+
+    private bool HasCurrentValuation => workingMine.CurrentValue > 0;
+
+    private bool HasGrowth => HasCurrentValuation && workingMine.PurchaseCost > 0;
 
     private void GoNext()
     {
@@ -1657,21 +1950,8 @@
         }
         else if (step == 2)
         {
-            if (workingMine.CurrentValue <= 0)
+            if (!ValidateStepTwo())
             {
-                var fieldId = workingMine.Type switch
-                {
-                    MineType.EpfKwsp => "epf-akaun1",
-                    MineType.UnitTrustAsb => "asb-units",
-                    MineType.FixedDeposit => "fd-principal",
-                    MineType.Stocks or MineType.Reit or MineType.Etf => "stock-price",
-                    MineType.StocksUs => "us-val",
-                    MineType.UnitTrustGeneral => "fund-current-nav",
-                    MineType.Gold or MineType.Silver => "metal-price",
-                    MineType.Cryptocurrency => "crypto-price",
-                    _ => null
-                };
-                SetFieldError(fieldId, "Enter a value greater than zero.");
                 _ = FocusInvalidFieldAsync();
                 return;
             }
@@ -1684,6 +1964,69 @@
             ComputeGrowth();
             step = 3;
         }
+    }
+
+    private bool ValidateStepTwo()
+    {
+        switch (workingMine.Type)
+        {
+            case MineType.EpfKwsp when workingMine.CurrentValue <= 0:
+                return SetValidationError("epf-akaun1", "Enter a value greater than zero.");
+            case MineType.SavingsAccount when workingMine.CurrentValue <= 0:
+                return SetValidationError("savings-balance", "Enter a value greater than zero.");
+            case MineType.CashInHand when workingMine.CurrentValue <= 0:
+                return SetValidationError("cash-balance", "Enter a value greater than zero.");
+            case MineType.FixedDeposit when (metadata.Principal ?? 0) <= 0:
+                return SetValidationError("fd-principal", "Enter a principal amount greater than zero.");
+            case MineType.FixedDeposit when (metadata.InterestRatePct ?? 0) <= 0:
+                return SetValidationError("fd-rate", "Enter an interest rate greater than zero.");
+            case MineType.FixedDeposit when (metadata.TenureMonths ?? 0) <= 0:
+                return SetValidationError("fd-tenure", "Select a tenure greater than zero.");
+            case MineType.ForeignCurrency when string.IsNullOrWhiteSpace(metadata.ForeignCurrencyCode):
+                return SetValidationError("fx-code", "Enter a foreign currency code.");
+            case MineType.ForeignCurrency when string.IsNullOrWhiteSpace(metadata.CurrencyCustodyType):
+                return SetValidationError("fx-custody", "Select where the currency is held.");
+            case MineType.ForeignCurrency when foreignInitialAmount <= 0:
+                return SetValidationError("fx-amount", "Enter the foreign currency amount received.");
+            case MineType.ForeignCurrency when foreignInitialMyrAmount <= 0:
+                return SetValidationError("fx-myr", "Enter the MYR amount paid.");
+            case MineType.ForeignCurrency when foreignInitialRate <= 0:
+                return SetValidationError("fx-rate", "Enter a valid exchange rate.");
+            case MineType.UnitTrustAsb when string.IsNullOrWhiteSpace(metadata.FundCode):
+                return SetValidationError("asb-fund", "Select an ASB or ASM fund.");
+            case MineType.UnitTrustAsb when (metadata.UnitsHeld ?? 0) <= 0:
+                return SetValidationError("asb-units", "Enter units held greater than zero.");
+            case MineType.UnitTrustGeneral when string.IsNullOrWhiteSpace(metadata.FundCode):
+                return SetValidationError("fund-name", "Enter the fund name or code.");
+            case MineType.UnitTrustGeneral when (metadata.UnitsHeld ?? 0) <= 0:
+                return SetValidationError("fund-units", "Enter units held greater than zero.");
+            case MineType.Stocks or MineType.StocksUs or MineType.Reit or MineType.Etf when string.IsNullOrWhiteSpace(metadata.StockCode):
+                return SetValidationError(workingMine.Type == MineType.StocksUs ? "us-symbol" : "stock-code", "Enter a stock or fund code.");
+            case MineType.Stocks or MineType.StocksUs or MineType.Reit or MineType.Etf when (metadata.SharesOwned ?? 0) <= 0:
+                return SetValidationError(workingMine.Type == MineType.StocksUs ? "us-shares" : "stock-shares", "Enter shares owned greater than zero.");
+            case MineType.PropertyResidential or MineType.PropertyCommercial when string.IsNullOrWhiteSpace(metadata.PropertyType):
+                return SetValidationError("property-type", "Select a property type.");
+            case MineType.Gold or MineType.Silver when string.IsNullOrWhiteSpace(metadata.GoldForm):
+                return SetValidationError("metal-form", "Select a holding type.");
+            case MineType.Gold or MineType.Silver when (metadata.WeightGrams ?? 0) <= 0:
+                return SetValidationError("metal-weight", "Enter weight greater than zero.");
+            case MineType.Gold or MineType.Silver when workingMine.PurchaseCost <= 0:
+                return SetValidationError("metal-cost", "Enter the total purchase cost greater than zero.");
+            case MineType.Cryptocurrency when string.IsNullOrWhiteSpace(metadata.CoinSymbol):
+                return SetValidationError("crypto-symbol", "Enter a coin symbol.");
+            case MineType.Cryptocurrency when (metadata.CoinsHeld ?? 0) <= 0:
+                return SetValidationError("crypto-qty", "Enter coins held greater than zero.");
+            case MineType.Others when workingMine.CurrentValue <= 0:
+                return SetValidationError("mine-current-val", "Enter a value greater than zero.");
+        }
+
+        return true;
+    }
+
+    private bool SetValidationError(string? fieldId, string message)
+    {
+        SetFieldError(fieldId, message);
+        return false;
     }
 
     private void GoPrevious()
@@ -1730,6 +2073,21 @@
         inputError = null;
 
         workingMine.Metadata = metadata;
+        if (!IsEditMode && workingMine.Type == MineType.ForeignCurrency)
+        {
+            workingMine.ForeignCurrencyTransactions =
+            [
+                new ForeignCurrencyTransaction
+                {
+                    TransactionType = ForeignCurrencyTransactionType.Purchase,
+                    TransactionDate = foreignInitialDate,
+                    ForeignAmount = foreignInitialAmount,
+                    MyrAmount = foreignInitialMyrAmount,
+                    ExchangeRate = foreignInitialRate,
+                    FeesMyr = foreignInitialFees
+                }
+            ];
+        }
 
         try
         {

@@ -19,6 +19,7 @@ public sealed class MineRepository(
             .Include(mine => mine.Institution)
             .Include(mine => mine.Currency)
             .Include(mine => mine.Positions)
+            .Include(mine => mine.ForeignCurrencyTransactions)
             .Where(mine => mine.UserId == userId)
             .OrderBy(mine => mine.Name)
             .ToListAsync(cancellationToken);
@@ -33,6 +34,7 @@ public sealed class MineRepository(
             .Include(mine => mine.Institution)
             .Include(mine => mine.Currency)
             .Include(mine => mine.Positions)
+            .Include(mine => mine.ForeignCurrencyTransactions)
             .Where(mine => mine.UserId == userId && mine.Id == mineId)
             .SingleOrDefaultAsync(cancellationToken);
     }

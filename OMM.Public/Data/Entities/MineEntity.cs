@@ -44,6 +44,8 @@ public class MineEntity : UserOwnedEntity
 
     public ICollection<MinePositionEntity> Positions { get; set; } = [];
 
+    public ICollection<ForeignCurrencyTransactionEntity> ForeignCurrencyTransactions { get; set; } = [];
+
     public ICollection<GoalMineEntity> GoalLinks { get; set; } = [];
 
     public ICollection<MineYieldHistoryEntity> YieldHistories { get; set; } = [];

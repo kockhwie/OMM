@@ -508,6 +508,119 @@ else
         }
         else if (activeTab == "submines")
         {
+            @if (currentMine.Type == MineType.ForeignCurrency)
+            {
+                var fxTransactions = currentMine.ForeignCurrencyTransactions ?? [];
+                var foreignHeld = fxTransactions.Sum(item => item.TransactionType == ForeignCurrencyTransactionType.Sale ? -item.ForeignAmount : item.ForeignAmount);
+                var totalMyrCost = fxTransactions.Sum(item => item.TransactionType == ForeignCurrencyTransactionType.Sale ? -item.MyrAmount : item.MyrAmount + item.FeesMyr);
+                var weightedRate = totalMyrCost > 0 ? foreignHeld / totalMyrCost : 0;
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white animate-fade-up">
+                        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+                            <div>
+                                <h3 class="h6 fw-bold text-dark font-display mb-1">@currentMine.Metadata?.ForeignCurrencyCode Exchange Lots</h3>
+                                <p class="text-muted small mb-0">Record each later exchange without creating another Mine.</p>
+                            </div>
+                            <button type="button" class="btn btn-primary btn-sm rounded-3" @onclick="OpenForeignTransactionForm">
+                                <i class="ti ti-plus me-1"></i> Add Exchange
+                            </button>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-6 col-md-3">
+                                <div class="p-3 rounded-3 bg-light">
+                                    <small class="text-muted d-block">Foreign Held</small>
+                                    <strong class="text-dark">@foreignHeld.ToString("N2") @currentMine.Metadata?.ForeignCurrencyCode</strong>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="p-3 rounded-3 bg-light">
+                                    <small class="text-muted d-block">Total MYR Cost</small>
+                                    <strong class="text-dark">@FormatHelper.FormatCurrency(totalMyrCost, currentMine.Currency)</strong>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="p-3 rounded-3 bg-light">
+                                    <small class="text-muted d-block">Weighted Average Rate</small>
+                                    <strong class="text-dark">@(weightedRate > 0 ? weightedRate.ToString("0.########") : "—")</strong>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="p-3 rounded-3 bg-light">
+                                    <small class="text-muted d-block">Current Sell Rate</small>
+                                    <strong class="text-dark">@(currentMine.Metadata?.CurrentSellRate?.ToString("0.########") ?? "Not entered")</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (showForeignTransactionForm)
+                        {
+                            <div class="border rounded-3 p-3 mb-4 bg-light-subtle">
+                                <h4 class="h6 fw-bold text-dark mb-3">Add Exchange Lot</h4>
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label small fw-semibold" for="detail-fx-date">Exchange Date</label>
+                                        <input id="detail-fx-date" type="date" class="form-control" value="@foreignTransactionDate.ToString("yyyy-MM-dd")" @onchange="OnForeignTransactionDateChanged" />
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label small fw-semibold" for="detail-fx-amount">Foreign Amount</label>
+                                        <input id="detail-fx-amount" type="number" class="form-control" min="0" step="0.000001" @bind="foreignTransactionAmount" @bind:event="oninput" @bind:after="RecalculateForeignTransaction" />
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label small fw-semibold" for="detail-fx-myr">MYR Amount Paid</label>
+                                        <input id="detail-fx-myr" type="number" class="form-control" min="0" step="0.01" @bind="foreignTransactionMyrAmount" @bind:event="oninput" @bind:after="RecalculateForeignTransaction" />
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label small fw-semibold" for="detail-fx-rate">Exchange Rate</label>
+                                        <input id="detail-fx-rate" type="number" class="form-control" readonly value="@foreignTransactionRate.ToString("0.########")" />
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label small fw-semibold" for="detail-fx-fees">Fees (@currentMine.Currency)</label>
+                                        <input id="detail-fx-fees" type="number" class="form-control" min="0" step="0.01" @bind="foreignTransactionFees" />
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label small fw-semibold" for="detail-fx-notes">Notes</label>
+                                        <input id="detail-fx-notes" type="text" class="form-control" maxlength="300" @bind="foreignTransactionNotes" />
+                                    </div>
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(foreignTransactionError))
+                                {
+                                    <div class="alert alert-danger py-2 small mt-3 mb-0">@foreignTransactionError</div>
+                                }
+                                <div class="d-flex justify-content-end gap-2 mt-3">
+                                    <button type="button" class="btn btn-light border btn-sm" @onclick="CloseForeignTransactionForm">Cancel</button>
+                                    <button type="button" class="btn btn-primary btn-sm" @onclick="SaveForeignTransactionAsync" disabled="@isSavingForeignTransaction">Save Exchange</button>
+                                </div>
+                            </div>
+                        }
+
+                        @if (fxTransactions.Count > 0)
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-sm align-middle mb-0">
+                                    <thead>
+                                        <tr><th>Date</th><th>Type</th><th class="text-end">Foreign Amount</th><th class="text-end">MYR Cost</th><th class="text-end">Rate</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var transaction in fxTransactions.OrderByDescending(item => item.TransactionDate))
+                                        {
+                                            <tr>
+                                                <td>@transaction.TransactionDate.ToString("dd MMM yyyy")</td>
+                                                <td>@transaction.TransactionType</td>
+                                                <td class="text-end">@transaction.ForeignAmount.ToString("N2")</td>
+                                                <td class="text-end">@FormatHelper.FormatCurrency(transaction.MyrAmount + transaction.FeesMyr, currentMine.Currency)</td>
+                                                <td class="text-end">@transaction.ExchangeRate.ToString("0.########")</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
             <div class="col-12">
                 <div class="card border-0 shadow-sm rounded-4 p-4 bg-white animate-fade-up">
                     <div class="d-flex align-items-center justify-content-between mb-4">
@@ -585,6 +698,7 @@ else
                     }
                 </div>
             </div>
+        }
         }
         else if (activeTab == "income")
         {
@@ -745,6 +859,15 @@ else
     private string? yieldInputError;
     private string? yieldMessage;
     private bool yieldMessageIsError;
+    private bool showForeignTransactionForm;
+    private bool isSavingForeignTransaction;
+    private DateOnly foreignTransactionDate;
+    private decimal foreignTransactionAmount;
+    private decimal foreignTransactionMyrAmount;
+    private decimal foreignTransactionRate;
+    private decimal foreignTransactionFees;
+    private string foreignTransactionNotes = string.Empty;
+    private string? foreignTransactionError;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -784,6 +907,91 @@ else
         yieldInputError = null;
         yieldMessage = null;
         showYieldDeclarationModal = true;
+    }
+
+    private void OpenForeignTransactionForm()
+    {
+        foreignTransactionDate = DateOnly.FromDateTime(DateTime.Today);
+        foreignTransactionAmount = 0;
+        foreignTransactionMyrAmount = 0;
+        foreignTransactionRate = 0;
+        foreignTransactionFees = 0;
+        foreignTransactionNotes = string.Empty;
+        foreignTransactionError = null;
+        showForeignTransactionForm = true;
+    }
+
+    private void CloseForeignTransactionForm()
+    {
+        if (!isSavingForeignTransaction)
+        {
+            showForeignTransactionForm = false;
+            foreignTransactionError = null;
+        }
+    }
+
+    private void RecalculateForeignTransaction()
+    {
+        foreignTransactionRate = foreignTransactionMyrAmount > 0
+            ? Math.Round(foreignTransactionAmount / foreignTransactionMyrAmount, 8)
+            : 0;
+    }
+
+    private void OnForeignTransactionDateChanged(ChangeEventArgs e)
+    {
+        if (DateOnly.TryParse(e.Value?.ToString(), out var date))
+        {
+            foreignTransactionDate = date;
+        }
+    }
+
+    private async Task SaveForeignTransactionAsync()
+    {
+        if (isSavingForeignTransaction || currentMine is null)
+        {
+            return;
+        }
+
+        foreignTransactionError = null;
+        if (foreignTransactionDate == default || foreignTransactionAmount <= 0 || foreignTransactionMyrAmount <= 0 || foreignTransactionRate <= 0 || foreignTransactionFees < 0)
+        {
+            foreignTransactionError = "Enter a valid date, foreign amount, MYR amount, and non-negative fees.";
+            return;
+        }
+
+        isSavingForeignTransaction = true;
+        try
+        {
+            var saved = await MineService.AddForeignCurrencyTransactionAsync(
+                currentMine.Id,
+                new ForeignCurrencyTransaction
+                {
+                    TransactionType = ForeignCurrencyTransactionType.Purchase,
+                    TransactionDate = foreignTransactionDate,
+                    ForeignAmount = foreignTransactionAmount,
+                    MyrAmount = foreignTransactionMyrAmount,
+                    ExchangeRate = foreignTransactionRate,
+                    FeesMyr = foreignTransactionFees,
+                    Notes = string.IsNullOrWhiteSpace(foreignTransactionNotes) ? null : foreignTransactionNotes.Trim()
+                });
+
+            if (!saved)
+            {
+                foreignTransactionError = "The exchange could not be saved.";
+                return;
+            }
+
+            await LoadMineData();
+            showForeignTransactionForm = false;
+        }
+        catch (Exception ex)
+        {
+            foreignTransactionError = ex.Message;
+        }
+        finally
+        {
+            isSavingForeignTransaction = false;
+        }
     }
 
     private void CloseYieldDeclarationModal()

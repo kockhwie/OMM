@@ -73,12 +73,12 @@ public sealed class DatabaseMineService(
             }
         }
 
-        var purchaseCost = mine.PurchaseCost > 0 ? mine.PurchaseCost : mine.CurrentValue;
+        var purchaseCost = mine.PurchaseCost;
         var growth = mine.CurrentValue - purchaseCost;
         var growthPct = purchaseCost > 0 ? Math.Round(growth / purchaseCost * 100m, 4) : 0m;
         Guid? linkedBurdenGuid = Guid.TryParse(mine.LinkedBurdenId, out var parsedBurden) ? parsedBurden : null;
 
-        await repository.AddMineAsync(new MineEntity
+        var addedEntity = await repository.AddMineAsync(new MineEntity
         {
             UserId = string.Empty,
             Name = mine.Name.Trim(),
@@ -97,6 +97,11 @@ public sealed class DatabaseMineService(
             Status = string.IsNullOrWhiteSpace(mine.Status) ? "active" : mine.Status,
             UpdatedOn = DateOnly.FromDateTime(DateTime.UtcNow)
         }, cancellationToken);
+
+        if (mine.Type == MineType.ForeignCurrency && mine.ForeignCurrencyTransactions is { Count: > 0 })
+        {
+            await AddForeignCurrencyTransactionsAsync(addedEntity.Id, mine.ForeignCurrencyTransactions, cancellationToken);
+        }
     }
 
     public async Task<bool> UpdateMineAsync(Mine mine, CancellationToken cancellationToken = default)
@@ -125,7 +130,7 @@ public sealed class DatabaseMineService(
                 .SingleOrDefaultAsync(cancellationToken);
         }
 
-        var purchaseCost = mine.PurchaseCost > 0 ? mine.PurchaseCost : mine.CurrentValue;
+        var purchaseCost = mine.PurchaseCost;
         var growth = mine.CurrentValue - purchaseCost;
         var growthPct = purchaseCost > 0 ? Math.Round(growth / purchaseCost * 100m, 4) : 0m;
         Guid? linkedBurdenGuid = Guid.TryParse(mine.LinkedBurdenId, out var parsedBurden) ? parsedBurden : null;
@@ -247,6 +252,7 @@ public sealed class DatabaseMineService(
         MonthlyIncome = entity.MonthlyIncome,
         Holdings = entity.Holdings,
         SubMines = entity.Positions.Select(MapPosition).ToList(),
+        ForeignCurrencyTransactions = entity.ForeignCurrencyTransactions.Select(MapForeignCurrencyTransaction).ToList(),
         LinkedBurdenId = entity.LinkedBurdenId?.ToString(),
         Metadata = string.IsNullOrWhiteSpace(entity.MetadataJson)
             ? null
@@ -254,6 +260,119 @@ public sealed class DatabaseMineService(
         Status = entity.Status,
         UpdatedAt = entity.UpdatedOn.ToString("yyyy-MM-dd")
     };
+
+    private static ForeignCurrencyTransaction MapForeignCurrencyTransaction(ForeignCurrencyTransactionEntity entity) => new()
+    {
+        Id = entity.Id.ToString(),
+        TransactionType = entity.TransactionType,
+        TransactionDate = entity.TransactionDate,
+        ForeignAmount = entity.ForeignAmount,
+        MyrAmount = entity.MyrAmount,
+        ExchangeRate = entity.ExchangeRate,
+        FeesMyr = entity.FeesMyr,
+        Notes = entity.Notes
+    };
+
+    public async Task<bool> AddForeignCurrencyTransactionAsync(
+        string mineId,
+        ForeignCurrencyTransaction transaction,
+        CancellationToken cancellationToken = default)
+    {
+        if (!Guid.TryParse(mineId, out var parsedMineId)) return false;
+        ValidateForeignCurrencyTransaction(transaction);
+
+        var profile = await profileService.GetCurrentAsync(cancellationToken);
+        if (profile is null) return false;
+
+        await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        var mine = await db.Mines
+            .Include(item => item.ForeignCurrencyTransactions)
+            .SingleOrDefaultAsync(item => item.Id == parsedMineId && item.UserId == profile.UserId, cancellationToken);
+        if (mine is null || mine.Type != MineType.ForeignCurrency) return false;
+
+        db.ForeignCurrencyTransactions.Add(new ForeignCurrencyTransactionEntity
+        {
+            UserId = profile.UserId,
+            MineId = mine.Id,
+            TransactionType = transaction.TransactionType,
+            TransactionDate = transaction.TransactionDate,
+            ForeignAmount = transaction.ForeignAmount,
+            MyrAmount = transaction.MyrAmount,
+            ExchangeRate = transaction.ExchangeRate,
+            FeesMyr = transaction.FeesMyr,
+            Notes = transaction.Notes
+        });
+
+        await db.SaveChangesAsync(cancellationToken);
+        RecalculateForeignCurrencyMine(mine);
+        await db.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    private async Task AddForeignCurrencyTransactionsAsync(
+        Guid mineId,
+        IEnumerable<ForeignCurrencyTransaction> transactions,
+        CancellationToken cancellationToken)
+    {
+        var profile = await profileService.GetCurrentAsync(cancellationToken)
+            ?? throw new InvalidOperationException("Complete your miner profile before adding a foreign currency mine.");
+
+        await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        var mine = await db.Mines
+            .Include(item => item.ForeignCurrencyTransactions)
+            .SingleAsync(item => item.Id == mineId && item.UserId == profile.UserId, cancellationToken);
+
+        foreach (var transaction in transactions)
+        {
+            ValidateForeignCurrencyTransaction(transaction);
+            db.ForeignCurrencyTransactions.Add(new ForeignCurrencyTransactionEntity
+            {
+                UserId = profile.UserId,
+                MineId = mine.Id,
+                TransactionType = transaction.TransactionType,
+                TransactionDate = transaction.TransactionDate,
+                ForeignAmount = transaction.ForeignAmount,
+                MyrAmount = transaction.MyrAmount,
+                ExchangeRate = transaction.ExchangeRate,
+                FeesMyr = transaction.FeesMyr,
+                Notes = transaction.Notes
+            });
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    private static void RecalculateForeignCurrencyMine(MineEntity mine)
+    {
+        var transactions = mine.ForeignCurrencyTransactions;
+        var foreignHeld = transactions.Sum(item => item.TransactionType == ForeignCurrencyTransactionType.Sale
+            ? -item.ForeignAmount
+            : item.ForeignAmount);
+        var totalCost = transactions.Sum(item => item.TransactionType == ForeignCurrencyTransactionType.Sale
+            ? -item.MyrAmount
+            : item.MyrAmount + item.FeesMyr);
+        var currentSellRate = !string.IsNullOrWhiteSpace(mine.MetadataJson)
+            ? System.Text.Json.JsonSerializer.Deserialize<MineMetadata>(mine.MetadataJson)?.CurrentSellRate
+            : null;
+
+        mine.PurchaseCost = Math.Max(0, totalCost);
+        mine.CurrentValue = currentSellRate is > 0 ? Math.Round(foreignHeld / currentSellRate.Value, 2) : 0;
+        mine.Growth = mine.CurrentValue > 0 ? mine.CurrentValue - mine.PurchaseCost : 0;
+        mine.GrowthPct = mine.PurchaseCost > 0 && mine.CurrentValue > 0
+            ? Math.Round(mine.Growth / mine.PurchaseCost * 100m, 4)
+            : 0;
+        mine.Holdings = $"{foreignHeld:N2} foreign units";
+        mine.UpdatedOn = DateOnly.FromDateTime(DateTime.UtcNow);
+    }
+
+    private static void ValidateForeignCurrencyTransaction(ForeignCurrencyTransaction transaction)
+    {
+        if (transaction.TransactionDate == default) throw new ArgumentException("A transaction date is required.");
+        if (transaction.ForeignAmount <= 0) throw new ArgumentOutOfRangeException(nameof(transaction.ForeignAmount));
+        if (transaction.MyrAmount <= 0) throw new ArgumentOutOfRangeException(nameof(transaction.MyrAmount));
+        if (transaction.ExchangeRate <= 0) throw new ArgumentOutOfRangeException(nameof(transaction.ExchangeRate));
+        if (transaction.FeesMyr < 0) throw new ArgumentOutOfRangeException(nameof(transaction.FeesMyr));
+    }
 
     public async Task<bool> RecordYieldDeclarationAsync(
         string mineId,

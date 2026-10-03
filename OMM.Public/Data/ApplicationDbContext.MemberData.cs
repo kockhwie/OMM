@@ -11,6 +11,7 @@ public partial class ApplicationDbContext
     public DbSet<MinerProfileEntity> MinerProfiles => Set<MinerProfileEntity>();
     public DbSet<MineEntity> Mines => Set<MineEntity>();
     public DbSet<MinePositionEntity> MinePositions => Set<MinePositionEntity>();
+    public DbSet<ForeignCurrencyTransactionEntity> ForeignCurrencyTransactions => Set<ForeignCurrencyTransactionEntity>();
     public DbSet<BurdenEntity> Burdens => Set<BurdenEntity>();
     public DbSet<IncomeRecordEntity> IncomeRecords => Set<IncomeRecordEntity>();
     public DbSet<ExpenseEntity> Expenses => Set<ExpenseEntity>();
@@ -25,6 +26,7 @@ public partial class ApplicationDbContext
         ConfigureMinerProfile(modelBuilder);
         ConfigureMine(modelBuilder);
         ConfigureMinePosition(modelBuilder);
+        ConfigureForeignCurrencyTransaction(modelBuilder);
         ConfigureBurden(modelBuilder);
         ConfigureIncomeRecord(modelBuilder);
         ConfigureExpense(modelBuilder);
@@ -68,6 +70,25 @@ public partial class ApplicationDbContext
             entity.HasOne(e => e.User).WithOne().HasForeignKey<MinerProfileEntity>(e => e.UserId).OnDelete(DeleteBehavior.Cascade);
             entity.HasOne(e => e.Country).WithMany().HasForeignKey(e => e.CountryId).OnDelete(DeleteBehavior.SetNull);
             entity.HasOne(e => e.Currency).WithMany().HasForeignKey(e => e.CurrencyId).OnDelete(DeleteBehavior.SetNull);
+        });
+    }
+
+    private static void ConfigureForeignCurrencyTransaction(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ForeignCurrencyTransactionEntity>(entity =>
+        {
+            ConfigureUserOwnedEntity(entity, "ForeignCurrencyTransaction");
+            entity.Property(e => e.TransactionType).HasConversion<string>().HasMaxLength(16).IsRequired();
+            entity.Property(e => e.ForeignAmount).HasPrecision(24, 8);
+            entity.Property(e => e.MyrAmount).HasPrecision(18, 2);
+            entity.Property(e => e.ExchangeRate).HasPrecision(18, 8);
+            entity.Property(e => e.FeesMyr).HasPrecision(18, 2);
+            entity.Property(e => e.Notes).HasMaxLength(300);
+            entity.HasIndex(e => new { e.MineId, e.TransactionDate });
+            entity.HasOne(e => e.Mine)
+                .WithMany(e => e.ForeignCurrencyTransactions)
+                .HasForeignKey(e => e.MineId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 

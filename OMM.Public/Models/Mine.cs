@@ -11,6 +11,25 @@ public enum MineCategory
     Other
 }
 
+public enum ForeignCurrencyTransactionType
+{
+    Purchase,
+    Sale,
+    Adjustment
+}
+
+public class ForeignCurrencyTransaction
+{
+    public string Id { get; set; } = string.Empty;
+    public ForeignCurrencyTransactionType TransactionType { get; set; } = ForeignCurrencyTransactionType.Purchase;
+    public DateOnly TransactionDate { get; set; }
+    public decimal ForeignAmount { get; set; }
+    public decimal MyrAmount { get; set; }
+    public decimal ExchangeRate { get; set; }
+    public decimal FeesMyr { get; set; }
+    public string? Notes { get; set; }
+}
+
 public enum MineType
 {
     // Retirement
@@ -22,6 +41,7 @@ public enum MineType
     SavingsAccount = 10,
     FixedDeposit = 1,
     CashInHand = 11,
+    ForeignCurrency = 17,
 
     // Investments
     UnitTrustAsb = 12,
@@ -61,6 +81,12 @@ public class MineMetadata
     public string? AccountNumber           { get; set; } // last 4 digits, reference only
     public string? Notes                   { get; set; }
 
+    // --- Foreign Currency ---
+    public string? ForeignCurrencyCode     { get; set; } // JPY, USD, SGD, etc.
+    public string? CurrencyCustodyType     { get; set; } // Physical Cash, Online Wallet, Bank Account
+    public string? CurrencyProvider        { get; set; } // Wise, bank, exchange, etc.
+    public decimal? CurrentSellRate        { get; set; } // foreign units per one base-currency unit
+
     // --- EPF / Savings ---
     public string?  AccountType            { get; set; } // e.g. "Conventional", "Shariah"
     public decimal? Akaun1Balance          { get; set; } // Akaun Persaraan (75%)
@@ -78,6 +104,7 @@ public class MineMetadata
     public decimal? Principal              { get; set; }
     public decimal? InterestRatePct        { get; set; } // % per annum
     public int?     TenureMonths           { get; set; }
+    public DateOnly? PlacementDate         { get; set; } // original FD placement date
     public DateOnly? MaturityDate          { get; set; }
     public string?  RolloverBehavior       { get; set; } // "auto-renew" | "cash-out"
 
@@ -139,6 +166,7 @@ public class Mine
     public string? Holdings { get; set; }
     public MineMetadata? Metadata { get; set; }
     public List<SubMine>? SubMines { get; set; }
+    public List<ForeignCurrencyTransaction>? ForeignCurrencyTransactions { get; set; }
     public string? LinkedBurdenId { get; set; }
     public string Status { get; set; } = "active"; // active, maturing, inactive
     public string UpdatedAt { get; set; } = string.Empty;

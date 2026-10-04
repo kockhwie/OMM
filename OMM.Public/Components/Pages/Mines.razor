@@ -67,7 +67,9 @@
     <div class="row g-3">
         @foreach (var mine in FilteredMines)
         {
-            var growthPositive = mine.Growth >= 0;
+            var hasValuation = FormatHelper.HasCurrentValuation(mine);
+            var valuationPending = FormatHelper.GetGrowthState(mine) == FormatHelper.GrowthState.Unavailable;
+            var growthState = FormatHelper.GetGrowthState(mine);
             <div class="col-12 col-md-6 col-xl-4 mine-card-shell mt-3">
 
                 <div class="card h-100 border-0 shadow-sm rounded-4 p-4 card-hover cursor-pointer mine-card mine-category-card @GetMineCategoryClass(mine.Category)"
@@ -98,24 +100,31 @@
                     <div class="row g-2 pt-2 text-center text-sm-start">
                         <div class="col-4 min-w-0">
                             <span class="text-uppercase text-muted fw-semibold d-block mine-metric-label">Current</span>
-                            <div class="fw-bold text-dark mine-metric-value" title="@FormatHelper.FormatCurrency(mine.CurrentValue, mine.Currency)">
-                                @FormatHelper.FormatCurrencyCompact(mine.CurrentValue, mine.Currency)
+                            <div class="fw-bold text-dark mine-metric-value @(valuationPending ? "text-muted" : "")" title="@(hasValuation ? FormatHelper.FormatCurrency(mine.CurrentValue, mine.Currency) : "Current sell rate not entered")">
+                                @(hasValuation ? FormatHelper.FormatCurrencyCompact(mine.CurrentValue, mine.Currency) : "Pending")
                             </div>
                         </div>
                         <div class="col-4 min-w-0">
                             <span class="text-uppercase text-muted fw-semibold d-block mine-metric-label">Growth</span>
-                            <div class="fw-bold d-flex align-items-center justify-content-center justify-content-sm-start gap-1 mine-growth @(growthPositive ? "text-success" : "text-danger")">
-                                <i class="ti @(growthPositive ? "ti-trending-up" : "ti-trending-down") mine-growth-icon"></i>
-                                <span>@FormatHelper.FormatPercent(mine.GrowthPct)</span>
+                            <div class="fw-bold d-flex align-items-center justify-content-center justify-content-sm-start gap-1 mine-growth @FormatHelper.GrowthStateClass(growthState)">
+                                <i class="ti @FormatHelper.GrowthStateIcon(growthState) mine-growth-icon"></i>
+                                <span>@FormatHelper.GrowthStateLabel(mine)</span>
                             </div>
                         </div>
                         <div class="col-4 min-w-0">
                             <span class="text-uppercase text-muted fw-semibold d-block mine-metric-label">Income/mo</span>
-                            <div class="fw-bold text-dark mine-metric-value" title="@(mine.MonthlyIncome > 0 ? FormatHelper.FormatCurrency(mine.MonthlyIncome, mine.Currency) : "—")">
+                            <div class="fw-bold text-dark mine-metric-value @(valuationPending ? "text-muted" : "")" title="@(mine.MonthlyIncome > 0 ? FormatHelper.FormatCurrency(mine.MonthlyIncome, mine.Currency) : "—")">
                                 @(mine.MonthlyIncome > 0 ? FormatHelper.FormatCurrencyCompact(mine.MonthlyIncome, mine.Currency) : "—")
                             </div>
                         </div>
                     </div>
+
+                    @if (valuationPending)
+                    {
+                        <div class="mine-card-pending mt-3 pt-2 border-top border-light-subtle">
+                            <span><i class="ti ti-info-circle me-1"></i>Enter current sell rate to value</span>
+                        </div>
+                    }
 
                     <!-- Sub-mines Footer if any -->
                     @if (mine.SubMines != null && mine.SubMines.Count > 0)

@@ -58,7 +58,7 @@
 
             <!-- Center readout inside arc -->
             <text x="130" y="110" text-anchor="middle" class="freedom-gauge-value font-display fw-bold metric-card-value">
-                @($"{ClampedPercentage:F0}%")
+                @(HasTarget ? $"{ClampedPercentage:F0}%" : "—")
             </text>
             <text x="130" y="130" text-anchor="middle" class="freedom-gauge-caption">
                 OF LIVING EXPENSES
@@ -100,6 +100,14 @@
                 @NextTierMessage
             </div>
         }
+        else if (!HasTarget)
+        {
+            <div class="text-center mt-2">
+                <a href="/expenses" class="btn btn-sm btn-outline-dark rounded-3 px-3">
+                    <i class="ti ti-target-arrow me-1"></i>Set monthly target
+                </a>
+            </div>
+        }
     </div>
 </div>
 
@@ -120,7 +128,9 @@
         }
     }
 
-    private string StageName => Percentage switch
+    private bool HasTarget => RecurringMonthly > 0;
+
+    private string StageName => !HasTarget ? "No target set" : Percentage switch
     {
         < 25 => "Starting",
         < 50 => "Runway",

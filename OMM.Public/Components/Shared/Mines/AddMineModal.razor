@@ -6,6 +6,7 @@
 @using OMM.Public.Services
 @using OMM.Public.Validation
 @using OMM.Shared.Models.MasterData
+@using System.Globalization
 @inject IJSRuntime JS
 @inject DatabaseMineService MineService
 @inject IDbContextFactory<ApplicationDbContext> DbContextFactory
@@ -323,6 +324,7 @@
                                             <div class="omm-form-field">
                                                 <label class="omm-form-label" for="fd-tenure">Tenure</label>
                                                 <select id="fd-tenure" class="form-select rounded-3 @(HasFieldError("fd-tenure") ? "is-invalid" : "")" @bind="metadata.TenureMonths" @bind:after="RecalculateFd">
+                                                     <option value="">Select a tenure</option>
                                                     <option value="1">1 Month</option>
                                                     <option value="3">3 Months</option>
                                                     <option value="6">6 Months</option>
@@ -603,6 +605,7 @@
                                             <div class="omm-form-field">
                                                 <label class="omm-form-label" for="prop-type">Property Sub-Type <span class="text-danger">*</span></label>
                                                 <select id="prop-type" class="form-select rounded-3 @(HasFieldError("property-type") ? "is-invalid" : "")" @bind="metadata.PropertyType">
+                                                     <option value="">Select a property type</option>
                                                     <option value="Condominium">Condominium / Serviced Apt</option>
                                                     <option value="Terraced House">Terraced / Link House</option>
                                                     <option value="Semi-D">Semi-Detached (Semi-D)</option>
@@ -675,6 +678,7 @@
                                             <div class="omm-form-field">
                                                 <label class="omm-form-label" for="metal-form">Form / Holding Type <span class="text-danger">*</span></label>
                                                 <select id="metal-form" class="form-select rounded-3 @(HasFieldError("metal-form") ? "is-invalid" : "")" @bind="metadata.GoldForm">
+                                                    <option value="">Select a holding type</option>
                                                     <option value="Physical Bar / Bullion">Physical Bar / Bullion</option>
                                                     <option value="Jewellery / Coins">Jewellery / Coins</option>
                                                     <option value="Digital Gold (GAP / GIA)">Digital Gold (Public Gold GAP / Maybank GIA)</option>
@@ -820,8 +824,20 @@
                                                 <div class="omm-form-help">Examples: JPY, USD, SGD, EUR.</div>
                                             </div>
                                             <div class="omm-form-field">
+                                                <label class="omm-form-label" for="fx-amount">Amount Received <span class="text-danger">*</span></label>
+                                                <input id="fx-amount" type="number" class="form-control rounded-3 @(HasFieldError("fx-amount") ? "is-invalid" : "")" min="0" step="0.000001"
+                                                       placeholder="Enter amount in the selected currency" value="@foreignInitialAmountInput" @oninput="OnForeignAmountChanged" />
+                                                @if (HasFieldError("fx-amount"))
+                                                {
+                                                    <div class="invalid-feedback d-block">@fieldError</div>
+                                                }
+                                            </div>
+                                        </div>
+                                        <div class="omm-form-grid">
+                                            <div class="omm-form-field">
                                                 <label class="omm-form-label" for="fx-custody">Where is it held? <span class="text-danger">*</span></label>
                                                 <select id="fx-custody" class="form-select rounded-3 @(HasFieldError("fx-custody") ? "is-invalid" : "")" @bind="metadata.CurrencyCustodyType">
+                                                    <option value="">Select where the currency is held</option>
                                                     <option value="Physical Cash">Physical Cash</option>
                                                     <option value="Online Wallet">Online Wallet</option>
                                                     <option value="Bank Account">Bank Account</option>
@@ -831,11 +847,11 @@
                                                     <div class="invalid-feedback d-block">@fieldError</div>
                                                 }
                                             </div>
-                                        </div>
-                                        <div class="omm-form-field">
-                                            <label class="omm-form-label" for="fx-provider">Provider / Location</label>
-                                            <input id="fx-provider" type="text" class="form-control rounded-3" maxlength="100"
-                                                   placeholder="e.g. Wise, Maybank, travel wallet" @bind="metadata.CurrencyProvider" />
+                                            <div class="omm-form-field">
+                                                <label class="omm-form-label" for="fx-provider">Provider / Location <span class="text-muted fw-normal">(optional)</span></label>
+                                                <input id="fx-provider" type="text" class="form-control rounded-3" maxlength="100"
+                                                       placeholder="e.g. Wise, Maybank, travel wallet" @bind="metadata.CurrencyProvider" />
+                                            </div>
                                         </div>
                                         <div class="omm-form-grid">
                                             <div class="omm-form-field">
@@ -844,28 +860,19 @@
                                                        value="@foreignInitialDate.ToString("yyyy-MM-dd")" @onchange="OnForeignInitialDateChanged" />
                                             </div>
                                             <div class="omm-form-field">
-                                                <label class="omm-form-label" for="fx-amount">Foreign Amount Received <span class="text-danger">*</span></label>
-                                                <input id="fx-amount" type="number" class="form-control rounded-3 @(HasFieldError("fx-amount") ? "is-invalid" : "")" min="0" step="0.000001"
-                                                       placeholder="386284.05" @bind="foreignInitialAmount" @bind:event="oninput" @bind:after="RecalculateForeignCurrency" />
-                                                @if (HasFieldError("fx-amount"))
-                                                {
-                                                    <div class="invalid-feedback d-block">@fieldError</div>
-                                                }
-                                            </div>
-                                        </div>
-                                        <div class="omm-form-grid">
-                                            <div class="omm-form-field">
                                                 <label class="omm-form-label" for="fx-myr">MYR Amount Paid <span class="text-danger">*</span></label>
                                                 <div class="dc-currency-group">
                                                     <span class="dc-currency-addon">@currencySymbol</span>
                                                     <input id="fx-myr" type="number" class="form-control @(HasFieldError("fx-myr") ? "is-invalid" : "")" min="0" step="0.01"
-                                                           placeholder="10000.00" @bind="foreignInitialMyrAmount" @bind:event="oninput" @bind:after="RecalculateForeignCurrency" />
+                                                           placeholder="Enter amount paid" @bind="foreignInitialMyrAmount" @bind:event="oninput" @bind:after="RecalculateForeignCurrency" />
                                                 </div>
                                                 @if (HasFieldError("fx-myr"))
                                                 {
                                                     <div class="invalid-feedback d-block">@fieldError</div>
                                                 }
                                             </div>
+                                        </div>
+                                        <div class="omm-form-grid">
                                             <div class="omm-form-field">
                                                 <label class="omm-form-label" for="fx-rate">Exchange Rate</label>
                                                 <input id="fx-rate" type="number" class="form-control @(HasFieldError("fx-rate") ? "is-invalid" : "")" readonly value="@foreignInitialRate.ToString("0.########")" />
@@ -875,22 +882,20 @@
                                                 }
                                                 <div class="omm-form-help">Foreign currency units per 1 @currencySymbol.</div>
                                             </div>
-                                        </div>
-                                        <div class="omm-form-grid">
                                             <div class="omm-form-field">
-                                                <label class="omm-form-label" for="fx-fees">Fees</label>
+                                                <label class="omm-form-label" for="fx-fees">Fees <span class="text-muted fw-normal">(optional)</span></label>
                                                 <div class="dc-currency-group">
                                                     <span class="dc-currency-addon">@currencySymbol</span>
                                                     <input id="fx-fees" type="number" class="form-control" min="0" step="0.01"
                                                            placeholder="0.00" @bind="foreignInitialFees" @bind:event="oninput" @bind:after="RecalculateForeignCurrency" />
                                                 </div>
                                             </div>
-                                            <div class="omm-form-field">
-                                                <label class="omm-form-label" for="fx-current-rate">Current Sell Rate <span class="text-muted fw-normal">(optional)</span></label>
-                                                <input id="fx-current-rate" type="number" class="form-control" min="0" step="0.000001"
-                                                       placeholder="Enter later" @bind="metadata.CurrentSellRate" @bind:event="oninput" @bind:after="RecalculateForeignCurrency" />
-                                                <div class="omm-form-help">Enter the rate when you want to calculate current MYR value.</div>
-                                            </div>
+                                        </div>
+                                        <div class="omm-form-field">
+                                            <label class="omm-form-label" for="fx-current-rate">Current Sell Rate <span class="text-muted fw-normal">(optional)</span></label>
+                                            <input id="fx-current-rate" type="number" class="form-control" min="0" step="0.000001"
+                                                   placeholder="Enter later" @bind="metadata.CurrentSellRate" @bind:event="oninput" @bind:after="RecalculateForeignCurrency" />
+                                            <div class="omm-form-help">Enter the rate when you want to calculate current MYR value.</div>
                                         </div>
                                         break;
 
@@ -982,9 +987,14 @@
                                         </div>
 
                                         <div class="omm-form-field">
-                                            <label class="omm-form-label" for="mine-holdings-text">Holdings / Notes</label>
-                                            <input id="mine-holdings-text" type="text" class="form-control rounded-3" maxlength="200"
+                                            <label class="omm-form-label" for="mine-holdings-text">Holdings / Notes <span class="text-muted fw-normal">(optional)</span></label>
+                                            <input id="mine-holdings-text" type="text" class="form-control rounded-3 @(HasFieldError("mine-holdings-text") ? "is-invalid" : "")" maxlength="200"
                                                    placeholder="Details about this asset" @bind="workingMine.Holdings" />
+                                            @if (HasFieldError("mine-holdings-text"))
+                                            {
+                                                <div class="invalid-feedback d-block">@fieldError</div>
+                                            }
+                                            <div class="omm-form-help">Use plain searchable text: letters, numbers, spaces, and basic punctuation.</div>
                                         </div>
                                         break;
                                 }
@@ -1486,6 +1496,7 @@
     private string savingsClassTemp = "High-Yield Digital Bank";
     private DateOnly foreignInitialDate = DateOnly.FromDateTime(DateTime.Today);
     private decimal foreignInitialAmount;
+    private string foreignInitialAmountInput = string.Empty;
     private decimal foreignInitialMyrAmount;
     private decimal foreignInitialRate;
     private decimal foreignInitialFees;
@@ -1538,6 +1549,7 @@
                 GrowthPct = ExistingMine.GrowthPct,
                 MonthlyIncome = ExistingMine.MonthlyIncome,
                 Holdings = ExistingMine.Holdings,
+                 ForeignCurrencyTransactions = ExistingMine.ForeignCurrencyTransactions?.ToList() ?? [],
                 LinkedBurdenId = ExistingMine.LinkedBurdenId,
                 Status = ExistingMine.Status,
                 UpdatedAt = ExistingMine.UpdatedAt,
@@ -1586,6 +1598,7 @@
         {
             foreignInitialDate = initialTransaction.TransactionDate;
             foreignInitialAmount = initialTransaction.ForeignAmount;
+            foreignInitialAmountInput = foreignInitialAmount.ToString("0.00########", CultureInfo.InvariantCulture);
             foreignInitialMyrAmount = initialTransaction.MyrAmount;
             foreignInitialRate = initialTransaction.ExchangeRate;
             foreignInitialFees = initialTransaction.FeesMyr;
@@ -1594,6 +1607,7 @@
         {
             foreignInitialDate = DateOnly.FromDateTime(DateTime.Today);
             foreignInitialAmount = 0;
+            foreignInitialAmountInput = string.Empty;
             foreignInitialMyrAmount = 0;
             foreignInitialRate = 0;
             foreignInitialFees = 0;
@@ -1628,6 +1642,16 @@
         if (DateOnly.TryParse(e.Value?.ToString(), out var date))
         {
             foreignInitialDate = date;
+        }
+    }
+
+    private void OnForeignAmountChanged(ChangeEventArgs e)
+    {
+        foreignInitialAmountInput = e.Value?.ToString() ?? string.Empty;
+        if (decimal.TryParse(foreignInitialAmountInput, NumberStyles.Number, CultureInfo.InvariantCulture, out var amount))
+        {
+            foreignInitialAmount = amount;
+            RecalculateForeignCurrency();
         }
     }
 
@@ -2055,6 +2079,14 @@
                 return;
             }
 
+            var holdingsError = PublicInputValidator.GetDisplayTextError("Holdings / details", workingMine.Holdings, optional: true);
+            if (holdingsError is not null)
+            {
+                SetValidationError("mine-holdings-text", "Holdings / details contains unsupported characters. Use standard letters, numbers, spaces, and basic punctuation.");
+                _ = FocusInvalidFieldAsync();
+                return;
+            }
+
             ComputeGrowth();
             step = 3;
         }
@@ -2167,20 +2199,28 @@
         inputError = null;
 
         workingMine.Metadata = metadata;
-        if (!IsEditMode && workingMine.Type == MineType.ForeignCurrency)
+        if (workingMine.Type == MineType.ForeignCurrency)
         {
-            workingMine.ForeignCurrencyTransactions =
-            [
-                new ForeignCurrencyTransaction
+            var purchase = workingMine.ForeignCurrencyTransactions?
+                .Where(item => item.TransactionType == ForeignCurrencyTransactionType.Purchase)
+                .OrderBy(item => item.TransactionDate)
+                .FirstOrDefault();
+
+            if (purchase is null)
+            {
+                purchase = new ForeignCurrencyTransaction
                 {
-                    TransactionType = ForeignCurrencyTransactionType.Purchase,
-                    TransactionDate = foreignInitialDate,
-                    ForeignAmount = foreignInitialAmount,
-                    MyrAmount = foreignInitialMyrAmount,
-                    ExchangeRate = foreignInitialRate,
-                    FeesMyr = foreignInitialFees
-                }
-            ];
+                    TransactionType = ForeignCurrencyTransactionType.Purchase
+                };
+                workingMine.ForeignCurrencyTransactions ??= [];
+                workingMine.ForeignCurrencyTransactions.Add(purchase);
+            }
+
+            purchase.TransactionDate = foreignInitialDate;
+            purchase.ForeignAmount = foreignInitialAmount;
+            purchase.MyrAmount = foreignInitialMyrAmount;
+            purchase.ExchangeRate = foreignInitialRate;
+            purchase.FeesMyr = foreignInitialFees;
         }
 
         try

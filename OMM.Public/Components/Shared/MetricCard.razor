@@ -53,6 +53,7 @@
     [Parameter] public string Variant { get; set; } = "default"; // default, mine, burden, gold, freedom
     [Parameter] public string? Trend { get; set; }
     [Parameter] public bool TrendPositive { get; set; } = true;
+    [Parameter] public bool TrendNeutral { get; set; }
     [Parameter] public string? Subtitle { get; set; }
     [Parameter] public decimal? NumericTarget { get; set; }
     [Parameter] public string? CounterPrefix { get; set; }
@@ -70,6 +71,6 @@
         _ => "bg-secondary-subtle text-secondary"
     };
 
-    private string TrendClass => TrendPositive ? "text-success" : "text-danger";
-    private string TrendIcon => TrendPositive ? "ti-trending-up" : "ti-trending-down";
+    private string TrendClass => TrendNeutral ? "text-muted" : TrendPositive ? "text-success" : "text-danger";
+    private string TrendIcon => TrendNeutral ? "ti-minus" : TrendPositive ? "ti-trending-up" : "ti-trending-down";
 }

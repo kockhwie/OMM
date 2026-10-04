@@ -79,10 +79,11 @@ else
             <MetricCard Title="Total Growth"
                         Value="@FormatSummaryAmount(summary.TotalGrowth)"
                         NumericTarget="@(summary.HasMixedCurrencies ? null : summary.TotalGrowth)"
-                        Icon="@(summary.TotalGrowth >= 0 ? "ti-trending-up" : "ti-trending-down")"
-                        Variant="@(summary.TotalGrowth >= 0 ? "growth" : "burden")"
-                        Trend="@FormatHelper.FormatPercent(summary.TotalGrowthPct)"
-                        TrendPositive="@(summary.TotalGrowth >= 0)"
+                        Icon="@(summary.TotalGrowth > 0 ? "ti-trending-up" : summary.TotalGrowth < 0 ? "ti-trending-down" : "ti-minus")"
+                        Variant="@(summary.TotalGrowth > 0 ? "growth" : summary.TotalGrowth < 0 ? "burden" : "default")"
+                        Trend="@(summary.TotalGrowth == 0 ? "Flat" : FormatHelper.FormatPercent(summary.TotalGrowthPct))"
+                        TrendPositive="@(summary.TotalGrowth > 0)"
+                        TrendNeutral="@(summary.TotalGrowth == 0)"
                         Subtitle="across all active mines" />
         </div>
     </div>
@@ -117,7 +118,10 @@ else
         <div class="col-lg-8">
             <div class="omm-card p-4 mb-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="font-display fw-bold text-dark mb-0">Top Mines by Value</h5>
+                    <div>
+                        <h5 class="font-display fw-bold text-dark mb-0">Top Mines by Value</h5>
+                        <small class="text-muted">Current value · growth since purchase</small>
+                    </div>
                     <a href="mines" class="text-decoration-none text-muted fw-semibold d-flex align-items-center gap-1" style="font-size: 0.8rem;">
                         All <i class="ti ti-chevron-right"></i>
                     </a>
@@ -138,9 +142,9 @@ else
                                         <div class="text-muted text-truncate" style="font-size: 0.75rem;">@mine.Category · @mine.Type</div>
                                     </div>
                                     <div class="text-end">
-                                        <div class="fw-bold" style="font-size: 0.9rem;">@FormatHelper.FormatCurrency(mine.CurrentValue, mine.Currency)</div>
-                                        <div class="@(mine.Growth >= 0 ? "text-success" : "text-danger") fw-semibold" style="font-size: 0.75rem;">
-                                            @FormatHelper.FormatPercent(mine.GrowthPct)
+                                         <div class="fw-bold" style="font-size: 0.9rem;">@(FormatHelper.HasCurrentValuation(mine) ? FormatHelper.FormatCurrency(mine.CurrentValue, mine.Currency) : "Value pending")</div>
+                                         <div class="@FormatHelper.GrowthStateClass(FormatHelper.GetGrowthState(mine)) fw-semibold" style="font-size: 0.75rem;">
+                                            <i class="ti @FormatHelper.GrowthStateIcon(FormatHelper.GetGrowthState(mine)) me-1"></i>@FormatHelper.GrowthStateLabel(mine)
                                         </div>
                                     </div>
                                     <i class="ti ti-chevron-right text-muted"></i>
@@ -381,6 +385,7 @@ else
     private string FormatSummaryAmount(decimal amount) => summary.HasMixedCurrencies
         ? "Multiple currencies"
         : FormatHelper.FormatCurrency(amount, summary.Currency);
+
 
     private async Task MarkNotificationRead(string id)
     {

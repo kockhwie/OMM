@@ -54,7 +54,8 @@ public sealed class DashboardQueryService(
         if (!comparable)
             return new DashboardSummary { HasMixedCurrencies = true, Currency = string.Empty };
 
-        var totalMines = mines.Sum(item => item.CurrentValue);
+        var valuedMines = mines.Where(HasCurrentValuation).ToList();
+        var totalMines = valuedMines.Sum(item => item.CurrentValue);
         var totalBurdens = burdens.Sum(item => item.Balance);
         var passiveIncome = mines.Sum(item => item.MonthlyIncome) + income
             .Where(item => item.Classification == IncomeClass.PassiveMineGenerated)
@@ -63,11 +64,11 @@ public sealed class DashboardQueryService(
             .Where(item => item.Classification == IncomeClass.Active)
             .Sum(item => MemberRecordService.MonthlyEquivalent(item.Amount, ParseFrequency(item.Frequency)));
         var recurringExpenses = expenses.Sum(item => MemberRecordService.MonthlyEquivalent(item.Amount, ParseFrequency(item.Frequency)));
-        var growth = mines.Sum(item => item.Growth);
-        var purchaseCost = mines.Sum(item => item.PurchaseCost);
-        var freedomRatio = recurringExpenses <= 0
-            ? passiveIncome > 0 ? 100m : 0m
-            : Math.Clamp(passiveIncome / recurringExpenses * 100m, 0m, 100m);
+        var growth = valuedMines.Sum(item => item.Growth);
+        var purchaseCost = valuedMines.Sum(item => item.PurchaseCost);
+        var freedomRatio = recurringExpenses > 0
+            ? Math.Clamp(passiveIncome / recurringExpenses * 100m, 0m, 100m)
+            : 0m;
 
         return new DashboardSummary
         {
@@ -83,6 +84,9 @@ public sealed class DashboardQueryService(
             TotalGrowthPct = purchaseCost > 0 ? Math.Round(growth / purchaseCost * 100m, 1) : 0m
         };
     }
+
+    private static bool HasCurrentValuation(Mine mine) =>
+        mine.Type != MineType.ForeignCurrency || mine.Metadata?.CurrentSellRate is > 0;
 
     private static RecordFrequency ParseFrequency(string frequency) => frequency.ToLowerInvariant() switch
     {

@@ -83,6 +83,12 @@
     font-size: 0.9rem;
 }
 
+.mine-card-pending {
+    color: color-mix(in srgb, var(--mine-category-ink) 72%, transparent);
+    font-size: 0.7rem;
+    line-height: 1.3;
+}
+
 .mine-card {
     position: relative;
 }

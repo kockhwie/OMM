@@ -5,6 +5,14 @@ namespace OMM.Public.Services;
 
 public static class FormatHelper
 {
+    public enum GrowthState
+    {
+        Unavailable,
+        Flat,
+        Positive,
+        Negative
+    }
+
     private static readonly CultureInfo MyCulture = new("en-MY");
 
     public static string FormatCurrency(decimal amount, string currency = "MYR")
@@ -144,6 +152,45 @@ public static class FormatHelper
         MineType.Gold or MineType.Silver => "Est. Value",
         MineType.Cryptocurrency => "Value (MYR)",
         _ => "Current Value"
+    };
+
+    public static bool HasCurrentValuation(Mine mine) =>
+        mine.Type != MineType.ForeignCurrency || mine.Metadata?.CurrentSellRate is > 0;
+
+    public static GrowthState GetGrowthState(Mine mine)
+    {
+        if (!HasCurrentValuation(mine))
+        {
+            return GrowthState.Unavailable;
+        }
+
+        return mine.Growth switch
+        {
+            > 0 => GrowthState.Positive,
+            < 0 => GrowthState.Negative,
+            _ => GrowthState.Flat
+        };
+    }
+
+    public static string GrowthStateLabel(Mine mine) => GetGrowthState(mine) switch
+    {
+        GrowthState.Positive or GrowthState.Negative => FormatPercent(mine.GrowthPct),
+        GrowthState.Flat => "Flat",
+        _ => "Pending"
+    };
+
+    public static string GrowthStateIcon(GrowthState state) => state switch
+    {
+        GrowthState.Positive => "ti-trending-up",
+        GrowthState.Negative => "ti-trending-down",
+        _ => "ti-minus"
+    };
+
+    public static string GrowthStateClass(GrowthState state) => state switch
+    {
+        GrowthState.Positive => "text-success",
+        GrowthState.Negative => "text-danger",
+        _ => "text-muted"
     };
 
     public static string MineTypeToIcon(MineType type) => type switch

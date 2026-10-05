@@ -164,7 +164,7 @@ else
                                 <span class="fw-semibold text-dark small">@currentMine.Institution</span>
                             </div>
                         }
-                        @if (!string.IsNullOrEmpty(currentMine.Holdings))
+                        @if (currentMine.Type != MineType.FixedDeposit && !string.IsNullOrEmpty(currentMine.Holdings))
                         {
                             <div class="mine-specification-row">
                                 <span class="text-muted small">Holdings / Volume</span>
@@ -265,6 +265,13 @@ else
                                 <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
                                     <span class="text-muted">Placement Tenure</span>
                                     <span class="fw-semibold text-dark">@meta.TenureMonths.Value Months</span>
+                                </div>
+                            }
+                            @if (meta.PlacementDate.HasValue)
+                            {
+                                <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                    <span class="text-muted">Placement Date</span>
+                                    <span class="fw-semibold text-dark">@meta.PlacementDate.Value.ToString("dd MMM yyyy")</span>
                                 </div>
                             }
                             @if (meta.MaturityDate.HasValue)

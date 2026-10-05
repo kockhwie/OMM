@@ -72,20 +72,20 @@
             var growthState = FormatHelper.GetGrowthState(mine);
             <div class="col-12 col-md-6 col-xl-4 mine-card-shell mt-3">
 
-                <div class="card h-100 border-0 shadow-sm rounded-4 p-4 card-hover cursor-pointer mine-card mine-category-card @GetMineCategoryClass(mine.Category)"
+                <div class="card h-100 border-0 p-4 card-hover cursor-pointer mine-card mine-category-card @GetMineTypeClass(mine.Type)"
                      @onclick="() => NavigateToDetail(mine.Id)">
 
                     <div class="mine-card-status" aria-label="Mine status">
                         <StatusBadge Status="@mine.Status" Compact="true" />
                     </div>
 
-                    <!-- Header: Icon, Name & Category (wraps, no truncation, full width) -->
-                    <div class="d-flex align-items-start gap-3">
+                    <!-- Header: icon, title block, and independently positioned status badge -->
+                    <div class="mine-card-header">
                         <div class="rounded-3 d-flex align-items-center justify-content-center p-2 flex-shrink-0 mine-category-icon">
                             <i class="ti @FormatHelper.CategoryToIcon(mine.Category) fs-5"></i>
                         </div>
-                        <div class="min-w-0 flex-grow-1">
-                            <h3 class="h6 fw-bold mb-0 text-dark font-display mine-name">
+                        <div class="min-w-0 mine-card-header-content">
+                            <h3 class="h6 fw-bold mb-0 text-dark font-display mine-name" title="@mine.Name">
                                 @mine.Name
                             </h3>
                             <small class="text-muted d-block mine-meta">
@@ -139,7 +139,7 @@
                     }
 
                     <div class="mine-card-actions d-flex justify-content-center mt-2">
-                        <button class="btn btn-xs btn-primary rounded-3 px-2"
+                        <button class="btn btn-xs mine-edit-button"
                                 title="Edit Mine"
                                 @onclick:stopPropagation="true"
                                 @onclick="() => OpenEditModal(mine)">
@@ -254,6 +254,27 @@ else
         MineCategory.PreciousMetals => "mine-category-metals",
         MineCategory.Digital => "mine-category-digital",
         _ => "mine-category-other"
+    };
+
+    private static string GetMineTypeClass(MineType type) => type switch
+    {
+        MineType.EpfKwsp => "mine-type-epf",
+        MineType.FixedDeposit => "mine-type-fixed-deposit",
+        MineType.SavingsAccount => "mine-type-savings",
+        MineType.CashInHand => "mine-type-cash",
+        MineType.ForeignCurrency => "mine-type-foreign-currency",
+        MineType.UnitTrustAsb => "mine-type-asb",
+        MineType.UnitTrustGeneral => "mine-type-fund",
+        MineType.Stocks => "mine-type-stocks",
+        MineType.StocksUs => "mine-type-us-stocks",
+        MineType.Reit => "mine-type-reit",
+        MineType.Etf => "mine-type-etf",
+        MineType.PropertyResidential => "mine-type-residential",
+        MineType.PropertyCommercial => "mine-type-commercial",
+        MineType.Gold => "mine-type-gold",
+        MineType.Silver => "mine-type-silver",
+        MineType.Cryptocurrency => "mine-type-crypto",
+        _ => "mine-type-other"
     };
 
     private void CloseAddModal()

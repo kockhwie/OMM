@@ -9,10 +9,10 @@ public static partial class SearchableTextPolicy
     public const string DatabaseConstraintName = "CK_Sector_SearchableNames";
     public const string InvalidMessage = "Use standard letters, numbers, spaces, and basic punctuation. Stylized Unicode characters are not supported because they may not be searchable.";
 
-    [GeneratedRegex(@"^[\p{L}\p{Nd}\p{Zs}.,&'()/\-]+$", RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"^[\p{L}\p{Nd}\p{Zs}.,&'()/\-:@%|+]+$", RegexOptions.CultureInvariant)]
     private static partial Regex StandardTextRegex();
 
-    [GeneratedRegex(@"^[\p{L}\p{Nd}\p{IsCJKUnifiedIdeographs}\p{Zs}.,&'()/\-]+$", RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"^[\p{L}\p{Nd}\p{IsCJKUnifiedIdeographs}\p{Zs}.,&'()/\-:@%|+]+$", RegexOptions.CultureInvariant)]
     private static partial Regex TraditionalChineseTextRegex();
 
     public static bool IsValidStandardText(string? value) =>

@@ -79,6 +79,7 @@ public sealed class MineRepository(
         existing.GrowthPct = mine.GrowthPct;
         existing.MonthlyIncome = mine.MonthlyIncome;
         existing.Holdings = mine.Holdings;
+        existing.MetadataJson = mine.MetadataJson;
         existing.Status = mine.Status;
         existing.UpdatedOn = mine.UpdatedOn;
         existing.ModifiedAt = DateTimeOffset.UtcNow;

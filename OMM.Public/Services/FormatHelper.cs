@@ -18,7 +18,7 @@ public static class FormatHelper
     public static string FormatCurrency(decimal amount, string currency = "MYR")
     {
         var prefix = currency == "MYR" ? "RM" : currency + " ";
-        return $"{prefix}{amount:N0}";
+        return $"{prefix}{amount:N2}";
     }
 
     public static string FormatCurrencyPrecise(decimal amount, string currency = "MYR")
@@ -40,16 +40,16 @@ public static class FormatHelper
 
     public static string FormatCurrencyCompact(decimal amount, string currency = "MYR")
     {
-        var prefix = currency == "MYR" ? "RM " : currency + " ";
+        var prefix = currency == "MYR" ? "RM" : currency + " ";
         var abs = Math.Abs(amount);
         var sign = amount < 0 ? "-" : "";
 
         if (abs >= 1_000_000)
-            return $"{sign}{prefix}{(abs / 1_000_000m):F2}M";
+            return $"{sign}{prefix}{(abs / 1_000_000m).ToString("0.#", CultureInfo.InvariantCulture)}m";
         if (abs >= 1_000)
-            return $"{sign}{prefix}{(abs / 1_000m):F1}k";
+            return $"{sign}{prefix}{(abs / 1_000m).ToString("0.#", CultureInfo.InvariantCulture)}k";
 
-        return $"{sign}{prefix}{abs:N0}";
+        return $"{sign}{prefix}{abs:N2}";
     }
 
     public static string GetCurrencySymbol(string currency = "MYR") => currency?.ToUpperInvariant() switch

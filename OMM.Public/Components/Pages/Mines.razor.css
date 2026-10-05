@@ -2,71 +2,226 @@
     max-width: 340px;
 }
 
+.mine-type-epf {
+    --mine-category-ink: var(--asset-epf-accent);
+    --mine-category-bg: var(--asset-epf-bg);
+    --mine-category-icon-bg: #eee4f3;
+}
+
+.mine-type-crypto {
+    --mine-category-ink: var(--asset-crypto-accent);
+    --mine-category-bg: var(--asset-crypto-bg);
+    --mine-category-icon-bg: #e9ecfa;
+}
+
+.mine-type-fixed-deposit {
+    --mine-category-ink: var(--asset-fd-accent);
+    --mine-category-bg: var(--asset-fd-bg);
+    --mine-category-icon-bg: #f3eadf;
+}
+
+.mine-type-foreign-currency {
+    --mine-category-ink: var(--asset-fx-accent);
+    --mine-category-bg: var(--asset-fx-bg);
+    --mine-category-icon-bg: #dde9fa;
+}
+
+.mine-type-asb {
+    --mine-category-ink: var(--asset-asm-accent);
+    --mine-category-bg: var(--asset-asm-bg);
+    --mine-category-icon-bg: #e5f1ef;
+}
+
+.mine-type-savings {
+    --mine-category-ink: var(--asset-cash-accent);
+    --mine-category-bg: var(--asset-cash-bg);
+    --mine-category-icon-bg: #e4effa;
+}
+
+.mine-type-cash {
+    --mine-category-ink: var(--asset-cash-accent);
+    --mine-category-bg: var(--asset-cash-bg);
+    --mine-category-icon-bg: #e4effa;
+}
+
+.mine-type-fund {
+    --mine-category-ink: var(--asset-epf-accent);
+    --mine-category-bg: var(--asset-epf-bg);
+    --mine-category-icon-bg: #eee4f3;
+}
+
+.mine-type-stocks {
+    --mine-category-ink: var(--asset-asm-accent);
+    --mine-category-bg: var(--asset-asm-bg);
+    --mine-category-icon-bg: #e5f1ef;
+}
+
+.mine-type-us-stocks {
+    --mine-category-ink: var(--asset-crypto-accent);
+    --mine-category-bg: var(--asset-crypto-bg);
+    --mine-category-icon-bg: #e9ecfa;
+}
+
+.mine-type-reit {
+    --mine-category-ink: var(--asset-property-accent);
+    --mine-category-bg: var(--asset-property-bg);
+    --mine-category-icon-bg: #f3e3df;
+}
+
+.mine-type-etf {
+    --mine-category-ink: var(--asset-asm-accent);
+    --mine-category-bg: var(--asset-asm-bg);
+    --mine-category-icon-bg: #e5f1ef;
+}
+
+.mine-type-residential {
+    --mine-category-ink: var(--asset-property-accent);
+    --mine-category-bg: var(--asset-property-bg);
+    --mine-category-icon-bg: #f3e3df;
+}
+
+.mine-type-commercial {
+    --mine-category-ink: var(--asset-property-accent);
+    --mine-category-bg: var(--asset-property-bg);
+    --mine-category-icon-bg: #f3e3df;
+}
+
+.mine-type-gold {
+    --mine-category-ink: var(--asset-gold-accent);
+    --mine-category-bg: var(--asset-gold-bg);
+    --mine-category-icon-bg: #f5ebc5;
+}
+
+.mine-type-silver {
+    --mine-category-ink: var(--neutral);
+    --mine-category-bg: #e0e4e7;
+    --mine-category-icon-bg: #f2f4f5;
+}
+
+.mine-type-other {
+    --mine-category-ink: var(--asset-other-accent);
+    --mine-category-bg: var(--asset-other-bg);
+    --mine-category-icon-bg: #ebefdc;
+}
+
 .mine-category-icon {
     width: 40px;
     height: 40px;
+    border: 1px solid rgb(255 255 255 / 0.7);
 }
 
 .mine-card-divider {
     height: 1px;
-    margin-top: 0.75rem;
-    background-color: rgb(255 255 255 / 0.62);
+    margin-top: 0.55rem;
+    background-color: color-mix(in srgb, var(--mine-category-ink) 14%, transparent);
 }
 
 .mine-category-card {
     background-color: var(--mine-category-bg) !important;
-    background-image: var(--mine-category-gradient);
+    background-image: linear-gradient(150deg, #ffffff99 45%, var(--mine-category-bg) 80%);
+    border: 1px solid color-mix(in srgb, var(--mine-category-ink) 14%, transparent) !important;
+    border-radius: 17px !important;
     color: var(--mine-category-ink);
+    /*box-shadow: 0 5px 16px rgb(35 42 53 / 0.06) !important;*/
+    transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
 }
 
 .mine-category-card .mine-category-icon {
-    background: rgb(255 255 255 / 0.52) !important;
+    background: var(--mine-category-icon-bg) !important;
     color: var(--mine-category-ink) !important;
+}
+
+.mine-category-card .mine-card-status .badge-pill-mine,
+.mine-category-card .mine-card-status .badge-pill-warning,
+.mine-category-card .mine-card-status .badge-pill-burden,
+.mine-category-card .mine-card-status .badge-pill-neutral {
+    background: rgb(255 255 255 / 0.58);
+    border: 1px solid rgb(255 255 255 / 0.72);
+    color: var(--mine-category-ink);
+}
+
+.mine-category-card .mine-card-status .badge-pill-warning,
+.mine-category-card .mine-card-status .badge-pill-burden {
+    color: var(--neutral);
+}
+
+.mine-category-card .mine-growth.text-success {
+    color: var(--positive) !important;
+}
+
+.mine-category-card .mine-growth.text-danger {
+    color: var(--negative) !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .mine-category-card:hover {
+        border-color: color-mix(in srgb, var(--mine-category-ink) 28%, transparent) !important;
+        box-shadow: 0 9px 20px rgb(35 42 53 / 0.1) !important;
+        transform: translateY(-2px);
+    }
 }
 
 .mine-category-retirement,
 .mine-category-digital {
-    --mine-category-ink: #4e3b64;
-    --mine-category-bg: #e3d8ee;
-    --mine-category-gradient: linear-gradient(145deg, #eee5f5 0%, #d7c5e5 100%);
+    --mine-category-ink: var(--asset-epf-accent);
+    --mine-category-bg: var(--asset-epf-bg);
+    --mine-category-icon-bg: #eee4f3;
 }
 
-.mine-category-cash,
+.mine-category-cash {
+    --mine-category-ink: var(--asset-cash-accent);
+    --mine-category-bg: var(--asset-cash-bg);
+    --mine-category-icon-bg: #e4effa;
+}
+
 .mine-category-metals {
-    --mine-category-ink: #49350d;
-    --mine-category-bg: #f5d98c;
-    --mine-category-gradient: linear-gradient(145deg, #f8e4a7 0%, #f1cf73 100%);
+    --mine-category-ink: var(--asset-gold-accent);
+    --mine-category-bg: var(--asset-gold-bg);
+    --mine-category-icon-bg: #f5ebc5;
 }
 
 .mine-category-investment {
-    --mine-category-ink: #1c3e5c;
-    --mine-category-bg: #cfe0f2;
-    --mine-category-gradient: linear-gradient(145deg, #dfebf8 0%, #bdd4eb 100%);
+    --mine-category-ink: var(--asset-asm-accent);
+    --mine-category-bg: var(--asset-asm-bg);
+    --mine-category-icon-bg: #e5f1ef;
 }
 
 .mine-category-property {
-    --mine-category-ink: #582c2a;
-    --mine-category-bg: #f0d0cc;
-    --mine-category-gradient: linear-gradient(145deg, #f6deda 0%, #e9bfba 100%);
+    --mine-category-ink: var(--asset-property-accent);
+    --mine-category-bg: var(--asset-property-bg);
+    --mine-category-icon-bg: #f3e3df;
 }
 
 .mine-category-other {
-    --mine-category-ink: #3e4d27;
-    --mine-category-bg: #dce8bd;
-    --mine-category-gradient: linear-gradient(145deg, #e6efcf 0%, #c8dca5 100%);
+    --mine-category-ink: var(--asset-other-accent);
+    --mine-category-bg: var(--asset-other-bg);
+    --mine-category-icon-bg: #ebefdc;
+}
+
+.mine-card-header {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    align-items: start;
+    column-gap: 0.75rem;
+    min-height: 0;
+}
+
+.mine-card-header-content {
+    min-width: 0;
 }
 
 .mine-name {
     font-size: 0.92rem;
-    line-height: 1.3;
-    word-break: break-word;
+    line-height: 1.22;
+    overflow-wrap: anywhere;
     padding-right: 0;
 }
 
 .mine-meta {
     font-size: 0.72rem;
-    line-height: 1.35;
+    line-height: 1.25;
     word-break: break-word;
+    margin-top: 0.15rem;
 }
 
 .mine-metric-label {
@@ -77,6 +232,8 @@
 .mine-metric-value,
 .mine-growth {
     font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.35;
 }
 
 .mine-growth-icon {
@@ -91,18 +248,14 @@
 
 .mine-card {
     position: relative;
-}
-
-/* Enough right clearance so the name/meta never slides under the status badge */
-.mine-card-header {
-    /*padding-right: 4.5rem;*/
+    overflow: hidden;
 }
 
 .mine-card-status {
     position: absolute;
-    z-index: 2;
-    top: 0.0rem;
-    right: 0.3rem;
+    z-index: 3;
+    top: 0.08rem;
+    right: 0.45rem;
     pointer-events: auto;
     white-space: nowrap;
 }
@@ -112,8 +265,43 @@
     align-items: center;
     justify-content: center;
     gap: 0.25rem;
-    min-width: 2.1rem;
-    min-height: 2rem;
+    min-width: 2.25rem;
+    min-height: 1.8rem;
+    padding: 0.2rem 0.65rem;
+    border: 1px solid color-mix(in srgb, var(--mine-category-ink) 24%, transparent);
+    border-radius: 7px;
+    background: rgb(255 255 255 / 0.36);
+    color: var(--mine-category-ink);
+    font-size: 0.72rem;
+    font-weight: 600;
+    transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.mine-edit-button:hover,
+.mine-edit-button:focus-visible {
+    border-color: color-mix(in srgb, var(--mine-category-ink) 42%, transparent);
+    background: rgb(255 255 255 / 0.72);
+    color: var(--mine-category-ink);
+}
+
+.mine-edit-button:active {
+    transform: translateY(1px);
+}
+
+.mine-edit-button:focus-visible {
+    outline: 0;
+    box-shadow: var(--omm-focus-ring);
+}
+
+@media (max-width: 575.98px) {
+    .mine-card {
+        padding: 1.1rem !important;
+    }
+
+    .mine-metric-value,
+    .mine-growth {
+        font-size: 0.8rem;
+    }
 }
 
 .mine-empty-icon {

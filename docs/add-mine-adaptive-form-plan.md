@@ -512,7 +512,7 @@ Use `@switch (workingMine.Type)` to render a type-specific sub-form. The `Curren
 | Principal | `metadata.Principal` | Principal Amount | Currency | Yes | "Amount placed in this FD." |
 | Interest Rate | `metadata.InterestRatePct` | Interest Rate (% p.a.) | Number step 0.01 | Yes | "From your FD confirmation slip or online banking." |
 | Tenure | `metadata.TenureMonths` | Tenure (months) | Number integer | Yes | — |
-| Maturity Date | `metadata.MaturityDate` | Maturity Date | Date | Auto-calculated | Auto = today + tenure. Editable override. |
+| Maturity Date | `metadata.MaturityDate` | Maturity Date | Date | Auto-calculated | Auto = placement date + tenure. Editable override. |
 | Projected Value | `workingMine.CurrentValue` | Projected Value at Maturity | Currency **read-only** | Auto | Auto = Principal × (1 + Rate/100 × TenureMonths/12). Shown as a computed badge. |
 | On Maturity | `metadata.RolloverBehavior` | On Maturity | Select: Auto-renew / Cash out | No | — |
 | Institution | `workingMine.Institution` | Bank | Select from institutions | No | — |
@@ -684,12 +684,14 @@ Footer: **"← Back"** and **"Save Mine"** (or **"Update Mine"** in edit mode).
 | CashInHand | `CurrentValue > 0` |
 | FixedDeposit | `Principal > 0`, `InterestRatePct > 0`, `TenureMonths > 0` |
 | UnitTrustAsb | `UnitsHeld > 0`, `FundCode` selected |
-| UnitTrustGeneral | `CurrentValue > 0` |
-| Stocks / StocksUs | `StockCode` not empty, `SharesOwned > 0`, `CurrentSharePrice > 0` |
-| PropertyResidential/Commercial | `CurrentValue > 0`, `PropertyType` selected |
-| Gold / Silver | `GoldForm` selected, `WeightGrams > 0`, `BuybackPricePerGram > 0` |
-| Cryptocurrency | `CoinSymbol` not empty, `CoinsHeld > 0`, `CurrentValue > 0` |
+| UnitTrustGeneral | `FundCode` not empty, `UnitsHeld > 0` |
+| Stocks / StocksUs | `StockCode` not empty, `SharesOwned > 0` |
+| PropertyResidential/Commercial | `Address` not empty, `PropertyType` selected |
+| Gold / Silver | `GoldForm` selected, `WeightGrams > 0`, `PurchaseCost > 0` |
+| Cryptocurrency | `CoinSymbol` not empty, `CoinsHeld > 0` |
 | Others | `CurrentValue > 0` |
+
+> **Tracking-first override:** Current market valuations, current share prices, buyback rates, dividend yields, staking yields, and growth data are optional. When these values are omitted, the mine is still saved for tracking and growth/income remains unavailable until the values are provided later. Purchase cost and placement/baseline details remain available as the tracking basis.
 
 ---
 

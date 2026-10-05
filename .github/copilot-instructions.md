@@ -1,5 +1,6 @@
 # Copilot Instructions
 
+
 ## Project Guidelines
 - For this repository, OMM.Admin uses admin-schema identities while shared master data lives in public schema. Master-data audit user IDs must be nullable text, not AspNetUsers foreign keys. When fixing legacy audit FK errors, update both EF mappings and the database migration, using PostgreSQL DROP CONSTRAINT IF EXISTS and DROP INDEX IF EXISTS for drift-safe migrations. Record this in AGENTS.md.
 - When adding repository instructions or handoff guidance, explicitly label the scope, especially when the instructions concern database/infrastructure log handling.
@@ -27,9 +28,9 @@
 ## Security Practices
 - Never hardcode the Twelve Data API key. Use an environment variable in Production and .NET User Secrets for localhost/development.
 
-## Bilingual Column Guidelines
 - For Admin CRUD bilingual columns, prefer compact generic labels `Name (EN)` and `Name (TW)` instead of entity-specific labels such as `Market Name (EN)` or the abbreviation `ZHTW`. Keep the Traditional Chinese field visible.
 
 ## Form Consistency
 - For Add Mine form consistency, show currency units in input adornments/text boxes (for example RM), never in field labels. Use semantic names for labels such as 'Total Purchase Cost' rather than 'Total Purchase Cost (MYR)' or other currency suffixes.
 - For Add Mine, support a tracking-first workflow: members may add an asset without current selling price, buyback rate, dividend rate, or growth data. Optional valuation/rate fields should calculate gain/loss or income only when provided; purchase cost and placement details remain the baseline. Future backend market-price updates may populate optional current values automatically.
+- For compact currency notation, use conventional abbreviated formatting such as RM1.5k, not RM1.50k; keep two decimal places for ordinary non-compact currency amounts when requested.

@@ -30,7 +30,7 @@ public static class FormatHelper
     public static string FormatPercent(decimal value)
     {
         var prefix = value > 0 ? "+" : "";
-        return $"{prefix}{value:F1}%";
+        return $"{prefix}{value.ToString("0.##", CultureInfo.InvariantCulture)}%";
     }
 
     public static string FormatNumber(decimal value)
@@ -121,8 +121,8 @@ public static class FormatHelper
     public static string MineTypeLabel(MineType type) => type switch
     {
         MineType.EpfKwsp => "EPF / KWSP",
-        MineType.SavingsAccount => "Savings Account",
-        MineType.FixedDeposit => "Fixed Deposit (FD)",
+        MineType.SavingsAccount => "Savings / Current Account",
+        MineType.FixedDeposit => "Fixed Deposit",
         MineType.CashInHand => "Cash in Hand",
         MineType.ForeignCurrency => "Foreign Currency",
         MineType.UnitTrustAsb => "ASB / ASM",
@@ -143,23 +143,45 @@ public static class FormatHelper
     public static string CurrentValueLabel(MineType type) => type switch
     {
         MineType.EpfKwsp or MineType.SavingsAccount or MineType.CashInHand => "Balance",
-        MineType.ForeignCurrency => "Value (MYR)",
+        MineType.ForeignCurrency => "Value",
         MineType.FixedDeposit => "Projected Value",
         MineType.UnitTrustAsb or MineType.UnitTrustGeneral
             or MineType.Stocks or MineType.StocksUs
             or MineType.Reit or MineType.Etf => "Market Value",
         MineType.PropertyResidential or MineType.PropertyCommercial => "Valuation",
         MineType.Gold or MineType.Silver => "Est. Value",
-        MineType.Cryptocurrency => "Value (MYR)",
+        MineType.Cryptocurrency => "Value",
         _ => "Current Value"
     };
+
+    public static string? SourceValueLabel(Mine mine) => mine.Type switch
+    {
+        MineType.ForeignCurrency when mine.Metadata is { ForeignCurrencyCode: not null } metadata
+            && GetForeignCurrencyAmount(mine) is { } amount => $"{amount:N2} {metadata.ForeignCurrencyCode.ToUpperInvariant()}",
+        MineType.Cryptocurrency when mine.Metadata is { CoinsHeld: > 0, CoinSymbol: not null } metadata
+            => $"{metadata.CoinsHeld.Value.ToString("0.########", CultureInfo.InvariantCulture)} {metadata.CoinSymbol.ToUpperInvariant()}",
+        _ => null
+    };
+
+    private static decimal? GetForeignCurrencyAmount(Mine mine)
+    {
+        var transactions = mine.ForeignCurrencyTransactions;
+        if (transactions is not { Count: > 0 })
+        {
+            return null;
+        }
+
+        return transactions.Sum(transaction => transaction.TransactionType == ForeignCurrencyTransactionType.Sale
+            ? -transaction.ForeignAmount
+            : transaction.ForeignAmount);
+    }
 
     public static bool HasCurrentValuation(Mine mine) =>
         mine.Type != MineType.ForeignCurrency || mine.Metadata?.CurrentSellRate is > 0;
 
     public static GrowthState GetGrowthState(Mine mine)
     {
-        if (!HasCurrentValuation(mine))
+        if (!HasCurrentValuation(mine) || mine.PurchaseCost <= 0)
         {
             return GrowthState.Unavailable;
         }

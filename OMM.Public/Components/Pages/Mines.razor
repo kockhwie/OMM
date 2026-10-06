@@ -103,6 +103,10 @@
                             <div class="fw-bold text-dark mine-metric-value @(valuationPending ? "text-muted" : "")" title="@(hasValuation ? FormatHelper.FormatCurrency(mine.CurrentValue, mine.Currency) : "Current sell rate not entered")">
                                 @(hasValuation ? FormatHelper.FormatCurrencyCompact(mine.CurrentValue, mine.Currency) : "Pending")
                             </div>
+                            @if (FormatHelper.SourceValueLabel(mine) is { } sourceValue)
+                            {
+                                <small class="d-block text-muted mine-source-value">@sourceValue</small>
+                            }
                         </div>
                         <div class="col-4 min-w-0">
                             <span class="text-uppercase text-muted fw-semibold d-block mine-metric-label">Growth</span>

@@ -892,7 +892,7 @@
                                         break;
 
                                     case MineType.SavingsAccount:
-                                        <!-- Cash & High-Yield Savings Form -->
+                                        <!-- Savings / Current Account Form -->
                                         <div class="omm-form-field">
                                             <label class="omm-form-label" for="savings-type">Platform / Account Class</label>
                                             <select id="savings-type" class="form-select rounded-3" @bind="savingsClassTemp">
@@ -1025,6 +1025,10 @@
                                         <div class="fs-5 fw-bold text-dark mt-1 mine-review-metric-value">
                                             @(HasCurrentValuation ? FormatHelper.FormatCurrency(workingMine.CurrentValue, currencySymbol) : "Not entered")
                                         </div>
+                                        @if (FormatHelper.SourceValueLabel(workingMine) is { } sourceValue)
+                                        {
+                                            <small class="d-block text-muted mt-1 mine-review-source-value">@sourceValue</small>
+                                        }
                                     </div>
                                 </div>
                                 <div class="col-6 col-md-3">
@@ -1441,6 +1445,10 @@
             max-width: 100%;
         }
     }
+    .mine-review-source-value,
+    .mine-detail-source-value {
+        font-variant-numeric: tabular-nums;
+    }
 </style>
 
 @code {
@@ -1686,7 +1694,7 @@
                 MineType.Gold => "Physical Gold",
                 MineType.Silver => "Silver Bullion",
                 MineType.Cryptocurrency => "Bitcoin (Crypto)",
-                MineType.SavingsAccount => "High-Yield Savings",
+                MineType.SavingsAccount => "Savings / Current Account",
                 MineType.CashInHand => "Cash Reserve",
                 _ => FormatHelper.MineTypeLabel(workingMine.Type)
             };
@@ -1719,7 +1727,7 @@
     private string GetCategoryDescription(MineCategory cat) => cat switch
     {
         MineCategory.Retirement => "EPF / KWSP, PRS funds",
-        MineCategory.CashAndDeposits => "FD, High-Yield Savings",
+        MineCategory.CashAndDeposits => "FD, Savings / Current Account",
         MineCategory.Investments => "Bursa, US Stocks, ASB",
         MineCategory.Property => "Residential & Commercial",
         MineCategory.PreciousMetals => "Physical & Digital Gold",
@@ -1955,7 +1963,10 @@
         }
         if (!string.IsNullOrWhiteSpace(metadata.CoinSymbol))
         {
-            workingMine.Holdings = $"{metadata.CoinsHeld:N4} {metadata.CoinSymbol} ({metadata.WalletOrExchange})";
+            var wallet = string.IsNullOrWhiteSpace(metadata.WalletOrExchange)
+                ? string.Empty
+                : $" ({metadata.WalletOrExchange})";
+            workingMine.Holdings = $"{metadata.CoinsHeld:N4} {metadata.CoinSymbol}{wallet}";
         }
     }
 

@@ -6,6 +6,7 @@
 @using OMM.Public.Services
 @using OMM.Public.Components.Shared.Mines
 @inject DatabaseMineService MineService
+@inject MemberRecordService RecordService
 @inject NavigationManager Navigation
 
 <PageTitle>@(currentMine?.Name ?? "Mine Detail") - OhMyMine</PageTitle>
@@ -27,6 +28,8 @@
 }
 else
 {
+    var meta = currentMine.Metadata ?? new MineMetadata();
+
     <!-- Breadcrumb / Back Link -->
     <div class="mb-3 animate-fade-up">
         <a href="/mines" class="text-decoration-none text-muted small d-inline-flex align-items-center gap-1 hover-underline">
@@ -53,6 +56,10 @@ else
         </div>
 
         <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-success btn-sm rounded-3 px-3 d-inline-flex align-items-center gap-1" @onclick="OpenIncomeEventModal">
+                <i class="ti ti-cash-plus"></i>
+                <span>Log Income Event</span>
+            </button>
             <button class="btn btn-primary btn-sm rounded-3 px-3 d-inline-flex align-items-center gap-1" @onclick="OpenEditModal">
                 <i class="ti ti-edit"></i>
                 <span>Edit Mine</span>
@@ -168,6 +175,34 @@ else
                                 <span class="fw-semibold text-dark small">@currentMine.Institution</span>
                             </div>
                         }
+                             @if (!string.IsNullOrWhiteSpace(meta.AccountNumber))
+                             {
+                                 <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                     <span class="text-muted">Account Reference</span>
+                                     <span class="fw-semibold text-dark">@meta.AccountNumber</span>
+                                 </div>
+                             }
+                             @if (!string.IsNullOrWhiteSpace(meta.ForeignCurrencyCode))
+                             {
+                                 <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                     <span class="text-muted">Foreign Currency</span>
+                                     <span class="fw-semibold text-dark">@meta.ForeignCurrencyCode</span>
+                                 </div>
+                             }
+                             @if (!string.IsNullOrWhiteSpace(meta.CurrencyCustodyType))
+                             {
+                                 <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                     <span class="text-muted">Custody Type</span>
+                                     <span class="fw-semibold text-dark">@meta.CurrencyCustodyType</span>
+                                 </div>
+                             }
+                             @if (!string.IsNullOrWhiteSpace(meta.CurrencyProvider))
+                             {
+                                 <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                     <span class="text-muted">Currency Provider</span>
+                                     <span class="fw-semibold text-dark">@meta.CurrencyProvider</span>
+                                 </div>
+                             }
                         @if (currentMine.Type != MineType.FixedDeposit && !string.IsNullOrEmpty(currentMine.Holdings))
                         {
                             <div class="mine-specification-row">
@@ -177,6 +212,27 @@ else
                                     : currentMine.Holdings)</span>
                             </div>
                         }
+                             @if (meta.MonthlyContribution.HasValue)
+                             {
+                                 <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                     <span class="text-muted">Monthly Contribution</span>
+                                     <span class="fw-semibold text-dark">@FormatHelper.FormatCurrency(meta.MonthlyContribution.Value, currentMine.Currency)/mo</span>
+                                 </div>
+                             }
+                             @if (!string.IsNullOrWhiteSpace(meta.FundCode))
+                             {
+                                 <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                     <span class="text-muted">Fund Code</span>
+                                     <span class="fw-semibold text-dark">@meta.FundCode</span>
+                                 </div>
+                             }
+                             @if (meta.Principal.HasValue)
+                             {
+                                 <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                     <span class="text-muted">Principal</span>
+                                     <span class="fw-semibold text-dark">@FormatHelper.FormatCurrency(meta.Principal.Value, currentMine.Currency)</span>
+                                 </div>
+                             }
                         <div class="mine-specification-row">
                             <span class="text-muted small">Currency</span>
                             <span class="fw-semibold text-dark small">@currentMine.Currency</span>
@@ -191,7 +247,6 @@ else
                 <!-- Asset-Specific Typed Metadata Attributes -->
                 @if (currentMine.Metadata != null)
                 {
-                    var meta = currentMine.Metadata;
                     <div class="card border-0 shadow-sm rounded-4 p-4 bg-white animate-fade-up">
                         <h3 class="h6 fw-bold text-dark font-display mb-3 d-flex align-items-center gap-2">
                             <i class="ti ti-adjustments-alt text-warning"></i>
@@ -205,6 +260,20 @@ else
                                     <span class="fw-semibold text-dark">@meta.AccountType</span>
                                 </div>
                             }
+                             @if (meta.CurrentSharePrice.HasValue)
+                             {
+                                 <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                     <span class="text-muted">Current Share Price</span>
+                                     <span class="fw-semibold text-dark">@FormatHelper.FormatCurrencyPrecise(meta.CurrentSharePrice.Value, currentMine.Currency)</span>
+                                 </div>
+                             }
+                             @if (meta.PurchasePricePerShare.HasValue)
+                             {
+                                 <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                     <span class="text-muted">Purchase Price / Share</span>
+                                     <span class="fw-semibold text-dark">@FormatHelper.FormatCurrencyPrecise(meta.PurchasePricePerShare.Value, currentMine.Currency)</span>
+                                 </div>
+                             }
                             @if (meta.Akaun1Balance.HasValue || meta.Akaun2Balance.HasValue || meta.Akaun3Balance.HasValue)
                             {
                                 <div class="py-2 border-bottom border-light-subtle">
@@ -231,6 +300,27 @@ else
                                     </div>
                                 </div>
                             }
+                             @if (!string.IsNullOrWhiteSpace(meta.PropertyType))
+                             {
+                                 <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                     <span class="text-muted">Property Type</span>
+                                     <span class="fw-semibold text-dark">@meta.PropertyType</span>
+                                 </div>
+                             }
+                             @if (meta.OwnershipPct.HasValue)
+                             {
+                                 <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                     <span class="text-muted">Ownership</span>
+                                     <span class="fw-semibold text-dark">@meta.OwnershipPct.Value.ToString("0.##")%</span>
+                                 </div>
+                             }
+                             @if (meta.MaintenanceCostMonthly.HasValue)
+                             {
+                                 <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                     <span class="text-muted">Monthly Maintenance</span>
+                                     <span class="fw-semibold text-dark">@FormatHelper.FormatCurrency(meta.MaintenanceCostMonthly.Value, currentMine.Currency)/mo</span>
+                                 </div>
+                             }
                             @if (meta.UnitsHeld.HasValue)
                             {
                                 <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
@@ -238,6 +328,20 @@ else
                                     <span class="fw-semibold text-dark">@meta.UnitsHeld.Value.ToString("N2") units</span>
                                 </div>
                             }
+                             @if (meta.CurrentPricePerGram.HasValue)
+                             {
+                                 <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                     <span class="text-muted">Current Price / Gram</span>
+                                     <span class="fw-semibold text-dark">@FormatHelper.FormatCurrencyPrecise(meta.CurrentPricePerGram.Value, currentMine.Currency)</span>
+                                 </div>
+                             }
+                             @if (meta.BuybackPricePerGram.HasValue)
+                             {
+                                 <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                     <span class="text-muted">Buyback Price / Gram</span>
+                                     <span class="fw-semibold text-dark">@FormatHelper.FormatCurrencyPrecise(meta.BuybackPricePerGram.Value, currentMine.Currency)</span>
+                                 </div>
+                             }
                             @if (meta.NavPerUnit.HasValue)
                             {
                                 <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
@@ -245,6 +349,48 @@ else
                                     <span class="fw-semibold text-dark">@FormatHelper.FormatCurrencyPrecise(meta.NavPerUnit.Value, currentMine.Currency)</span>
                                 </div>
                             }
+                             @if (meta.CurrentPricePerCoin.HasValue)
+                             {
+                                 <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                     <span class="text-muted">Current Price / Coin</span>
+                                     <span class="fw-semibold text-dark">@FormatHelper.FormatCurrencyPrecise(meta.CurrentPricePerCoin.Value, currentMine.Currency)</span>
+                                 </div>
+                             }
+                             @if (meta.PurchasePricePerCoin.HasValue)
+                             {
+                                 <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                     <span class="text-muted">Purchase Price / Coin</span>
+                                     <span class="fw-semibold text-dark">@FormatHelper.FormatCurrencyPrecise(meta.PurchasePricePerCoin.Value, currentMine.Currency)</span>
+                                 </div>
+                             }
+                             @if (meta.StakingYieldPct.HasValue)
+                             {
+                                 <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                     <span class="text-muted">Staking Yield</span>
+                                     <span class="fw-semibold text-success">@meta.StakingYieldPct.Value.ToString("0.00")% p.a.</span>
+                                 </div>
+                             }
+                             @if (!string.IsNullOrWhiteSpace(meta.WalletOrExchange))
+                             {
+                                 <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                     <span class="text-muted">Wallet / Exchange</span>
+                                     <span class="fw-semibold text-dark">@meta.WalletOrExchange</span>
+                                 </div>
+                             }
+                             @if (meta.CurrentSellRate.HasValue)
+                             {
+                                 <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
+                                     <span class="text-muted">Current Sell Rate</span>
+                                     <span class="fw-semibold text-dark">@meta.CurrentSellRate.Value.ToString("0.########")</span>
+                                 </div>
+                             }
+                             @if (!string.IsNullOrWhiteSpace(meta.Notes))
+                             {
+                                 <div class="py-1 small">
+                                     <span class="text-muted d-block">Notes</span>
+                                     <span class="fw-semibold text-dark">@meta.Notes</span>
+                                 </div>
+                             }
                             @if (meta.InterestRatePct.HasValue)
                             {
                                 <div class="d-flex justify-content-between py-1 border-bottom border-light-subtle small">
@@ -717,7 +863,16 @@ else
         {
             <div class="col-12">
                 <div class="card border-0 shadow-sm rounded-4 p-4 bg-white animate-fade-up">
-                    <h3 class="h6 fw-bold text-dark font-display mb-3">Passive Income Contribution</h3>
+                    <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+                        <div>
+                            <h3 class="h6 fw-bold text-dark font-display mb-1">Passive Income Contribution</h3>
+                            <p class="text-muted small mb-0">Income events linked to @currentMine.Name</p>
+                        </div>
+                        <button type="button" class="btn btn-success btn-sm rounded-3 d-inline-flex align-items-center gap-1" @onclick="OpenIncomeEventModal">
+                            <i class="ti ti-plus"></i>
+                            <span>Log Income Event</span>
+                        </button>
+                    </div>
                     <div class="row g-4">
                         <div class="col-12 col-md-6">
                             <div class="p-4 rounded-4 bg-warning-subtle border border-warning-subtle text-center">
@@ -738,6 +893,36 @@ else
                             </div>
                         </div>
                     </div>
+                    <div class="mt-4 pt-3 border-top border-light-subtle">
+                        <h4 class="h6 fw-bold text-dark mb-3">Income History</h4>
+                        @if (mineIncomeRecords.Count == 0)
+                        {
+                            <div class="text-center py-4 text-muted">
+                                <i class="ti ti-receipt-off fs-2 mb-2"></i>
+                                <p class="small mb-0">No income events have been logged for this mine.</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="list-group list-group-flush">
+                                @foreach (var record in mineIncomeRecords)
+                                {
+                                    <div class="list-group-item px-0 py-3 d-flex align-items-center justify-content-between gap-3">
+                                        <div>
+                                            <div class="fw-semibold text-dark">@record.Source</div>
+                                            <div class="small text-muted">@FormatHelper.IncomeClassLabel(record.Classification) · @record.Frequency · @record.Date</div>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <span class="fw-bold text-success">@FormatHelper.FormatCurrency(record.Amount, record.Currency)</span>
+                                            <button type="button" class="btn btn-link text-danger p-0" title="Delete income event" @onclick="() => DeleteIncomeEventAsync(record.Id)">
+                                                <i class="ti ti-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
                     <div class="mt-4 pt-3 border-top border-light-subtle d-flex align-items-center justify-content-between">
                         <span class="small text-muted">Want to see where this fits into your Freedom Ratio?</span>
                         <a href="/income" class="btn btn-outline-dark btn-sm rounded-3">
@@ -755,6 +940,78 @@ else
                   ExistingMine="currentMine"
                   OnClose="CloseEditModal"
                   OnSaved="HandleMineSaved" />
+
+    @if (showIncomeEventModal)
+    {
+        <div class="modal fade show d-block omm-modal-backdrop" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="log-income-event-title">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+                    <div class="modal-header bg-dark text-white px-4 py-3 border-0">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="ti ti-cash text-success fs-4"></i>
+                            <div>
+                                <h2 id="log-income-event-title" class="h5 modal-title fw-bold font-display mb-0">Log Income Event</h2>
+                                <small class="text-white-50">Record income generated by @currentMine.Name</small>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white" aria-label="Close" @onclick="CloseIncomeEventModal"></button>
+                    </div>
+                    <div class="modal-body p-4 bg-light">
+                        @if (!string.IsNullOrWhiteSpace(incomeEventError))
+                        {
+                            <div class="alert alert-danger rounded-3 d-flex align-items-center gap-2 mb-3 py-2" role="alert">
+                                <i class="ti ti-alert-triangle"></i>
+                                <small>@incomeEventError</small>
+                            </div>
+                        }
+                        <div class="omm-form-section">
+                            <div class="omm-form-field">
+                                <label class="omm-form-label" for="mine-income-source">Income Source <span class="text-danger">*</span></label>
+                                <input id="mine-income-source" type="text" class="form-control" maxlength="200" placeholder="e.g. Dividend, Rental Income" @bind="incomeEvent.Source" />
+                            </div>
+                            <div class="omm-form-grid">
+                                <div class="omm-form-field">
+                                    <label class="omm-form-label" for="mine-income-amount">Amount <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">@currentMine.Currency</span>
+                                        <input id="mine-income-amount" type="number" class="form-control" min="0" step="0.01" @bind="incomeEvent.Amount" />
+                                    </div>
+                                </div>
+                                <div class="omm-form-field">
+                                    <label class="omm-form-label" for="mine-income-frequency">Frequency <span class="text-danger">*</span></label>
+                                    <select id="mine-income-frequency" class="form-select" @bind="incomeEvent.Frequency">
+                                        <option value="monthly">Monthly</option>
+                                        <option value="annual">Annual</option>
+                                        <option value="one-off">One-off / Non-recurring</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="omm-form-field">
+                                <label class="omm-form-label" for="mine-income-date">Event Date <span class="text-danger">*</span></label>
+                                <input id="mine-income-date" type="date" class="form-control" @bind="incomeEventDate" />
+                            </div>
+                            <div class="small text-muted"><i class="ti ti-link me-1"></i>This event will be classified as passive mine-generated income and linked to this mine.</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer px-4 py-3 border-0 bg-white">
+                        <button type="button" class="btn btn-light border" @onclick="CloseIncomeEventModal" disabled="@isSavingIncomeEvent">Cancel</button>
+                        <button type="button" class="btn btn-success" @onclick="SaveIncomeEventAsync" disabled="@isSavingIncomeEvent">
+                            @if (isSavingIncomeEvent)
+                            {
+                                <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                                <span>Saving...</span>
+                            }
+                            else
+                            {
+                                <i class="ti ti-device-floppy me-1"></i>
+                                <span>Save Income Event</span>
+                            }
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 
     @if (showYieldDeclarationModal)
     {
@@ -858,8 +1115,14 @@ else
     private Mine? currentMine;
     private Burden? linkedBurden;
     private List<MineYieldHistoryEntity> yieldHistories = [];
+    private List<IncomeRecord> mineIncomeRecords = [];
     private string activeTab = "overview";
     private bool showEditModal = false;
+    private bool showIncomeEventModal;
+    private bool isSavingIncomeEvent;
+    private string? incomeEventError;
+    private IncomeRecord incomeEvent = new();
+    private DateTime incomeEventDate = DateTime.UtcNow.Date;
     private bool showYieldDeclarationModal = false;
     private bool isSavingYieldDeclaration;
     private int yieldEffectiveYear;
@@ -914,11 +1177,91 @@ else
             }
 
             yieldHistories = await MineService.GetYieldHistoriesAsync(currentMine.Id);
+            mineIncomeRecords = (await RecordService.GetIncomeRecordsAsync())
+                .Where(record => string.Equals(record.MineId, currentMine.Id, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+        else
+        {
+            mineIncomeRecords = [];
         }
     }
 
     private void OpenEditModal() => showEditModal = true;
     private void CloseEditModal() => showEditModal = false;
+
+    private void OpenIncomeEventModal()
+    {
+        if (currentMine is null)
+        {
+            return;
+        }
+
+        incomeEventError = null;
+        incomeEventDate = DateTime.UtcNow.Date;
+        incomeEvent = new IncomeRecord
+        {
+            Classification = IncomeClass.PassiveMineGenerated,
+            Currency = currentMine.Currency,
+            Frequency = "monthly",
+            MineId = currentMine.Id,
+            MineName = currentMine.Name,
+            Date = DateTime.UtcNow.ToString("yyyy-MM-dd")
+        };
+        showIncomeEventModal = true;
+    }
+
+    private void CloseIncomeEventModal()
+    {
+        if (!isSavingIncomeEvent)
+        {
+            showIncomeEventModal = false;
+            incomeEventError = null;
+        }
+    }
+
+    private async Task SaveIncomeEventAsync()
+    {
+        if (isSavingIncomeEvent || currentMine is null)
+        {
+            return;
+        }
+
+        incomeEventError = string.IsNullOrWhiteSpace(incomeEvent.Source)
+            ? "Enter an income source."
+            : incomeEvent.Amount <= 0
+                ? "Enter an amount greater than zero."
+                : null;
+        if (incomeEventError is not null)
+        {
+            return;
+        }
+
+        isSavingIncomeEvent = true;
+        try
+        {
+            incomeEvent.Date = incomeEventDate.ToString("yyyy-MM-dd");
+            await RecordService.AddIncomeRecordAsync(incomeEvent);
+            await LoadMineData();
+            showIncomeEventModal = false;
+        }
+        catch (Exception ex)
+        {
+            incomeEventError = ex.Message;
+        }
+        finally
+        {
+            isSavingIncomeEvent = false;
+        }
+    }
+
+    private async Task DeleteIncomeEventAsync(string id)
+    {
+        if (await RecordService.DeleteIncomeRecordAsync(id))
+        {
+            mineIncomeRecords = mineIncomeRecords.Where(record => record.Id != id).ToList();
+        }
+    }
 
     private void OpenYieldDeclarationModal()
     {

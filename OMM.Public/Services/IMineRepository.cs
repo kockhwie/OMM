@@ -10,7 +10,10 @@ public interface IMineRepository
 
     Task<MineEntity> AddMineAsync(MineEntity mine, CancellationToken cancellationToken = default);
 
-    Task<MineEntity?> UpdateMineAsync(MineEntity mine, CancellationToken cancellationToken = default);
+    Task<MineEntity?> UpdateMineAsync(
+        MineEntity mine,
+        MineYieldHistoryEntity? yieldHistory = null,
+        CancellationToken cancellationToken = default);
 
     Task<bool> SoftDeleteMineAsync(Guid mineId, CancellationToken cancellationToken = default);
 

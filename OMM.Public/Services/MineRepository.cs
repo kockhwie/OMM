@@ -56,6 +56,7 @@ public sealed class MineRepository(
 
     public async Task<MineEntity?> UpdateMineAsync(
         MineEntity mine,
+        MineYieldHistoryEntity? yieldHistory = null,
         CancellationToken cancellationToken = default)
     {
         var userId = await RequireUserIdAsync();
@@ -83,6 +84,14 @@ public sealed class MineRepository(
         existing.Status = mine.Status;
         existing.UpdatedOn = mine.UpdatedOn;
         existing.ModifiedAt = DateTimeOffset.UtcNow;
+
+        if (yieldHistory is not null)
+        {
+            yieldHistory.UserId = userId;
+            yieldHistory.MineId = existing.Id;
+            db.MineYieldHistories.Add(yieldHistory);
+        }
+
         await db.SaveChangesAsync(cancellationToken);
         return existing;
     }

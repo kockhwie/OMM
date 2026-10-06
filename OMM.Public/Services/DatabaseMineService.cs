@@ -105,7 +105,10 @@ public sealed class DatabaseMineService(
         }
     }
 
-    public async Task<bool> UpdateMineAsync(Mine mine, CancellationToken cancellationToken = default)
+    public async Task<bool> UpdateMineAsync(
+        Mine mine,
+        bool archiveRateToHistory = false,
+        CancellationToken cancellationToken = default)
     {
         if (!Guid.TryParse(mine.Id, out var mineId))
         {
@@ -135,6 +138,9 @@ public sealed class DatabaseMineService(
         var growth = mine.CurrentValue - purchaseCost;
         var growthPct = purchaseCost > 0 ? Math.Round(growth / purchaseCost * 100m, 4) : 0m;
         Guid? linkedBurdenGuid = Guid.TryParse(mine.LinkedBurdenId, out var parsedBurden) ? parsedBurden : null;
+        var yieldHistory = archiveRateToHistory
+            ? CreatePreviousRateSnapshot(existingEntity)
+            : null;
 
         existingEntity.Name = mine.Name.Trim();
         existingEntity.Category = mine.Category;
@@ -151,7 +157,7 @@ public sealed class DatabaseMineService(
         existingEntity.Status = string.IsNullOrWhiteSpace(mine.Status) ? "active" : mine.Status;
         existingEntity.UpdatedOn = DateOnly.FromDateTime(DateTime.UtcNow);
 
-        var updated = await repository.UpdateMineAsync(existingEntity, cancellationToken);
+        var updated = await repository.UpdateMineAsync(existingEntity, yieldHistory, cancellationToken);
         if (updated is null)
         {
             return false;
@@ -164,6 +170,38 @@ public sealed class DatabaseMineService(
         }
 
         return true;
+    }
+
+    private static MineYieldHistoryEntity? CreatePreviousRateSnapshot(MineEntity existingEntity)
+    {
+        MineMetadata? metadata = null;
+        if (!string.IsNullOrWhiteSpace(existingEntity.MetadataJson))
+        {
+            try
+            {
+                metadata = System.Text.Json.JsonSerializer.Deserialize<MineMetadata>(existingEntity.MetadataJson);
+            }
+            catch (System.Text.Json.JsonException)
+            {
+                return null;
+            }
+        }
+
+        var previousRate = metadata?.ExpectedDividendRate
+            ?? metadata?.InterestRatePct
+            ?? metadata?.DividendYieldPct;
+
+        return previousRate is > 0
+            ? new MineYieldHistoryEntity
+            {
+                UserId = string.Empty,
+                EffectiveYear = DateTime.UtcNow.Year,
+                RecordDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                RatePct = previousRate.Value,
+                BalanceAtTime = existingEntity.CurrentValue,
+                Notes = "Previous rate and balance before mine update"
+            }
+            : null;
     }
 
     public async Task<bool> DeleteMineAsync(string id, CancellationToken cancellationToken = default)

@@ -855,7 +855,7 @@ Task 2.3  [DONE] Build Step 2: type-specific adaptive field sets (10 Malaysian a
 Task 2.4  [DONE] Build Step 3: review & confirm panel + optional yield history archiving
 Task 2.5  [DONE] Step navigation + per-type validation + auto-calculation logic
 Task 3.1  [DONE] Update DatabaseMineService.AddMineAsync for metadata serialisation
-Task 3.2  [DONE] Add DatabaseMineService.UpdateMineAsync & RecordYieldHistoryAsync
+Task 3.2  [DONE] Add DatabaseMineService.UpdateMineAsync with atomic prior-rate/balance yield-history archiving
 Task 3.3  [DONE] Add Delete UI with confirmation & Edit Mine actions on Mine cards
 Task 3.4  [DONE] Upgrade Tools Integration: "Save as Mine to Track" in Dividend Calculator (Quick + Advanced) and FD Calculator
 Task 4.1  [DONE] Type-aware value labels & metadata attributes on Mine cards

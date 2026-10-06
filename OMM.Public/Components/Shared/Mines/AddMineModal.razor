@@ -1149,29 +1149,8 @@
                                         </label>
                                     </div>
                                     <small class="text-muted d-block mb-2">
-                                        Log this declared dividend or renewed interest rate to track year-over-year performance on your mine's history chart.
+                                        Save the mine's previous rate and balance to the yield history timeline before applying this update.
                                     </small>
-
-                                    @if (archiveYieldHistory)
-                                    {
-                                        <div class="row g-2 mt-1">
-                                            <div class="col-4">
-                                                <label class="form-label small fw-semibold" for="hist-year">Effective Year</label>
-                                                <input id="hist-year" type="number" class="form-control form-control-sm rounded-2"
-                                                       @bind="historyYear" min="2000" max="2050" />
-                                            </div>
-                                            <div class="col-4">
-                                                <label class="form-label small fw-semibold" for="hist-rate">Declared Rate (%)</label>
-                                                <input id="hist-rate" type="number" class="form-control form-control-sm rounded-2" step="0.01"
-                                                       @bind="historyRatePct" />
-                                            </div>
-                                            <div class="col-4">
-                                                <label class="form-label small fw-semibold" for="hist-notes">Note / Label</label>
-                                                <input id="hist-notes" type="text" class="form-control form-control-sm rounded-2"
-                                                       placeholder="e.g. 2025 Declared Dividend" @bind="historyNotes" />
-                                            </div>
-                                        </div>
-                                    }
                                 </div>
                             }
                         </div>
@@ -1495,9 +1474,6 @@
 
     // History archiving options (Edit mode)
     private bool archiveYieldHistory = false;
-    private int historyYear = DateTime.UtcNow.Year;
-    private decimal historyRatePct = 0;
-    private string historyNotes = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -1554,11 +1530,6 @@
                 : new MineMetadata();
 
             currentNavTemp = metadata.NavPerUnit;
-            historyRatePct = metadata.ExpectedDividendRate 
-                ?? metadata.InterestRatePct 
-                ?? metadata.DividendYieldPct 
-                ?? 0;
-            historyNotes = $"{FormatHelper.MineTypeLabel(workingMine.Type)} rate update";
         }
         else
         {
@@ -2218,20 +2189,7 @@
         {
             if (IsEditMode)
             {
-                await MineService.UpdateMineAsync(workingMine);
-
-                // If user toggled to record to yield history timeline
-                if (archiveYieldHistory && historyRatePct > 0)
-                {
-                    await MineService.RecordYieldHistoryAsync(
-                        workingMine.Id,
-                        historyYear,
-                        DateOnly.FromDateTime(DateTime.UtcNow),
-                        historyRatePct,
-                        declaredAmount: workingMine.MonthlyIncome * 12m,
-                        balanceAtTime: workingMine.CurrentValue,
-                        notes: string.IsNullOrWhiteSpace(historyNotes) ? null : historyNotes.Trim());
-                }
+                await MineService.UpdateMineAsync(workingMine, archiveYieldHistory);
             }
             else
             {

@@ -1018,46 +1018,46 @@
                             </div>
 
                             <!-- Core Financial Metrics Row -->
-                            <div class="row g-3 mb-4">
+                            <div class="row g-3 mb-4 mine-review-metrics">
                                 <div class="col-6 col-md-3">
-                                    <div class="p-3 bg-light rounded-3 text-center">
-                                        <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.68rem;">Current Value</small>
-                                            <div class="fs-5 fw-bold text-dark mt-1">
-                                                @(HasCurrentValuation ? FormatHelper.FormatCurrency(workingMine.CurrentValue, currencySymbol) : "Not entered")
-                                            </div>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-md-3">
-                                    <div class="p-3 bg-light rounded-3 text-center">
-                                        <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.68rem;">Cost Basis</small>
-                                        <div class="fs-5 fw-bold text-muted mt-1">@FormatHelper.FormatCurrency(workingMine.PurchaseCost, currencySymbol)</div>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-md-3">
-                                    <div class="p-3 bg-light rounded-3 text-center">
-                                        <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.68rem;">Unrealized P&L</small>
-                                                <div class="fs-5 fw-bold @(HasGrowth ? (workingMine.Growth >= 0 ? "text-success" : "text-danger") : "text-muted") mt-1">
-                                                    @(HasGrowth ? $"{(workingMine.Growth >= 0 ? "+" : "")}{FormatHelper.FormatCurrency(workingMine.Growth, currencySymbol)}" : "Not available")
+                                    <div class="p-3 bg-light rounded-3 text-center h-100 mine-review-metric">
+                                        <small class="text-muted d-block text-uppercase fw-semibold mine-review-metric-label">Current Value</small>
+                                        <div class="fs-5 fw-bold text-dark mt-1 mine-review-metric-value">
+                                            @(HasCurrentValuation ? FormatHelper.FormatCurrency(workingMine.CurrentValue, currencySymbol) : "Not entered")
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-6 col-md-3">
-                                    <div class="p-3 bg-light rounded-3 text-center">
-                                        <small class="text-muted d-block text-uppercase fw-semibold" style="font-size: 0.68rem;">Est. Monthly Income</small>
-                                        <div class="fs-5 fw-bold text-success mt-1">
+                                    <div class="p-3 bg-light rounded-3 text-center h-100 mine-review-metric">
+                                        <small class="text-muted d-block text-uppercase fw-semibold mine-review-metric-label">Cost Basis</small>
+                                        <div class="fs-5 fw-bold text-muted mt-1 mine-review-metric-value">@FormatHelper.FormatCurrency(workingMine.PurchaseCost, currencySymbol)</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="p-3 bg-light rounded-3 text-center h-100 mine-review-metric">
+                                        <small class="text-muted d-block text-uppercase fw-semibold mine-review-metric-label">Unrealized P&amp;L</small>
+                                        <div class="fs-5 fw-bold @(HasGrowth ? (workingMine.Growth >= 0 ? "text-success" : "text-danger") : "text-muted") mt-1 mine-review-metric-value">
+                                            @(HasGrowth ? $"{(workingMine.Growth >= 0 ? "+" : "")}{FormatHelper.FormatCurrency(workingMine.Growth, currencySymbol)}" : "Not available")
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="p-3 bg-light rounded-3 text-center h-100 mine-review-metric">
+                                        <small class="text-muted d-block text-uppercase fw-semibold mine-review-metric-label">Est. Monthly Income</small>
+                                        <div class="fs-5 fw-bold text-success mt-1 mine-review-metric-value">
                                             @(workingMine.MonthlyIncome > 0 ? FormatHelper.FormatCurrency(workingMine.MonthlyIncome, currencySymbol) : "—")
                                         </div>
                                     </div>
+                                </div>
+                            </div>
 
                             @if (!HasCurrentValuation)
                             {
-                                <div class="alert alert-light border rounded-3 small text-muted mb-3">
+                                <div class="alert alert-light border rounded-3 small text-muted mb-3 mine-tracking-alert">
                                     <i class="ti ti-info-circle me-1"></i>
                                     This mine is being saved for tracking. Add a current price or valuation later to calculate gain or loss.
                                 </div>
                             }
-                                </div>
-                            </div>
 
                             <!-- Asset Attribute Summary Chips -->
                             <div class="bg-light p-3 rounded-3 mb-3">
@@ -1712,6 +1712,7 @@
         MineType.Gold => "e.g. 50g Public Gold Minted Bar",
         MineType.Cryptocurrency => "e.g. Bitcoin (Luno Wallet)",
         MineType.SavingsAccount => "e.g. GXBank Savings Account",
+        MineType.CashInHand => "e.g. Physical Cash",
         _ => "e.g. My Investment Asset"
     };
 

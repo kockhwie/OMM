@@ -26,7 +26,7 @@ public sealed class DatabaseMineService(
             : null;
     }
 
-    public async Task AddMineAsync(Mine mine, CancellationToken cancellationToken = default)
+    public async Task<string> AddMineAsync(Mine mine, CancellationToken cancellationToken = default)
     {
         PublicInputValidator.ValidateDisplayText("Mine name", mine.Name);
         PublicInputValidator.ValidateDisplayText("Holdings / details", mine.Holdings, optional: true);
@@ -103,6 +103,8 @@ public sealed class DatabaseMineService(
             await AddForeignCurrencyTransactionsAsync(addedEntity.Id, mine.ForeignCurrencyTransactions, cancellationToken);
             await RecalculateForeignCurrencySummaryAsync(addedEntity.Id, cancellationToken);
         }
+
+        return addedEntity.Id.ToString();
     }
 
     public async Task<bool> UpdateMineAsync(

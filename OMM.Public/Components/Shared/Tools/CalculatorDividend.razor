@@ -8,11 +8,11 @@
                 <div>
                     <h1 class="h3 fw-bold font-display mt-3 mb-1">Stock Dividend Calculator</h1>
                 </div>
-                @if (savedNotification)
+                @if (savedNotification && savedMineId is not null)
                 {
                     <div class="alert alert-success py-2 px-3 mb-0 d-flex align-items-center gap-2 small rounded-3 animate-fade-up">
                         <i class="ti ti-check fs-5"></i>
-                        <span>Stock successfully added to your <strong>Mines</strong> portfolio!</span>
+                        <span>Stock saved to your <strong>Mines</strong> portfolio. <a href="@($"/mines/{savedMineId}")" class="alert-link">View in Mines</a></span>
                     </div>
                 }
             </div>
@@ -907,6 +907,7 @@
     private string userCurrency => UserCurrency;
     private bool qcShowOptional;
     private bool savedNotification = false;
+    private string? savedMineId;
 
     // ─────────────────────────────────────────────────────────────────────────
     // DIVIDEND CALCULATOR STATE
@@ -1065,13 +1066,25 @@
                 UpdatedAt = DateTime.Today.ToString("yyyy-MM-dd")
             };
 
-            await MineService.AddMineAsync(newMine);
+            savedMineId = await MineService.AddMineAsync(newMine);
+            if (divYield > 0 && monthlyIncome > 0)
+            {
+                await MineService.RecordYieldDeclarationAsync(
+                    savedMineId,
+                    DateTime.UtcNow.Year,
+                    DateOnly.FromDateTime(DateTime.UtcNow),
+                    divYield,
+                    declaredAmount: monthlyIncome * 12m,
+                    balanceAtTime: currentVal,
+                    notes: "Initial calculator yield snapshot");
+            }
             savedNotification = true;
             StateHasChanged();
 
             _ = Task.Delay(4000).ContinueWith(_ =>
             {
                 savedNotification = false;
+                savedMineId = null;
                 InvokeAsync(StateHasChanged);
             });
         }

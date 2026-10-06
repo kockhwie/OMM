@@ -105,6 +105,21 @@
     }
 </div>
 
+<div class="d-flex flex-wrap align-items-center justify-content-end gap-2 mb-4">
+    <label class="small text-muted fw-semibold mb-0" for="income-sort">Sort by</label>
+    <select id="income-sort" class="form-select form-select-sm w-auto rounded-3" @bind="sortField">
+        <option value="modified">Last modified</option>
+        <option value="created">Date created</option>
+        <option value="source">Source</option>
+        <option value="classification">Classification</option>
+        <option value="event-date">Event date</option>
+    </select>
+    <button type="button" class="btn btn-sm btn-outline-secondary rounded-3 d-inline-flex align-items-center gap-1" @onclick="ToggleSortDirection">
+        <i class="ti @(sortDescending ? "ti-sort-descending" : "ti-sort-ascending")"></i>
+        <span>@(sortDescending ? "Descending" : "Ascending")</span>
+    </button>
+</div>
+
 <!-- Income Stream List -->
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white animate-fade-up">
     @if (FilteredRecords.Count > 0)
@@ -264,6 +279,8 @@
     private IncomeRecord newRecord = new();
     private string? inputError;
     private string currencySymbol = string.Empty;
+    private string sortField = "modified";
+    private bool sortDescending = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -282,9 +299,32 @@
         allMines = await MineService.GetMinesAsync();
     }
 
-    private List<IncomeRecord> FilteredRecords => allRecords
-        .Where(r => selectedClass == null || r.Classification == selectedClass.Value)
-        .ToList();
+    private List<IncomeRecord> FilteredRecords
+    {
+        get
+        {
+            var filtered = allRecords
+                .Where(r => selectedClass == null || r.Classification == selectedClass.Value)
+                .ToList();
+
+            IOrderedEnumerable<IncomeRecord> ordered = sortField switch
+            {
+                "created" => sortDescending ? filtered.OrderByDescending(GetCreatedSortValue).ThenBy(r => r.Source) : filtered.OrderBy(GetCreatedSortValue).ThenBy(r => r.Source),
+                "source" => sortDescending ? filtered.OrderByDescending(r => r.Source, StringComparer.OrdinalIgnoreCase) : filtered.OrderBy(r => r.Source, StringComparer.OrdinalIgnoreCase),
+                "classification" => sortDescending ? filtered.OrderByDescending(r => FormatHelper.IncomeClassLabel(r.Classification), StringComparer.OrdinalIgnoreCase).ThenBy(r => r.Source) : filtered.OrderBy(r => FormatHelper.IncomeClassLabel(r.Classification), StringComparer.OrdinalIgnoreCase).ThenBy(r => r.Source),
+                "event-date" => sortDescending ? filtered.OrderByDescending(r => ParseDateSortValue(r.Date)).ThenBy(r => r.Source) : filtered.OrderBy(r => ParseDateSortValue(r.Date)).ThenBy(r => r.Source),
+                _ => sortDescending ? filtered.OrderByDescending(GetModifiedSortValue).ThenBy(r => r.Source) : filtered.OrderBy(GetModifiedSortValue).ThenBy(r => r.Source)
+            };
+
+            return ordered.ToList();
+        }
+    }
+
+    private static DateTimeOffset GetCreatedSortValue(IncomeRecord record) => ParseTimestamp(record.CreatedAt);
+    private static DateTimeOffset GetModifiedSortValue(IncomeRecord record) => ParseTimestamp(record.ModifiedAt) > DateTimeOffset.MinValue ? ParseTimestamp(record.ModifiedAt) : ParseTimestamp(record.CreatedAt);
+    private static DateTimeOffset ParseTimestamp(string? value) => DateTimeOffset.TryParse(value, out var timestamp) ? timestamp : DateTimeOffset.MinValue;
+    private static DateOnly ParseDateSortValue(string? value) => DateOnly.TryParse(value, out var date) ? date : DateOnly.MinValue;
+    private void ToggleSortDirection() => sortDescending = !sortDescending;
 
     private decimal ActiveMonthly => allRecords
         .Where(r => r.Classification == IncomeClass.Active && r.Frequency == "monthly")

@@ -156,7 +156,9 @@ public sealed class MemberRecordService(
             Name = item.Name,
             Amount = item.Amount,
             Currency = item.Currency?.Code ?? string.Empty,
-            Frequency = FormatFrequency(item.Frequency)
+            Frequency = FormatFrequency(item.Frequency),
+            CreatedAt = item.CreatedAt.ToString("O"),
+            ModifiedAt = item.ModifiedAt?.ToString("O")
         }).ToList();
     }
 
@@ -216,7 +218,9 @@ public sealed class MemberRecordService(
             Currency = item.Currency?.Code,
             TargetDate = item.TargetDate.ToString("yyyy-MM-dd"),
             Status = item.Status,
-            LinkedMineIds = item.MineLinks.Select(link => link.MineId.ToString()).ToList()
+            LinkedMineIds = item.MineLinks.Select(link => link.MineId.ToString()).ToList(),
+            CreatedAt = item.CreatedAt.ToString("O"),
+            ModifiedAt = item.ModifiedAt?.ToString("O")
         }).ToList();
     }
 
@@ -408,7 +412,9 @@ public sealed class MemberRecordService(
         Id = item.Id.ToString(), Name = item.Name, Type = item.Type, Balance = item.Balance,
         OriginalAmount = item.OriginalAmount, InterestRate = item.InterestRate, MonthlyPayment = item.MonthlyPayment,
         Currency = item.Currency?.Code ?? string.Empty, LinkedMineId = item.LinkedMineId?.ToString(),
-        MaturityDate = item.MaturityDate?.ToString("yyyy-MM-dd")
+            MaturityDate = item.MaturityDate?.ToString("yyyy-MM-dd"),
+            CreatedAt = item.CreatedAt.ToString("O"),
+            ModifiedAt = item.ModifiedAt?.ToString("O")
     };
 
     private static IncomeRecord MapIncome(IncomeRecordEntity item) => new()
@@ -416,5 +422,6 @@ public sealed class MemberRecordService(
         Id = item.Id.ToString(), Source = item.Source, Classification = item.Classification, Amount = item.Amount,
         Currency = item.Currency?.Code ?? string.Empty, Frequency = FormatFrequency(item.Frequency),
         MineId = item.MineId?.ToString(), MineName = item.Mine?.Name, Date = item.RecordDate.ToString("yyyy-MM-dd")
+        , CreatedAt = item.CreatedAt.ToString("O"), ModifiedAt = item.ModifiedAt?.ToString("O")
     };
 }

@@ -23,4 +23,6 @@ public class Goal
     public string TargetDate { get; set; } = string.Empty;
     public string Status { get; set; } = "on-track"; // on-track, needs-attention, not-started, achieved
     public List<string>? LinkedMineIds { get; set; }
+    public string CreatedAt { get; set; } = string.Empty;
+    public string? ModifiedAt { get; set; }
 }

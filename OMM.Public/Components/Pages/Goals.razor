@@ -21,11 +21,26 @@
     </button>
 </div>
 
+<div class="d-flex flex-wrap align-items-center justify-content-end gap-2 mb-4">
+    <label class="small text-muted fw-semibold mb-0" for="goal-sort">Sort by</label>
+    <select id="goal-sort" class="form-select form-select-sm w-auto rounded-3" @bind="sortField">
+        <option value="modified">Last modified</option>
+        <option value="created">Date created</option>
+        <option value="title">Title</option>
+        <option value="type">Type</option>
+        <option value="target-date">Target date</option>
+    </select>
+    <button type="button" class="btn btn-sm btn-outline-secondary rounded-3 d-inline-flex align-items-center gap-1" @onclick="ToggleSortDirection">
+        <i class="ti @(sortDescending ? "ti-sort-descending" : "ti-sort-ascending")"></i>
+        <span>@(sortDescending ? "Descending" : "Ascending")</span>
+    </button>
+</div>
+
 <!-- Goals Cards Grid -->
-@if (allGoals.Count > 0)
+@if (SortedGoals.Count > 0)
 {
     <div class="row g-4 mb-4">
-        @foreach (var goal in allGoals)
+        @foreach (var goal in SortedGoals)
         {
             var progress = FormatHelper.GoalProgress(goal.Current, goal.Target);
             var isFreedom = goal.Type == GoalType.Freedom;
@@ -220,6 +235,8 @@ else
     private DateTime targetDateInput = DateTime.Today.AddYears(1);
     private string? inputError;
     private string currencySymbol = string.Empty;
+    private string sortField = "modified";
+    private bool sortDescending = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -236,6 +253,29 @@ else
     {
         allGoals = await RecordService.GetGoalsAsync();
     }
+
+    private List<Goal> SortedGoals
+    {
+        get
+        {
+            IOrderedEnumerable<Goal> ordered = sortField switch
+            {
+                "created" => sortDescending ? allGoals.OrderByDescending(GetCreatedSortValue).ThenBy(g => g.Title) : allGoals.OrderBy(GetCreatedSortValue).ThenBy(g => g.Title),
+                "title" => sortDescending ? allGoals.OrderByDescending(g => g.Title, StringComparer.OrdinalIgnoreCase) : allGoals.OrderBy(g => g.Title, StringComparer.OrdinalIgnoreCase),
+                "type" => sortDescending ? allGoals.OrderByDescending(g => g.Type).ThenBy(g => g.Title) : allGoals.OrderBy(g => g.Type).ThenBy(g => g.Title),
+                "target-date" => sortDescending ? allGoals.OrderByDescending(g => ParseDateSortValue(g.TargetDate)).ThenBy(g => g.Title) : allGoals.OrderBy(g => ParseDateSortValue(g.TargetDate)).ThenBy(g => g.Title),
+                _ => sortDescending ? allGoals.OrderByDescending(GetModifiedSortValue).ThenBy(g => g.Title) : allGoals.OrderBy(GetModifiedSortValue).ThenBy(g => g.Title)
+            };
+
+            return ordered.ToList();
+        }
+    }
+
+    private static DateTimeOffset GetCreatedSortValue(Goal goal) => ParseTimestamp(goal.CreatedAt);
+    private static DateTimeOffset GetModifiedSortValue(Goal goal) => ParseTimestamp(goal.ModifiedAt) > DateTimeOffset.MinValue ? ParseTimestamp(goal.ModifiedAt) : ParseTimestamp(goal.CreatedAt);
+    private static DateTimeOffset ParseTimestamp(string? value) => DateTimeOffset.TryParse(value, out var timestamp) ? timestamp : DateTimeOffset.MinValue;
+    private static DateOnly ParseDateSortValue(string? value) => DateOnly.TryParse(value, out var date) ? date : DateOnly.MinValue;
+    private void ToggleSortDirection() => sortDescending = !sortDescending;
 
     private void OpenAddModal()
     {

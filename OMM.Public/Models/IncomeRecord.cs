@@ -18,4 +18,6 @@ public class IncomeRecord
     public string? MineId { get; set; }
     public string? MineName { get; set; }
     public string Date { get; set; } = string.Empty;
+    public string CreatedAt { get; set; } = string.Empty;
+    public string? ModifiedAt { get; set; }
 }

@@ -96,6 +96,20 @@
     }
 </div>
 
+<div class="d-flex flex-wrap align-items-center justify-content-end gap-2 mb-4">
+    <label class="small text-muted fw-semibold mb-0" for="burden-sort">Sort by</label>
+    <select id="burden-sort" class="form-select form-select-sm w-auto rounded-3" @bind="sortField">
+        <option value="modified">Last modified</option>
+        <option value="created">Date created</option>
+        <option value="name">Name</option>
+        <option value="type">Type</option>
+    </select>
+    <button type="button" class="btn btn-sm btn-outline-secondary rounded-3 d-inline-flex align-items-center gap-1" @onclick="ToggleSortDirection">
+        <i class="ti @(sortDescending ? "ti-sort-descending" : "ti-sort-ascending")"></i>
+        <span>@(sortDescending ? "Descending" : "Ascending")</span>
+    </button>
+</div>
+
 <!-- Burden Cards Grid -->
 @if (FilteredBurdens.Count > 0)
 {
@@ -302,6 +316,8 @@ else
     private Burden newBurden = new();
     private string? inputError;
     private string currencySymbol = string.Empty;
+    private string sortField = "modified";
+    private bool sortDescending = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -320,9 +336,30 @@ else
         allMines = await MineService.GetMinesAsync();
     }
 
-    private List<Burden> FilteredBurdens => allBurdens
-        .Where(b => selectedType == null || b.Type == selectedType.Value)
-        .ToList();
+    private List<Burden> FilteredBurdens
+    {
+        get
+        {
+            var filtered = allBurdens
+                .Where(b => selectedType == null || b.Type == selectedType.Value)
+                .ToList();
+
+            IOrderedEnumerable<Burden> ordered = sortField switch
+            {
+                "created" => sortDescending ? filtered.OrderByDescending(GetCreatedSortValue).ThenBy(b => b.Name) : filtered.OrderBy(GetCreatedSortValue).ThenBy(b => b.Name),
+                "name" => sortDescending ? filtered.OrderByDescending(b => b.Name, StringComparer.OrdinalIgnoreCase) : filtered.OrderBy(b => b.Name, StringComparer.OrdinalIgnoreCase),
+                "type" => sortDescending ? filtered.OrderByDescending(b => FormatHelper.BurdenTypeLabel(b.Type), StringComparer.OrdinalIgnoreCase).ThenBy(b => b.Name) : filtered.OrderBy(b => FormatHelper.BurdenTypeLabel(b.Type), StringComparer.OrdinalIgnoreCase).ThenBy(b => b.Name),
+                _ => sortDescending ? filtered.OrderByDescending(GetModifiedSortValue).ThenBy(b => b.Name) : filtered.OrderBy(GetModifiedSortValue).ThenBy(b => b.Name)
+            };
+
+            return ordered.ToList();
+        }
+    }
+
+    private static DateTimeOffset GetCreatedSortValue(Burden burden) => ParseTimestamp(burden.CreatedAt);
+    private static DateTimeOffset GetModifiedSortValue(Burden burden) => ParseTimestamp(burden.ModifiedAt) > DateTimeOffset.MinValue ? ParseTimestamp(burden.ModifiedAt) : ParseTimestamp(burden.CreatedAt);
+    private static DateTimeOffset ParseTimestamp(string? value) => DateTimeOffset.TryParse(value, out var timestamp) ? timestamp : DateTimeOffset.MinValue;
+    private void ToggleSortDirection() => sortDescending = !sortDescending;
 
     private bool HasSingleCurrency => allBurdens.Select(item => item.Currency).Distinct(StringComparer.OrdinalIgnoreCase).Count() == 1;
     private string TotalBalanceDisplay => AggregateDisplay(item => item.Balance);

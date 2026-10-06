@@ -23,4 +23,6 @@ public class Burden
     public string Currency { get; set; } = "MYR";
     public string? LinkedMineId { get; set; }
     public string? MaturityDate { get; set; }
+    public string CreatedAt { get; set; } = string.Empty;
+    public string? ModifiedAt { get; set; }
 }

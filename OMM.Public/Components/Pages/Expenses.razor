@@ -19,6 +19,20 @@
     </button>
 </div>
 
+<div class="d-flex flex-wrap align-items-center justify-content-end gap-2 mb-3">
+    <label class="small text-muted fw-semibold mb-0" for="expense-sort">Sort by</label>
+    <select id="expense-sort" class="form-select form-select-sm w-auto rounded-3" @bind="sortField">
+        <option value="modified">Last modified</option>
+        <option value="created">Date created</option>
+        <option value="name">Name</option>
+        <option value="frequency">Frequency</option>
+    </select>
+    <button type="button" class="btn btn-sm btn-outline-secondary rounded-3 d-inline-flex align-items-center gap-1" @onclick="ToggleSortDirection">
+        <i class="ti @(sortDescending ? "ti-sort-descending" : "ti-sort-ascending")"></i>
+        <span>@(sortDescending ? "Descending" : "Ascending")</span>
+    </button>
+</div>
+
 @if (expenses.Count == 0)
 {
     <div class="card border-0 shadow-sm rounded-4 text-center py-5 px-4">
@@ -33,7 +47,7 @@
 else
 {
     <div class="row g-3">
-        @foreach (var expense in expenses)
+        @foreach (var expense in SortedExpenses)
         {
             <div class="col-12 col-md-6 col-xl-4">
                 <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
@@ -120,6 +134,8 @@ else
     private bool showAddModal;
     private string? inputError;
     private string currencySymbol = string.Empty;
+    private string sortField = "modified";
+    private bool sortDescending = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -133,6 +149,27 @@ else
     }
 
     private async Task LoadExpenses() => expenses = await RecordService.GetExpensesAsync();
+
+    private List<Expense> SortedExpenses
+    {
+        get
+        {
+            IOrderedEnumerable<Expense> ordered = sortField switch
+            {
+                "created" => sortDescending ? expenses.OrderByDescending(GetCreatedSortValue).ThenBy(e => e.Name) : expenses.OrderBy(GetCreatedSortValue).ThenBy(e => e.Name),
+                "name" => sortDescending ? expenses.OrderByDescending(e => e.Name, StringComparer.OrdinalIgnoreCase) : expenses.OrderBy(e => e.Name, StringComparer.OrdinalIgnoreCase),
+                "frequency" => sortDescending ? expenses.OrderByDescending(e => e.Frequency, StringComparer.OrdinalIgnoreCase).ThenBy(e => e.Name) : expenses.OrderBy(e => e.Frequency, StringComparer.OrdinalIgnoreCase).ThenBy(e => e.Name),
+                _ => sortDescending ? expenses.OrderByDescending(GetModifiedSortValue).ThenBy(e => e.Name) : expenses.OrderBy(GetModifiedSortValue).ThenBy(e => e.Name)
+            };
+
+            return ordered.ToList();
+        }
+    }
+
+    private static DateTimeOffset GetCreatedSortValue(Expense expense) => ParseTimestamp(expense.CreatedAt);
+    private static DateTimeOffset GetModifiedSortValue(Expense expense) => ParseTimestamp(expense.ModifiedAt) > DateTimeOffset.MinValue ? ParseTimestamp(expense.ModifiedAt) : ParseTimestamp(expense.CreatedAt);
+    private static DateTimeOffset ParseTimestamp(string? value) => DateTimeOffset.TryParse(value, out var timestamp) ? timestamp : DateTimeOffset.MinValue;
+    private void ToggleSortDirection() => sortDescending = !sortDescending;
 
     private void OpenAddModal()
     {

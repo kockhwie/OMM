@@ -99,7 +99,7 @@
                     <!-- Metrics Grid -->
                     <div class="row g-2 pt-2 text-center text-sm-start">
                         <div class="col-4 min-w-0">
-                            <span class="text-uppercase text-muted fw-semibold d-block mine-metric-label">Current</span>
+                            <span class="text-uppercase text-muted fw-semibold d-block mine-metric-label">@FormatHelper.CurrentValueLabel(mine.Type)</span>
                             <div class="fw-bold text-dark mine-metric-value @(valuationPending ? "text-muted" : "")" title="@(hasValuation ? FormatHelper.FormatCurrency(mine.CurrentValue, mine.Currency) : "Current sell rate not entered")">
                                 @(hasValuation ? FormatHelper.FormatCurrencyCompact(mine.CurrentValue, mine.Currency) : "Pending")
                             </div>
@@ -138,13 +138,45 @@
                         </div>
                     }
 
-                    <div class="mine-card-actions d-flex justify-content-center mt-2">
-                        <button class="btn btn-xs mine-edit-button"
+                    <div class="mine-card-actions gap-1 d-flex justify-content-center mt-2">
+                        @if (minePendingDelete?.Id == mine.Id)
+                        {
+                            <div class="mine-delete-confirmation" role="alertdialog" aria-label="Confirm deletion of @mine.Name" @onclick:stopPropagation="true">
+                                <span class="small text-muted">Delete this mine?</span>
+                                <button class="btn btn-xs mine-delete-confirm-button" @onclick="ConfirmDeleteAsync" disabled="@isDeleting">
+                                    @if (isDeleting)
+                                    {
+                                        <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                                    }
+                                    else
+                                    {
+                                        <span>Yes</span>
+                                    }
+                                </button>
+                                <button class="btn btn-xs mine-cancel-delete-button" @onclick="CloseDeleteConfirmation" disabled="@isDeleting">No</button>
+                                @if (!string.IsNullOrWhiteSpace(deleteError))
+                                {
+                                    <span class="small text-danger w-100">@deleteError</span>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <button class="btn btn-xs mine-edit-button"
                                 title="Edit Mine"
                                 @onclick:stopPropagation="true"
                                 @onclick="() => OpenEditModal(mine)">
-                            <span>Edit</span>
-                        </button>
+                                <span>Edit</span>
+                            </button>
+                            <button class="btn btn-xs mine-delete-button"
+                                    title="Delete Mine"
+                                    aria-label="Delete @mine.Name"
+                                    @onclick:stopPropagation="true"
+                                    @onclick="() => OpenDeleteConfirmation(mine)">
+                                <i class="ti ti-trash" aria-hidden="true"></i>
+                                <span>Delete</span>
+                            </button>
+                        }
                     </div>
                 </div>
             </div>
@@ -176,6 +208,9 @@ else
     private MineCategory? selectedCategory;
     private bool showAddModal = false;
     private Mine? selectedMineForEdit;
+    private Mine? minePendingDelete;
+    private bool isDeleting;
+    private string deleteError = string.Empty;
     private string currencySymbol = string.Empty;
 
     protected override async Task OnInitializedAsync()
@@ -237,6 +272,53 @@ else
     {
         selectedMineForEdit = null;
         showAddModal = true;
+    }
+
+    private void OpenDeleteConfirmation(Mine mine)
+    {
+        minePendingDelete = mine;
+        deleteError = string.Empty;
+    }
+
+    private void CloseDeleteConfirmation()
+    {
+        if (!isDeleting)
+        {
+            minePendingDelete = null;
+            deleteError = string.Empty;
+        }
+    }
+
+    private async Task ConfirmDeleteAsync()
+    {
+        if (minePendingDelete is null || isDeleting)
+        {
+            return;
+        }
+
+        isDeleting = true;
+        deleteError = string.Empty;
+
+        try
+        {
+            if (await MineService.DeleteMineAsync(minePendingDelete.Id))
+            {
+                minePendingDelete = null;
+                await LoadMines();
+            }
+            else
+            {
+                deleteError = "The mine could not be deleted. Please try again.";
+            }
+        }
+        catch
+        {
+            deleteError = "The mine could not be deleted. Please try again.";
+        }
+        finally
+        {
+            isDeleting = false;
+        }
     }
 
     private void OpenEditModal(Mine mine)

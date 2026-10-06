@@ -1021,7 +1021,7 @@
                             <div class="row g-3 mb-4 mine-review-metrics">
                                 <div class="col-6 col-md-3">
                                     <div class="p-3 bg-light rounded-3 text-center h-100 mine-review-metric">
-                                        <small class="text-muted d-block text-uppercase fw-semibold mine-review-metric-label">Current Value</small>
+                                        <small class="text-muted d-block text-uppercase fw-semibold mine-review-metric-label">@FormatHelper.CurrentValueLabel(workingMine.Type)</small>
                                         <div class="fs-5 fw-bold text-dark mt-1 mine-review-metric-value">
                                             @(HasCurrentValuation ? FormatHelper.FormatCurrency(workingMine.CurrentValue, currencySymbol) : "Not entered")
                                         </div>

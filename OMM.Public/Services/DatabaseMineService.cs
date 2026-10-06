@@ -14,7 +14,7 @@ public sealed class DatabaseMineService(
     public async Task<List<Mine>> GetMinesAsync(CancellationToken cancellationToken = default)
     {
         var entities = await repository.GetMinesAsync(cancellationToken);
-        return entities.Select(MapMine).ToList();
+        return [.. entities.Select(MapMine)];
     }
 
     public async Task<Mine?> GetMineByIdAsync(string id, CancellationToken cancellationToken = default)
@@ -301,8 +301,8 @@ public sealed class DatabaseMineService(
         GrowthPct = entity.GrowthPct,
         MonthlyIncome = entity.MonthlyIncome,
         Holdings = entity.Holdings,
-        SubMines = entity.Positions.Select(MapPosition).ToList(),
-        ForeignCurrencyTransactions = entity.ForeignCurrencyTransactions.Select(MapForeignCurrencyTransaction).ToList(),
+        SubMines = [.. entity.Positions.Select(MapPosition)],
+        ForeignCurrencyTransactions = [.. entity.ForeignCurrencyTransactions.Select(MapForeignCurrencyTransaction)],
         LinkedBurdenId = entity.LinkedBurdenId?.ToString(),
         Metadata = string.IsNullOrWhiteSpace(entity.MetadataJson)
             ? null
@@ -502,11 +502,11 @@ public sealed class DatabaseMineService(
 
     private static void ValidateForeignCurrencyTransaction(ForeignCurrencyTransaction transaction)
     {
-        if (transaction.TransactionDate == default) throw new ArgumentException("A transaction date is required.");
-        if (transaction.ForeignAmount <= 0) throw new ArgumentOutOfRangeException(nameof(transaction.ForeignAmount));
-        if (transaction.MyrAmount <= 0) throw new ArgumentOutOfRangeException(nameof(transaction.MyrAmount));
-        if (transaction.ExchangeRate <= 0) throw new ArgumentOutOfRangeException(nameof(transaction.ExchangeRate));
-        if (transaction.FeesMyr < 0) throw new ArgumentOutOfRangeException(nameof(transaction.FeesMyr));
+        if (transaction.TransactionDate == default) throw new ArgumentException("A transaction date is required.", nameof(transaction));
+        if (transaction.ForeignAmount <= 0) throw new ArgumentOutOfRangeException(nameof(transaction), "Foreign amount must be greater than zero.");
+        if (transaction.MyrAmount <= 0) throw new ArgumentOutOfRangeException(nameof(transaction), "MYR amount must be greater than zero.");
+        if (transaction.ExchangeRate <= 0) throw new ArgumentOutOfRangeException(nameof(transaction), "Exchange rate must be greater than zero.");
+        if (transaction.FeesMyr < 0) throw new ArgumentOutOfRangeException(nameof(transaction), "Fees cannot be negative.");
     }
 
     public async Task<bool> RecordYieldDeclarationAsync(
@@ -638,7 +638,7 @@ public sealed class DatabaseMineService(
         PurchasePrice = entity.PurchasePrice
     };
 
-    private static PositionType InferPositionType(MineType type, SubMine position) => type switch
+    private static PositionType InferPositionType(MineType type, SubMine _) => type switch
     {
         MineType.FixedDeposit => PositionType.FixedDeposit,
         MineType.Stocks or MineType.StocksUs

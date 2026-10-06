@@ -44,6 +44,22 @@
 
 
 </div>
+<div class="d-flex flex-wrap align-items-center justify-content-end gap-2 mb-3">
+    <label class="small text-muted fw-semibold mb-0" for="mine-sort">Sort by</label>
+    <select id="mine-sort" class="form-select form-select-sm w-auto rounded-3" @bind="sortField">
+        <option value="modified">Last modified</option>
+        <option value="created">Date created</option>
+        <option value="name">Name</option>
+        <option value="type">Type</option>
+    </select>
+    <button type="button" class="btn btn-sm btn-outline-secondary rounded-3 d-inline-flex align-items-center gap-1"
+            @onclick="ToggleSortDirection"
+            aria-label="@(sortDescending ? "Sort descending" : "Sort ascending")"
+            title="@(sortDescending ? "Descending" : "Ascending")">
+        <i class="ti @(sortDescending ? "ti-sort-descending" : "ti-sort-ascending")"></i>
+        <span>@(sortDescending ? "Newest / Z-A" : "Oldest / A-Z")</span>
+    </button>
+</div>
 <div class="d-flex flex-column flex-md-row gap-3 mb-2">
     <!-- Category Pill Filters -->
     <div class="d-flex flex-wrap gap-1 align-items-center">
@@ -216,6 +232,8 @@ else
     private bool isDeleting;
     private string deleteError = string.Empty;
     private string currencySymbol = string.Empty;
+    private string sortField = "modified";
+    private bool sortDescending = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -237,13 +255,56 @@ else
         allMines = await MineService.GetMinesAsync();
     }
 
-    private List<Mine> FilteredMines => allMines
+    private List<Mine> FilteredMines
+    {
+        get
+        {
+            var filtered = allMines
         .Where(m => selectedCategory == null || m.Category == selectedCategory.Value)
         .Where(m => string.IsNullOrWhiteSpace(searchQuery) ||
                     m.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
                     (m.Institution != null && m.Institution.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) ||
                     FormatHelper.MineTypeLabel(m.Type).Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
-        .ToList();
+                .ToList();
+
+            IOrderedEnumerable<Mine> ordered = sortField switch
+            {
+                "created" => sortDescending
+                    ? filtered.OrderByDescending(GetCreatedSortValue).ThenBy(m => m.Name)
+                    : filtered.OrderBy(GetCreatedSortValue).ThenBy(m => m.Name),
+                "name" => sortDescending
+                    ? filtered.OrderByDescending(m => m.Name, StringComparer.OrdinalIgnoreCase)
+                        .ThenByDescending(GetModifiedSortValue)
+                    : filtered.OrderBy(m => m.Name, StringComparer.OrdinalIgnoreCase)
+                        .ThenByDescending(GetModifiedSortValue),
+                "type" => sortDescending
+                    ? filtered.OrderByDescending(m => FormatHelper.MineTypeLabel(m.Type), StringComparer.OrdinalIgnoreCase)
+                        .ThenBy(m => m.Name)
+                    : filtered.OrderBy(m => FormatHelper.MineTypeLabel(m.Type), StringComparer.OrdinalIgnoreCase)
+                        .ThenBy(m => m.Name),
+                _ => sortDescending
+                    ? filtered.OrderByDescending(GetModifiedSortValue).ThenBy(m => m.Name)
+                    : filtered.OrderBy(GetModifiedSortValue).ThenBy(m => m.Name)
+            };
+
+            return ordered.ToList();
+        }
+    }
+
+    private static DateTimeOffset GetCreatedSortValue(Mine mine) => ParseTimestamp(mine.CreatedAt);
+
+    private static DateTimeOffset GetModifiedSortValue(Mine mine) =>
+        ParseTimestamp(mine.ModifiedAt) > DateTimeOffset.MinValue
+            ? ParseTimestamp(mine.ModifiedAt)
+            : ParseTimestamp(mine.CreatedAt);
+
+    private static DateTimeOffset ParseTimestamp(string? value) =>
+        DateTimeOffset.TryParse(value, out var timestamp) ? timestamp : DateTimeOffset.MinValue;
+
+    private void ToggleSortDirection()
+    {
+        sortDescending = !sortDescending;
+    }
 
     private string TotalFilteredValueDisplay
     {

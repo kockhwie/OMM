@@ -310,6 +310,8 @@ public sealed class DatabaseMineService(
             ? null
             : System.Text.Json.JsonSerializer.Deserialize<MineMetadata>(entity.MetadataJson),
         Status = entity.Status,
+        CreatedAt = entity.CreatedAt.ToString("O"),
+        ModifiedAt = entity.ModifiedAt?.ToString("O"),
         UpdatedAt = entity.UpdatedOn.ToString("yyyy-MM-dd")
     };
 

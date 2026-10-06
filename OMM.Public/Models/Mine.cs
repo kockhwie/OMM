@@ -169,5 +169,7 @@ public class Mine
     public List<ForeignCurrencyTransaction>? ForeignCurrencyTransactions { get; set; }
     public string? LinkedBurdenId { get; set; }
     public string Status { get; set; } = "active"; // active, maturing, inactive
+    public string CreatedAt { get; set; } = string.Empty;
+    public string? ModifiedAt { get; set; }
     public string UpdatedAt { get; set; } = string.Empty;
 }

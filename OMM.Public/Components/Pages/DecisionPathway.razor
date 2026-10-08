@@ -1,8 +1,11 @@
 @page "/decision-pathway"
 @layout MainLayout
+@using System.Security.Claims
 @using OMM.Shared.DecisionSupport
 @inject IInquiryIntentInterpreter IntentInterpreter
 @inject IDeterministicDecisionEngine DecisionEngine
+@inject IDecisionPathwayService DecisionPathwayService
+@inject ILogger<DecisionPathway> Logger
 
 <PageTitle>Decision Pathway - OhMyMine</PageTitle>
 
@@ -196,7 +199,7 @@
                                                         ? intentResult.MissingQuestions[0]
                                                         : "What is your main concern with this signal?")
                                                 </p>
-                                                <p class="text-muted small mb-2">Choose a topic &mdash; OMM will immediately set your pathway and move to Step 2:</p>
+                                                <p class="text-muted small mb-2">Choose a topic to set your concern and continue directly to Step 3: Scope:</p>
                                                 <div class="d-flex flex-wrap gap-2">
                                                     <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" @onclick='() => SelectConcernAndProceed("price_drop")'>
                                                         <i class="ti ti-chart-candle me-1"></i>Price drop / valuation risk
@@ -656,10 +659,15 @@
 
                     <div class="d-flex justify-content-between gap-3 mt-4">
                         <button class="btn btn-outline-dark rounded-3 px-4" @onclick="() => GoToScreen(7)"><i class="ti ti-arrow-left me-1"></i>Back to Scenarios</button>
-                        <button class="btn btn-dark rounded-3 px-4" @onclick="SavePlan" disabled="@planSaved">
-                            <i class="ti ti-bookmark me-1"></i>@(planSaved ? "Checkpoint Recorded" : "Save Decision Plan")
+                        <button class="btn btn-dark rounded-3 px-4" @onclick="SavePlanAsync" disabled="@(planSaved || isSaving)">
+                            <i class="ti ti-bookmark me-1"></i>@(isSaving ? "Saving…" : planSaved ? "Checkpoint Recorded" : "Save Decision Plan")
                         </button>
                     </div>
+
+                    @if (!string.IsNullOrWhiteSpace(saveError))
+                    {
+                        <div class="alert alert-danger mt-3 mb-0 small" role="alert">@saveError</div>
+                    }
 
                     @if (planSaved)
                     {
@@ -695,6 +703,11 @@
     private int stressAdjustment = 0;
     private bool branchCreated;
     private bool planSaved;
+    private bool isSaving;
+    private string? saveError;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
 
     // Computed domain models
     private IReadOnlyList<SignalTemplate> allSignals = [];
@@ -799,7 +812,7 @@
     {
         selectedConcern = key;
         RefreshCalculations();
-        GoToScreen(2);
+        GoToScreen(3);
     }
 
     private void SelectScope(string key)
@@ -844,9 +857,61 @@
         RefreshCalculations();
     }
 
-    private void SavePlan()
+    private async Task SavePlanAsync()
     {
-        planSaved = true;
+        if (planSaved || isSaving)
+        {
+            return;
+        }
+
+        var signal = selectedSignal;
+        if (signal is null)
+        {
+            saveError = "Select a signal before saving this decision pathway.";
+            return;
+        }
+
+        var user = (await AuthenticationStateTask).User;
+        var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            saveError = "Sign in to save this decision pathway.";
+            return;
+        }
+
+        isSaving = true;
+        saveError = null;
+        try
+        {
+            await DecisionPathwayService.SavePathwayAsync(new DecisionPathwayRecord
+            {
+                UserId = userId,
+                CreatedAt = DateTimeOffset.UtcNow,
+                SignalId = signal.Id,
+                SignalTitle = signal.Title,
+                ConcernKey = selectedConcern,
+                ScopeKey = selectedScope,
+                ObjectiveKey = selectedObjective,
+                SelectedActionKey = selectedAction,
+                CurrentSharePrice = calcPrice,
+                AnnualDividendPerShare = calcDividend,
+                HorizonLabel = checkpoint.ReviewHorizon,
+                CheckpointTitle = checkpoint.Title,
+                CheckpointTriggerCondition = checkpoint.TriggerCondition,
+                Notes = string.IsNullOrWhiteSpace(memberQuestion) ? null : memberQuestion
+            });
+
+            planSaved = true;
+        }
+        catch (Exception exception)
+        {
+            Logger.LogError(exception, "Unable to save a Decision Pathway record.");
+            saveError = "We could not save this decision pathway. Please try again.";
+        }
+        finally
+        {
+            isSaving = false;
+        }
     }
 
     private void ResetPathway()
@@ -856,6 +921,8 @@
         intentResult = null;
         branchCreated = false;
         planSaved = false;
+        isSaving = false;
+        saveError = null;
         stressAdjustment = 0;
         calcPrice = 9.87m;
         calcDividend = 0.31m;

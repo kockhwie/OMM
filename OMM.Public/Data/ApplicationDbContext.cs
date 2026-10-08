@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using OMM.Shared.DecisionSupport;
 using OMM.Shared.Models.MasterData;
 
 namespace OMM.Public.Data;
@@ -15,10 +16,21 @@ public partial class ApplicationDbContext(DbContextOptions<ApplicationDbContext>
     public DbSet<SubSector> SubSectors => Set<SubSector>();
     public DbSet<Institution> Institutions => Set<Institution>();
     public DbSet<Stock> Stocks => Set<Stock>();
+    public DbSet<DecisionPathwayRecord> DecisionPathways => Set<DecisionPathwayRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<DecisionPathwayRecord>(entity =>
+        {
+            entity.ToTable("DecisionPathwayRecord");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.UserId).HasColumnType("text");
+            entity.Property(e => e.CurrentSharePrice).HasPrecision(18, 4);
+            entity.Property(e => e.AnnualDividendPerShare).HasPrecision(18, 4);
+            entity.HasIndex(e => new { e.UserId, e.CreatedAt });
+        });
 
         modelBuilder.Entity<Country>(entity =>
         {

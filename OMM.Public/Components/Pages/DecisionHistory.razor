@@ -1,0 +1,146 @@
+@page "/decision-history"
+@layout DashboardLayout
+@attribute [Authorize]
+@using System.Security.Claims
+@using OMM.Shared.DecisionSupport
+@inject IDecisionPathwayService DecisionPathwayService
+@inject ILogger<DecisionHistory> Logger
+
+<PageTitle>Decision History - OhMyMine</PageTitle>
+
+<div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-4">
+    <div>
+        <h1 class="h3 fw-bold text-dark mb-1">Decision History</h1>
+        <p class="text-muted small mb-0">Review your saved market decisions and monitoring checkpoints.</p>
+    </div>
+    <a class="btn btn-outline-primary d-inline-flex align-items-center gap-2" href="/decision-pathway">
+        <i class="ti ti-plus"></i>New decision pathway
+    </a>
+</div>
+
+@if (isLoading)
+{
+    <div class="d-flex align-items-center gap-2 text-muted py-4" role="status">
+        <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+        <span>Loading your decision history…</span>
+    </div>
+}
+else if (!string.IsNullOrWhiteSpace(loadError))
+{
+    <div class="alert alert-danger" role="alert">@loadError</div>
+}
+else if (pathwayPage is { Items.Count: 0 })
+{
+    <div class="border rounded-3 bg-white text-center py-5 px-4">
+        <i class="ti ti-notes fs-2 text-muted mb-2" aria-hidden="true"></i>
+        <h2 class="h5 mb-2">No saved decisions yet</h2>
+        <p class="text-muted mb-3">Your completed checkpoints will appear here.</p>
+        <a class="btn btn-primary" href="/decision-pathway">Start a decision pathway</a>
+    </div>
+}
+else if (pathwayPage is not null)
+{
+    <div class="table-responsive border rounded-3 bg-white">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col">Saved</th>
+                    <th scope="col">Signal</th>
+                    <th scope="col">Decision</th>
+                    <th scope="col">Checkpoint</th>
+                    <th scope="col">Snapshot</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var pathway in pathwayPage.Items)
+                {
+                    <tr>
+                        <td class="text-nowrap">@pathway.CreatedAt.ToLocalTime().ToString("MMM d, yyyy")</td>
+                        <td>
+                            <strong>@pathway.SignalTitle</strong>
+                            <div class="small text-muted">@pathway.SignalId</div>
+                            @if (!string.IsNullOrWhiteSpace(pathway.Notes))
+                            {
+                                <div class="small text-muted mt-1">@pathway.Notes</div>
+                            }
+                        </td>
+                        <td>
+                            <span class="badge text-bg-light border">@pathway.SelectedActionKey</span>
+                            <div class="small text-muted mt-1">@pathway.ConcernKey · @pathway.ObjectiveKey</div>
+                        </td>
+                        <td>
+                            <strong>@pathway.CheckpointTitle</strong>
+                            <div class="small text-muted">@pathway.CheckpointTriggerCondition</div>
+                            <div class="small text-muted mt-1">Review: @pathway.HorizonLabel</div>
+                        </td>
+                        <td class="text-nowrap">
+                            <div>RM @pathway.CurrentSharePrice.ToString("N2") / share</div>
+                            <div class="small text-muted">RM @pathway.AnnualDividendPerShare.ToString("N4") dividend / share</div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex align-items-center justify-content-between gap-3 mt-3">
+        <span class="small text-muted">Page @pathwayPage.Page of @pathwayPage.TotalPages · @pathwayPage.TotalCount saved decisions</span>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary btn-sm" @onclick="() => LoadPageAsync(pathwayPage.Page - 1)" disabled="@(pathwayPage.Page <= 1 || isLoading)">
+                <i class="ti ti-chevron-left me-1" aria-hidden="true"></i>Previous
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" @onclick="() => LoadPageAsync(pathwayPage.Page + 1)" disabled="@(pathwayPage.Page >= pathwayPage.TotalPages || isLoading)">
+                Next<i class="ti ti-chevron-right ms-1" aria-hidden="true"></i>
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
+
+    private string? userId;
+    private bool isLoading = true;
+    private string? loadError;
+    private DecisionPathwayPage? pathwayPage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await AuthenticationStateTask).User;
+        userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            isLoading = false;
+            loadError = "Sign in to view your decision history.";
+            return;
+        }
+
+        await LoadPageAsync(1);
+    }
+
+    private async Task LoadPageAsync(int page)
+    {
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return;
+        }
+
+        isLoading = true;
+        loadError = null;
+        try
+        {
+            pathwayPage = await DecisionPathwayService.GetPathwaysAsync(userId, page);
+        }
+        catch (Exception exception)
+        {
+            Logger.LogError(exception, "Unable to load Decision Pathway history for the authenticated member.");
+            loadError = "We could not load your decision history. Please try again.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

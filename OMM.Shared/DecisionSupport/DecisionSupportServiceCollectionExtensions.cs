@@ -19,6 +19,10 @@ public static class DecisionSupportServiceCollectionExtensions
         });
 
         services.AddSingleton<IDeterministicDecisionEngine, DeterministicDecisionEngine>();
+        if (services.Any(descriptor => descriptor.ServiceType == typeof(IDecisionPathwayStore)))
+        {
+            services.AddScoped<IDecisionPathwayService, DecisionPathwayService>();
+        }
 
         return services;
     }

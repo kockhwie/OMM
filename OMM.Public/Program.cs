@@ -34,6 +34,7 @@ builder.Services.AddScoped<DashboardQueryService>();
 builder.Services.AddScoped<IMinerProfileService, MinerProfileService>();
 builder.Services.AddScoped<IOnboardingService, OnboardingService>();
 builder.Services.AddScoped<PublicMemberMigrationService>();
+builder.Services.AddScoped<IDecisionPathwayStore, EfDecisionPathwayStore>();
 builder.Services.AddMemoryCache();
 builder.Services.AddDatabaseAvailability();
 builder.Services.AddDatabaseAlerting(builder.Configuration);

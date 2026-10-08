@@ -9,6 +9,7 @@ using OMM.Admin.Data;
 using OMM.Shared.Database;
 using OMM.Shared.Infrastructure;
 using OMM.Shared.Infrastructure.Email;
+using OMM.Shared.DecisionSupport;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -76,6 +77,7 @@ builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
     options.TokenLifespan = TimeSpan.FromHours(24));
 
 builder.Services.AddSharedIdentityEmail<ApplicationUser>(builder.Configuration);
+builder.Services.AddSharedDecisionSupport(builder.Configuration);
 
 // Audit logging service
 builder.Services.AddScoped<IAuditLogger, AuditLogger>();

@@ -1,0 +1,344 @@
+@page "/decision-pathway"
+@layout MainLayout
+@using OMM.Shared.DecisionSupport
+@inject IInquiryIntentInterpreter IntentInterpreter
+
+<PageTitle>Decision Pathway - OhMyMine</PageTitle>
+
+<PublicPageShell>
+    <div class="decision-pathway animate-fade-up">
+        <div class="d-flex flex-column flex-lg-row align-items-lg-end justify-content-between gap-3 mb-4">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="decision-eyebrow">Decision support prototype</span>
+                    <span class="badge rounded-pill text-bg-light border">Demo data</span>
+                </div>
+                <h1 class="mb-2">Turn a market signal into a clearer next step.</h1>
+                <p class="text-muted mb-0 decision-intro">Explore the assumptions, trade-offs, and checkpoints behind a decision before you act.</p>
+            </div>
+            <button class="btn btn-link text-decoration-none text-dark p-0 decision-reset" @onclick="ResetPathway">
+                <i class="ti ti-refresh me-1"></i>Start over
+            </button>
+        </div>
+
+        <section class="decision-question-card mb-4">
+            <div class="d-flex align-items-start gap-3">
+                <span class="decision-option-icon tone-blue"><i class="ti ti-sparkles"></i></span>
+                <div class="flex-grow-1">
+                    <p class="decision-panel-kicker mb-1">Ask OMM first</p>
+                    <h2 class="h5 mb-2">What do you want to know?</h2>
+                    <p class="text-muted small mb-3">Write your question in your own words. AI will classify the signal and suggest the next useful question. It will not make the investment decision for you.</p>
+                    <textarea id="member-question" class="form-control omm-input decision-question-input" rows="3" @bind="memberQuestion" placeholder=" ">US stock dropped 10% today</textarea>
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3">
+                        <span class="decision-question-help"><i class="ti ti-lock me-1"></i>Only this question is sent for interpretation; portfolio calculations stay in OMM.</span>
+                        <button class="btn btn-dark rounded-3 px-4" @onclick="InterpretQuestionAsync" disabled="@(string.IsNullOrWhiteSpace(memberQuestion) || isInterpreting)">
+                            @if (isInterpreting) { <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span> }
+                            Understand my question <i class="ti ti-arrow-right ms-1"></i>
+                        </button>
+                    </div>
+                    @if (intentResult is not null)
+                    {
+                        <div class="decision-ai-result mt-3 @(intentResult.IsAvailable ? "is-ready" : "is-unavailable")">
+                            <div class="d-flex align-items-start gap-2"><i class="ti ti-sparkles mt-1"></i><div><strong>@(intentResult.IsAvailable ? "OMM understood:" : "Guided questions are still available")</strong><p class="mb-0 small">@(intentResult.IsAvailable ? intentResult.Summary : intentResult.ErrorMessage)</p></div></div>
+                            @if (intentResult.IsAvailable)
+                            {
+                                <div class="decision-ai-tags mt-3"><span>Signal: @intentResult.SignalType</span>@if (!string.IsNullOrWhiteSpace(intentResult.MentionedSecurity)){<span>Stock: @intentResult.MentionedSecurity</span>}<span>Intent: @intentResult.Intent</span><span>Confidence: @intentResult.Confidence.ToString("P0")</span></div>
+                                @if (intentResult.MissingQuestions.Count > 0)
+                                {
+                                    <p class="small mb-0 mt-3"><strong>Next useful question:</strong> @intentResult.MissingQuestions[0]</p>
+                                }
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </section>
+
+        <div class="decision-workspace">
+            <aside class="decision-tree-panel" aria-label="Decision pathway progress">
+                <div class="decision-tree-heading">
+                    <div>
+                        <p class="decision-panel-kicker mb-1">Your pathway</p>
+                        <h2 class="h5 mb-0">Maybank scenario</h2>
+                    </div>
+                    <span class="decision-step-count">@CurrentStep of 3</span>
+                </div>
+
+                <div class="decision-tree" role="list">
+                    <button class="decision-tree-node @(screen >= 1 ? "is-complete" : "is-current")" @onclick="() => GoToScreen(1)" role="listitem">
+                        <span class="decision-node-marker"><i class="ti ti-message-circle"></i></span>
+                        <span><strong>Concern</strong><small>@ConcernLabel</small></span>
+                    </button>
+                    <span class="decision-tree-line"></span>
+                    <button class="decision-tree-node @(screen >= 2 ? "is-complete" : screen == 1 ? "is-current" : "")" @onclick="() => GoToScreen(2)" role="listitem">
+                        <span class="decision-node-marker"><i class="ti ti-route"></i></span>
+                        <span><strong>Decision</strong><small>@DecisionLabel</small></span>
+                    </button>
+                    <span class="decision-tree-line"></span>
+                    <button class="decision-tree-node @(screen == 3 ? "is-current" : "")" @onclick="() => GoToScreen(3)" role="listitem">
+                        <span class="decision-node-marker"><i class="ti ti-chart-dots"></i></span>
+                        <span><strong>Scenarios</strong><small>@ScenarioLabel</small></span>
+                    </button>
+                </div>
+
+                <div class="decision-tree-note">
+                    <i class="ti ti-sparkles"></i>
+                    <p class="mb-0">You can change an assumption or fork a new “what if” branch at any point.</p>
+                </div>
+            </aside>
+
+            <section class="decision-content-panel" aria-live="polite">
+                @if (screen == 1)
+                {
+                    <div class="decision-screen-heading">
+                        <span class="decision-screen-number">01</span>
+                        <div>
+                            <p class="decision-panel-kicker mb-1">Start with the signal</p>
+                            <h2>What is bothering you today?</h2>
+                            <p class="text-muted mb-0">Choose the concern closest to your situation. You can add context later.</p>
+                        </div>
+                    </div>
+
+                    <div class="decision-option-grid mt-4">
+                        @foreach (var concern in Concerns)
+                        {
+                            <button class="decision-option-card @(selectedConcern == concern.Key ? "is-selected" : "")" @onclick="() => SelectConcern(concern.Key)">
+                                <span class="decision-option-icon @concern.Tone"><i class="@concern.Icon"></i></span>
+                                <span class="text-start"><strong>@concern.Title</strong><small>@concern.Description</small></span>
+                                <i class="ti ti-arrow-up-right decision-option-arrow"></i>
+                            </button>
+                        }
+                    </div>
+
+                    <div class="decision-context-callout mt-4">
+                        <div class="d-flex gap-3">
+                            <i class="ti ti-info-circle fs-5"></i>
+                            <div>
+                                <strong>Example signal loaded</strong>
+                                <p class="mb-0 small">Maybank (1155) is shown with a sample dividend decision. This is a visual prototype, not live market or member data.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end mt-4">
+                        <button class="btn btn-dark rounded-3 px-4" @onclick="() => GoToScreen(2)" disabled="@(string.IsNullOrEmpty(selectedConcern))">
+                            Continue <i class="ti ti-arrow-right ms-1"></i>
+                        </button>
+                    </div>
+                }
+                else if (screen == 2)
+                {
+                    <div class="decision-screen-heading">
+                        <span class="decision-screen-number">02</span>
+                        <div>
+                            <p class="decision-panel-kicker mb-1">Choose a direction</p>
+                            <h2>What would you like to do?</h2>
+                            <p class="text-muted mb-0">There is no guaranteed outcome. Select the path you want to examine.</p>
+                        </div>
+                    </div>
+
+                    <div class="decision-signal-summary mt-4">
+                        <div class="decision-signal-chip"><i class="ti ti-building-bank"></i> Maybank · 1155</div>
+                        <div class="decision-signal-metric"><span>Sample price</span><strong>RM9.87</strong></div>
+                        <div class="decision-signal-metric"><span>Dividend assumption</span><strong>RM0.31 / share</strong></div>
+                    </div>
+
+                    <div class="decision-action-list mt-4">
+                        @foreach (var action in Actions)
+                        {
+                            <button class="decision-action-row @(selectedAction == action.Key ? "is-selected" : "")" @onclick="() => SelectAction(action.Key)">
+                                <span class="decision-action-letter">@action.Key</span>
+                                <span class="text-start flex-grow-1"><strong>@action.Title</strong><small>@action.Description</small></span>
+                                <span class="decision-action-tag @action.Tone">@action.Tag</span>
+                                <i class="ti ti-chevron-right"></i>
+                            </button>
+                        }
+                    </div>
+
+                    <div class="decision-form-grid mt-4">
+                        <div class="omm-form-section">
+                            <div class="omm-form-field">
+                                <label class="omm-form-label" for="decision-horizon">Your time horizon</label>
+                                <select id="decision-horizon" class="form-select omm-input" @bind="horizon">
+                                    <option>Days to weeks</option>
+                                    <option>Several months</option>
+                                    <option>Long term</option>
+                                </select>
+                                <p class="omm-form-help">This changes which risks matter most.</p>
+                            </div>
+                        </div>
+                        <div class="omm-form-section">
+                            <div class="omm-form-field">
+                                <label class="omm-form-label" for="decision-assumption">Your key assumption</label>
+                                <select id="decision-assumption" class="form-select omm-input" @bind="assumption">
+                                    <option>Price may fall below RM9.50</option>
+                                    <option>Dividend will meet expectations</option>
+                                    <option>Maybank is worth RM10–RM12 long term</option>
+                                </select>
+                                <p class="omm-form-help">You can test an alternative assumption next.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between gap-3 mt-4">
+                        <button class="btn btn-outline-dark rounded-3 px-4" @onclick="() => GoToScreen(1)"><i class="ti ti-arrow-left me-1"></i>Back</button>
+                        <button class="btn btn-dark rounded-3 px-4" @onclick="() => GoToScreen(3)" disabled="@(string.IsNullOrEmpty(selectedAction))">See scenarios <i class="ti ti-arrow-right ms-1"></i></button>
+                    </div>
+                }
+                else
+                {
+                    <div class="decision-screen-heading">
+                        <span class="decision-screen-number">03</span>
+                        <div>
+                            <p class="decision-panel-kicker mb-1">Explore the branches</p>
+                            <h2>What could happen next?</h2>
+                            <p class="text-muted mb-0">Compare outcomes under different market paths. These are scenarios, not forecasts.</p>
+                        </div>
+                    </div>
+
+                    <div class="decision-path-banner mt-4">
+                        <div class="d-flex align-items-start gap-3">
+                            <span class="decision-option-icon tone-gold"><i class="ti ti-route"></i></span>
+                            <div class="flex-grow-1">
+                                <p class="decision-panel-kicker mb-1">Your selected path</p>
+                                <h3 class="h5 mb-1">@DecisionLabel</h3>
+                                <p class="small text-muted mb-0">Assumption: @assumption · Horizon: @horizon</p>
+                            </div>
+                            <button class="btn btn-sm btn-link text-dark text-decoration-none" @onclick="() => GoToScreen(2)">Change</button>
+                        </div>
+                    </div>
+
+                    <div class="decision-outcome-grid mt-4">
+                        @foreach (var outcome in Outcomes)
+                        {
+                            <article class="decision-outcome-card @outcome.Tone">
+                                <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+                                    <span class="decision-outcome-label"><i class="@outcome.Icon me-1"></i>@outcome.Title</span>
+                                    <span class="decision-probability">@outcome.Label</span>
+                                </div>
+                                <h3>@outcome.Result</h3>
+                                <p>@outcome.Description</p>
+                                <div class="decision-outcome-footer"><span>Monitor</span><strong>@outcome.Monitor</strong></div>
+                            </article>
+                        }
+                    </div>
+
+                    <div class="decision-fork-card mt-4">
+                        <div class="d-flex gap-3 align-items-start">
+                            <span class="decision-fork-icon"><i class="ti ti-git-branch"></i></span>
+                            <div class="flex-grow-1">
+                                <h3 class="h6 mb-1">Create a “what if” branch</h3>
+                                <p class="small text-muted mb-3">Test another assumption without losing this pathway.</p>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <button class="btn btn-sm btn-outline-dark rounded-3" @onclick="ForkScenario">What if price reaches RM9.50?</button>
+                                    <button class="btn btn-sm btn-outline-dark rounded-3" @onclick="ForkScenario">What if dividend is RM0.10?</button>
+                                </div>
+                                @if (branchCreated)
+                                {
+                                    <p class="small text-success mb-0 mt-3"><i class="ti ti-check me-1"></i>New branch added to your pathway.</p>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between gap-3 mt-4">
+                        <button class="btn btn-outline-dark rounded-3 px-4" @onclick="() => GoToScreen(2)"><i class="ti ti-arrow-left me-1"></i>Change path</button>
+                        <button class="btn btn-dark rounded-3 px-4" @onclick="SavePlan"><i class="ti ti-calendar-event me-1"></i>Set a checkpoint</button>
+                    </div>
+                    @if (planSaved)
+                    {
+                        <div class="alert alert-success mt-3 mb-0 small"><i class="ti ti-check me-1"></i>Prototype checkpoint saved for review in 7 days.</div>
+                    }
+                }
+            </section>
+        </div>
+    </div>
+</PublicPageShell>
+
+@code {
+    private int screen = 1;
+    private string selectedConcern = "price";
+    private string selectedAction = "trim";
+    private string horizon = "Days to weeks";
+    private string assumption = "Price may fall below RM9.50";
+    private bool branchCreated;
+    private bool planSaved;
+    private bool isInterpreting;
+    private string memberQuestion = string.Empty;
+    private InquiryIntentResult? intentResult;
+
+    private int CurrentStep => screen;
+    private string ConcernLabel => Concerns.FirstOrDefault(item => item.Key == selectedConcern)?.Title ?? "Choose a concern";
+    private string DecisionLabel => Actions.FirstOrDefault(item => item.Key == selectedAction)?.Title ?? "Choose an action";
+    private string ScenarioLabel => branchCreated ? "3 branches" : "2 branches";
+
+    private async Task InterpretQuestionAsync()
+    {
+        isInterpreting = true;
+        intentResult = await IntentInterpreter.InterpretAsync(memberQuestion);
+        isInterpreting = false;
+    }
+
+    private static readonly IReadOnlyList<ConcernOption> Concerns =
+    [
+        new("price", "Price moved sharply", "A sudden rise or fall has changed your view.", "ti ti-chart-candle", "tone-red"),
+        new("dividend", "Dividend or company news", "A payout, project, or announcement needs context.", "ti ti-building-bank", "tone-gold"),
+        new("market", "Market or policy event", "A rate decision or global signal may affect you.", "ti ti-world", "tone-blue"),
+        new("decision", "Buy, hold, trim, or sell?", "You have an action in mind but want to compare paths.", "ti ti-arrows-exchange", "tone-green")
+    ];
+
+    private static readonly IReadOnlyList<ActionOption> Actions =
+    [
+        new("hold", "Hold for the dividend", "Keep exposure and preserve eligibility for the sample payout.", "Income", "tag-blue"),
+        new("trim", "Trim partially", "Reduce downside exposure while keeping some upside participation.", "Balanced", "tag-gold"),
+        new("sell", "Sell all", "Move to cash and protect against a short-term decline.", "Defensive", "tag-red"),
+        new("monitor", "Wait and monitor", "Set a checkpoint before committing to a trade.", "Patient", "tag-green")
+    ];
+
+    private static readonly IReadOnlyList<OutcomeOption> Outcomes =
+    [
+        new("Bullish path", "ti ti-trending-up", "Upward recovery", "A stronger market or positive company update supports the share price.", "RM10.50–RM12.00", "tone-green", "Project updates and sector momentum"),
+        new("Base path", "ti ti-minus", "Dividend offsets some movement", "The announcement is close to expectations and price movement remains contained.", "Around RM9.87", "tone-blue", "Dividend confirmation and ex-date price"),
+        new("Bearish path", "ti ti-trending-down", "Cash protects flexibility", "The project or wider market weighs on sentiment and the price moves lower.", "Below RM9.50", "tone-red", "Market trend and buyback level")
+    ];
+
+    private void SelectConcern(string key)
+    {
+        selectedConcern = key;
+        screen = 1;
+    }
+
+    private void SelectAction(string key)
+    {
+        selectedAction = key;
+        screen = 2;
+    }
+
+    private void GoToScreen(int nextScreen)
+    {
+        if (nextScreen == 2 && string.IsNullOrEmpty(selectedConcern)) return;
+        if (nextScreen == 3 && string.IsNullOrEmpty(selectedAction)) return;
+        screen = Math.Clamp(nextScreen, 1, 3);
+    }
+
+    private void ForkScenario() => branchCreated = true;
+
+    private void SavePlan() => planSaved = true;
+
+    private void ResetPathway()
+    {
+        screen = 1;
+        selectedConcern = "price";
+        selectedAction = "trim";
+        horizon = "Days to weeks";
+        assumption = "Price may fall below RM9.50";
+        branchCreated = false;
+        planSaved = false;
+        memberQuestion = string.Empty;
+        intentResult = null;
+    }
+
+    private sealed record ConcernOption(string Key, string Title, string Description, string Icon, string Tone);
+    private sealed record ActionOption(string Key, string Title, string Description, string Tag, string Tone);
+    private sealed record OutcomeOption(string Title, string Icon, string Result, string Description, string Label, string Tone, string Monitor);
+}

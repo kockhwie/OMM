@@ -16,12 +16,34 @@ public sealed class GoogleAiIntentInterpreter(
         PropertyNameCaseInsensitive = true
     };
 
+    private static readonly HashSet<string> GenericCommands = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "proceed", "next", "continue", "help", "hi", "hello", "hey", "start", "ok", "okay", "yes", "no", "what next", "test", "go", "action", "run"
+    };
+
     private readonly GoogleAiOptions _options = options.Value;
 
     public async Task<InquiryIntentResult> InterpretAsync(string memberText, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(memberText))
             return Unavailable("Enter a question or signal first.");
+
+        var cleanText = memberText.Trim();
+        if (GenericCommands.Contains(cleanText))
+        {
+            return new InquiryIntentResult(
+                IsAvailable: true,
+                Summary: "Your input didn't specify a stock or market event. Choose an example topic below or pick from our curated market signals.",
+                SignalType: "unknown",
+                EventName: null,
+                MentionedSecurity: null,
+                MentionedSector: null,
+                MentionedCountry: null,
+                PossibleScopes: ["single_holding", "sector", "portfolio"],
+                Intent: "unknown",
+                MissingQuestions: ["Which stock or market event would you like to evaluate (e.g. Maybank price drop, US Fed rate hike, or Tenaga dividend)?"],
+                Confidence: 0.20m);
+        }
 
         var models = _options.Models.Where(model => !string.IsNullOrWhiteSpace(model)).ToList();
         if (models.Count == 0 && !string.IsNullOrWhiteSpace(_options.Model))
@@ -120,7 +142,7 @@ public sealed class GoogleAiIntentInterpreter(
         {
             parts = new[]
             {
-                new { text = "You classify a Malaysian personal-finance member's question. Extract intent only. Do not give buy, sell, hold, price, dividend, or investment advice. Use null when an entity is absent. Return only JSON matching the schema." }
+                new { text = "You classify a Malaysian personal-finance member's question about stocks, dividends, sectors, macro events, or portfolio decisions. Extract intent and key entities. If the user message is brief, conversational, or does not clearly name a company, sector, or market catalyst (such as 'what should I do', 'help me decide', 'proceed', 'what next'), DO NOT produce meta-summaries like 'User requested to proceed'. Instead, set signalType to 'unknown', intent to 'unknown', confidence to 0.25, and set summary to 'Your question needs more detail to identify a specific stock or market event.' In missingQuestions, suggest concrete clarifying questions like 'Which stock or market event would you like to evaluate (e.g. Maybank price drop, US Fed rate hike, or Tenaga dividend)?'. Do not give buy, sell, hold, or investment advice. Use null when an entity is absent. Return only JSON matching the schema." }
             }
         },
         contents = new[]

@@ -18,6 +18,8 @@ public static class DecisionSupportServiceCollectionExtensions
             client.Timeout = TimeSpan.FromSeconds(Math.Clamp(options.TimeoutSeconds, 5, 60));
         });
 
+        services.AddSingleton<IDeterministicDecisionEngine, DeterministicDecisionEngine>();
+
         return services;
     }
 }

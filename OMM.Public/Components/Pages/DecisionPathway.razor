@@ -2,6 +2,7 @@
 @layout MainLayout
 @using OMM.Shared.DecisionSupport
 @inject IInquiryIntentInterpreter IntentInterpreter
+@inject IDeterministicDecisionEngine DecisionEngine
 
 <PageTitle>Decision Pathway - OhMyMine</PageTitle>
 
@@ -10,244 +11,662 @@
         <div class="d-flex flex-column flex-lg-row align-items-lg-end justify-content-between gap-3 mb-4">
             <div>
                 <div class="d-flex align-items-center gap-2 mb-2">
-                    <span class="decision-eyebrow">Decision support prototype</span>
-                    <span class="badge rounded-pill text-bg-light border">Demo data</span>
+                    <span class="decision-eyebrow">Decision Support System</span>
+                    <span class="badge rounded-pill text-bg-light border">Deterministic Analysis</span>
                 </div>
-                <h1 class="mb-2">Turn a market signal into a clearer next step.</h1>
-                <p class="text-muted mb-0 decision-intro">Explore the assumptions, trade-offs, and checkpoints behind a decision before you act.</p>
+                <h1 class="mb-2">Turn any market signal into a disciplined next step.</h1>
+                <p class="text-muted mb-0 decision-intro">
+                    Examine market events across stocks, sectors, domestic macro, and global policy. Understand the transmission mechanism and compare deterministic scenarios before taking action.
+                </p>
             </div>
             <button class="btn btn-link text-decoration-none text-dark p-0 decision-reset" @onclick="ResetPathway">
                 <i class="ti ti-refresh me-1"></i>Start over
             </button>
         </div>
 
-        <section class="decision-question-card mb-4">
-            <div class="d-flex align-items-start gap-3">
-                <span class="decision-option-icon tone-blue"><i class="ti ti-sparkles"></i></span>
-                <div class="flex-grow-1">
-                    <p class="decision-panel-kicker mb-1">Ask OMM first</p>
-                    <h2 class="h5 mb-2">What do you want to know?</h2>
-                    <p class="text-muted small mb-3">Write your question in your own words. AI will classify the signal and suggest the next useful question. It will not make the investment decision for you.</p>
-                    <textarea id="member-question" class="form-control omm-input decision-question-input" rows="3" @bind="memberQuestion" placeholder=" ">US stock dropped 10% today</textarea>
-                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3">
-                        <span class="decision-question-help"><i class="ti ti-lock me-1"></i>Only this question is sent for interpretation; portfolio calculations stay in OMM.</span>
-                        <button class="btn btn-dark rounded-3 px-4" @onclick="InterpretQuestionAsync" disabled="@(string.IsNullOrWhiteSpace(memberQuestion) || isInterpreting)">
-                            @if (isInterpreting) { <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span> }
-                            Understand my question <i class="ti ti-arrow-right ms-1"></i>
-                        </button>
-                    </div>
-                    @if (intentResult is not null)
-                    {
-                        <div class="decision-ai-result mt-3 @(intentResult.IsAvailable ? "is-ready" : "is-unavailable")">
-                            <div class="d-flex align-items-start gap-2"><i class="ti ti-sparkles mt-1"></i><div><strong>@(intentResult.IsAvailable ? "OMM understood:" : "Guided questions are still available")</strong><p class="mb-0 small">@(intentResult.IsAvailable ? intentResult.Summary : intentResult.ErrorMessage)</p></div></div>
-                            @if (intentResult.IsAvailable)
-                            {
-                                <div class="decision-ai-tags mt-3"><span>Signal: @intentResult.SignalType</span>@if (!string.IsNullOrWhiteSpace(intentResult.MentionedSecurity)){<span>Stock: @intentResult.MentionedSecurity</span>}<span>Intent: @intentResult.Intent</span><span>Confidence: @intentResult.Confidence.ToString("P0")</span></div>
-                                @if (intentResult.MissingQuestions.Count > 0)
-                                {
-                                    <p class="small mb-0 mt-3"><strong>Next useful question:</strong> @intentResult.MissingQuestions[0]</p>
-                                }
-                            }
-                        </div>
-                    }
-                </div>
-            </div>
-        </section>
-
+        <!-- 8-Stage Workspace -->
         <div class="decision-workspace">
+            <!-- Sidebar: Pathway Progress -->
             <aside class="decision-tree-panel" aria-label="Decision pathway progress">
                 <div class="decision-tree-heading">
                     <div>
-                        <p class="decision-panel-kicker mb-1">Your pathway</p>
-                        <h2 class="h5 mb-0">Maybank scenario</h2>
+                        <p class="decision-panel-kicker mb-1">Your Pathway</p>
+                        <h2 class="h5 mb-0">@ActiveTargetLabel</h2>
                     </div>
-                    <span class="decision-step-count">@CurrentStep of 3</span>
+                    <span class="decision-step-count">Step @screen of 8</span>
                 </div>
 
                 <div class="decision-tree" role="list">
-                    <button class="decision-tree-node @(screen >= 1 ? "is-complete" : "is-current")" @onclick="() => GoToScreen(1)" role="listitem">
-                        <span class="decision-node-marker"><i class="ti ti-message-circle"></i></span>
-                        <span><strong>Concern</strong><small>@ConcernLabel</small></span>
+                    <button class="decision-tree-node @(screen >= 1 ? (screen == 1 ? "is-current" : "is-complete") : "")" @onclick="() => GoToScreen(1)" role="listitem">
+                        <span class="decision-node-marker"><i class="ti ti-broadcast"></i></span>
+                        <span><strong>1. Signal</strong><small>@SignalShortLabel</small></span>
                     </button>
                     <span class="decision-tree-line"></span>
-                    <button class="decision-tree-node @(screen >= 2 ? "is-complete" : screen == 1 ? "is-current" : "")" @onclick="() => GoToScreen(2)" role="listitem">
-                        <span class="decision-node-marker"><i class="ti ti-route"></i></span>
-                        <span><strong>Decision</strong><small>@DecisionLabel</small></span>
+
+                    <button class="decision-tree-node @(screen >= 2 ? (screen == 2 ? "is-current" : "is-complete") : "")" @onclick="() => GoToScreen(2)" role="listitem">
+                        <span class="decision-node-marker"><i class="ti ti-help-circle"></i></span>
+                        <span><strong>2. Concern</strong><small>@ConcernShortLabel</small></span>
                     </button>
                     <span class="decision-tree-line"></span>
-                    <button class="decision-tree-node @(screen == 3 ? "is-current" : "")" @onclick="() => GoToScreen(3)" role="listitem">
+
+                    <button class="decision-tree-node @(screen >= 3 ? (screen == 3 ? "is-current" : "is-complete") : "")" @onclick="() => GoToScreen(3)" role="listitem">
+                        <span class="decision-node-marker"><i class="ti ti-compass"></i></span>
+                        <span><strong>3. Scope</strong><small>@ScopeShortLabel</small></span>
+                    </button>
+                    <span class="decision-tree-line"></span>
+
+                    <button class="decision-tree-node @(screen >= 4 ? (screen == 4 ? "is-current" : "is-complete") : "")" @onclick="() => GoToScreen(4)" role="listitem">
+                        <span class="decision-node-marker"><i class="ti ti-target"></i></span>
+                        <span><strong>4. Objective</strong><small>@ObjectiveShortLabel</small></span>
+                    </button>
+                    <span class="decision-tree-line"></span>
+
+                    <button class="decision-tree-node @(screen >= 5 ? (screen == 5 ? "is-current" : "is-complete") : "")" @onclick="() => GoToScreen(5)" role="listitem">
+                        <span class="decision-node-marker"><i class="ti ti-git-fork"></i></span>
+                        <span><strong>5. Impact Map</strong><small>Transmission</small></span>
+                    </button>
+                    <span class="decision-tree-line"></span>
+
+                    <button class="decision-tree-node @(screen >= 6 ? (screen == 6 ? "is-current" : "is-complete") : "")" @onclick="() => GoToScreen(6)" role="listitem">
+                        <span class="decision-node-marker"><i class="ti ti-list-check"></i></span>
+                        <span><strong>6. Options</strong><small>@ActionShortLabel</small></span>
+                    </button>
+                    <span class="decision-tree-line"></span>
+
+                    <button class="decision-tree-node @(screen >= 7 ? (screen == 7 ? "is-current" : "is-complete") : "")" @onclick="() => GoToScreen(7)" role="listitem">
                         <span class="decision-node-marker"><i class="ti ti-chart-dots"></i></span>
-                        <span><strong>Scenarios</strong><small>@ScenarioLabel</small></span>
+                        <span><strong>7. Scenarios</strong><small>@ScenarioShortLabel</small></span>
+                    </button>
+                    <span class="decision-tree-line"></span>
+
+                    <button class="decision-tree-node @(screen == 8 ? "is-current" : "")" @onclick="() => GoToScreen(8)" role="listitem">
+                        <span class="decision-node-marker"><i class="ti ti-flag-checkered"></i></span>
+                        <span><strong>8. Checkpoint</strong><small>Monitoring</small></span>
                     </button>
                 </div>
 
                 <div class="decision-tree-note">
                     <i class="ti ti-sparkles"></i>
-                    <p class="mb-0">You can change an assumption or fork a new “what if” branch at any point.</p>
+                    <p class="mb-0">All calculations and decision rules run deterministically in OMM. AI is only used to classify free-form queries.</p>
                 </div>
             </aside>
 
+            <!-- Main Content Area -->
             <section class="decision-content-panel" aria-live="polite">
                 @if (screen == 1)
                 {
+                    <!-- SCREEN 1: SIGNAL -->
                     <div class="decision-screen-heading">
                         <span class="decision-screen-number">01</span>
                         <div>
-                            <p class="decision-panel-kicker mb-1">Start with the signal</p>
-                            <h2>What is bothering you today?</h2>
-                            <p class="text-muted mb-0">Choose the concern closest to your situation. You can add context later.</p>
+                            <p class="decision-panel-kicker mb-1">Step 1 · Signal Intake</p>
+                            <h2>What event or market signal caught your attention?</h2>
+                            <p class="text-muted mb-0">Type your question in free form, or pick from curated Malaysian and global market signals.</p>
+                        </div>
+                    </div>
+
+                    <!-- Free Text AI Intake -->
+                    <div class="decision-question-card mt-4 mb-4">
+                        <div class="d-flex align-items-start gap-3">
+                            <span class="decision-option-icon tone-blue"><i class="ti ti-sparkles"></i></span>
+                            <div class="flex-grow-1">
+                                <label for="member-question" class="h6 mb-2 d-block">Ask OMM in your own words</label>
+                                <textarea id="member-question"
+                                          class="form-control omm-input decision-question-input"
+                                          rows="3"
+                                          @bind="memberQuestion"
+                                          placeholder="Example: US FED increases interest rates by 0.25 points. What could happen to Maybank?"></textarea>
+
+                                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3">
+                                    <span class="decision-question-help">
+                                        <i class="ti ti-lock me-1"></i>Only this question is interpreted for classification; your portfolio records stay strictly in OMM.
+                                    </span>
+                                    <button class="btn btn-dark rounded-3 px-4" @onclick="InterpretQuestionAsync" disabled="@(string.IsNullOrWhiteSpace(memberQuestion) || isInterpreting)">
+                                        @if (isInterpreting)
+                                        {
+                                            <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                                        }
+                                        Understand my question <i class="ti ti-arrow-right ms-1"></i>
+                                    </button>
+                                </div>
+
+                                @if (intentResult is not null)
+                                {
+                                    @* --- Determine which card state to show --- *@
+                                    var isVague = intentResult.IsAvailable && (intentResult.SignalType == "unknown" || intentResult.Confidence < 0.4m);
+                                    var isClassified = intentResult.IsAvailable && !isVague;
+
+                                    <div class="decision-ai-result mt-3 @(isClassified ? "is-ready" : isVague ? "is-vague" : "is-unavailable")">
+                                        <div class="d-flex align-items-start gap-2">
+                                            <i class="ti @(isClassified ? "ti-sparkles" : isVague ? "ti-alert-circle" : "ti-sparkles") mt-1"></i>
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex align-items-center justify-content-between">
+                                                    @if (isClassified)
+                                                    {
+                                                        <strong>OMM classified your signal:</strong>
+                                                        <span class="badge bg-success-subtle text-success border border-success-subtle">Ready to proceed</span>
+                                                    }
+                                                    else if (isVague)
+                                                    {
+                                                        <strong>Tell us more &mdash; pick a topic to start</strong>
+                                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle">More detail needed</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <strong>Guided classification available</strong>
+                                                    }
+                                                </div>
+                                                <p class="mb-0 small">
+                                                    @if (intentResult.IsAvailable)
+                                                    {
+                                                        @intentResult.Summary
+                                                    }
+                                                    else
+                                                    {
+                                                        @intentResult.ErrorMessage
+                                                    }
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        @if (isClassified)
+                                        {
+                                            <div class="decision-ai-tags mt-3">
+                                                <span>Signal: @intentResult.SignalType</span>
+                                                @if (!string.IsNullOrWhiteSpace(intentResult.MentionedSecurity))
+                                                {
+                                                    <span>Stock: @intentResult.MentionedSecurity</span>
+                                                }
+                                                @if (!string.IsNullOrWhiteSpace(intentResult.MentionedSector))
+                                                {
+                                                    <span>Sector: @intentResult.MentionedSector</span>
+                                                }
+                                                <span>Intent: @intentResult.Intent</span>
+                                                <span>Confidence: @intentResult.Confidence.ToString("P0")</span>
+                                            </div>
+                                        }
+
+                                        @if (isClassified || isVague)
+                                        {
+                                            <!-- Quick-concern chips -->
+                                            <div class="mt-3 p-3 bg-white rounded-3 border">
+                                                <p class="small mb-1 fw-bold text-dark">
+                                                    <i class="ti ti-help-circle me-1 text-primary"></i>
+                                                    @(intentResult.MissingQuestions.Count > 0
+                                                        ? intentResult.MissingQuestions[0]
+                                                        : "What is your main concern with this signal?")
+                                                </p>
+                                                <p class="text-muted small mb-2">Choose a topic &mdash; OMM will immediately set your pathway and move to Step 2:</p>
+                                                <div class="d-flex flex-wrap gap-2">
+                                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" @onclick='() => SelectConcernAndProceed("price_drop")'>
+                                                        <i class="ti ti-chart-candle me-1"></i>Price drop / valuation risk
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-warning rounded-pill" @onclick='() => SelectConcernAndProceed("dividend")'>
+                                                        <i class="ti ti-building-bank me-1"></i>Dividend safety
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-info rounded-pill" @onclick='() => SelectConcernAndProceed("macro_shock")'>
+                                                        <i class="ti ti-world me-1"></i>Interest rate / macro shock
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" @onclick='() => SelectConcernAndProceed("concentration")'>
+                                                        <i class="ti ti-chart-pie me-1"></i>Rebalance portfolio weight
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-success rounded-pill" @onclick='() => SelectConcernAndProceed("opportunity")'>
+                                                        <i class="ti ti-bulb me-1"></i>Assess buying opportunity
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        }
+
+                                        @if (isClassified)
+                                        {
+                                            <!-- Primary Proceed Action -->
+                                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3 pt-3 border-top">
+                                                <span class="small text-muted">
+                                                    <i class="ti ti-arrow-right-circle me-1"></i>Or skip directly to Step 2 with the signal as classified.
+                                                </span>
+                                                <button type="button" class="btn btn-dark rounded-3 px-4 btn-sm" @onclick="() => GoToScreen(2)">
+                                                    Proceed to Step 2: Concern <i class="ti ti-arrow-right ms-1"></i>
+                                                </button>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Curated Signals Picker -->
+                    <div class="d-flex align-items-center justify-content-between gap-2 mb-3 mt-4">
+                        <h3 class="h6 mb-0 text-muted text-uppercase tracking-wider">Or choose a pre-configured market signal</h3>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-secondary @(activeCategoryFilter == null ? "active" : "")" @onclick="() => FilterCategory(null)">All</button>
+                            <button type="button" class="btn btn-outline-secondary @(activeCategoryFilter == SignalCategory.IndividualStock ? "active" : "")" @onclick="() => FilterCategory(SignalCategory.IndividualStock)">Stocks</button>
+                            <button type="button" class="btn btn-outline-secondary @(activeCategoryFilter == SignalCategory.Sector ? "active" : "")" @onclick="() => FilterCategory(SignalCategory.Sector)">Sectors</button>
+                            <button type="button" class="btn btn-outline-secondary @(activeCategoryFilter == SignalCategory.MalaysianMarket ? "active" : "")" @onclick="() => FilterCategory(SignalCategory.MalaysianMarket)">Malaysia</button>
+                            <button type="button" class="btn btn-outline-secondary @(activeCategoryFilter == SignalCategory.GlobalEconomy ? "active" : "")" @onclick="() => FilterCategory(SignalCategory.GlobalEconomy)">Global</button>
+                            <button type="button" class="btn btn-outline-secondary @(activeCategoryFilter == SignalCategory.PortfolioDecision ? "active" : "")" @onclick="() => FilterCategory(SignalCategory.PortfolioDecision)">Portfolio</button>
+                            <button type="button" class="btn btn-outline-secondary @(activeCategoryFilter == SignalCategory.Opportunity ? "active" : "")" @onclick="() => FilterCategory(SignalCategory.Opportunity)">Opportunity</button>
+                        </div>
+                    </div>
+
+                    <div class="decision-option-grid">
+                        @foreach (var sig in FilteredSignals)
+                        {
+                            <button class="decision-option-card @(selectedSignal?.Id == sig.Id ? "is-selected" : "")"
+                                    @onclick="() => SelectSignalTemplate(sig)">
+                                <span class="decision-option-icon @GetCategoryTone(sig.Category)">
+                                    <i class="@GetCategoryIcon(sig.Category)"></i>
+                                </span>
+                                <span class="text-start flex-grow-1">
+                                    <strong>@sig.Title</strong>
+                                    <small>@sig.Description</small>
+                                </span>
+                                <i class="ti ti-arrow-up-right decision-option-arrow"></i>
+                            </button>
+                        }
+                    </div>
+
+                    <div class="d-flex justify-content-end mt-4">
+                        <button class="btn btn-dark rounded-3 px-4" @onclick="() => GoToScreen(2)">
+                            Continue to Concern <i class="ti ti-arrow-right ms-1"></i>
+                        </button>
+                    </div>
+                }
+                else if (screen == 2)
+                {
+                    <!-- SCREEN 2: CONCERN -->
+                    <div class="decision-screen-heading">
+                        <span class="decision-screen-number">02</span>
+                        <div>
+                            <p class="decision-panel-kicker mb-1">Step 2 · Member Concern</p>
+                            <h2>What is bothering you about this signal?</h2>
+                            <p class="text-muted mb-0">Identifying the emotional and financial concern helps clarify which trade-offs matter most.</p>
                         </div>
                     </div>
 
                     <div class="decision-option-grid mt-4">
                         @foreach (var concern in Concerns)
                         {
-                            <button class="decision-option-card @(selectedConcern == concern.Key ? "is-selected" : "")" @onclick="() => SelectConcern(concern.Key)">
+                            <button class="decision-option-card @(selectedConcern == concern.Key ? "is-selected" : "")"
+                                    @onclick="() => SelectConcern(concern.Key)">
                                 <span class="decision-option-icon @concern.Tone"><i class="@concern.Icon"></i></span>
-                                <span class="text-start"><strong>@concern.Title</strong><small>@concern.Description</small></span>
+                                <span class="text-start">
+                                    <strong>@concern.Title</strong>
+                                    <small>@concern.Description</small>
+                                </span>
                                 <i class="ti ti-arrow-up-right decision-option-arrow"></i>
                             </button>
                         }
                     </div>
 
-                    <div class="decision-context-callout mt-4">
-                        <div class="d-flex gap-3">
-                            <i class="ti ti-info-circle fs-5"></i>
-                            <div>
-                                <strong>Example signal loaded</strong>
-                                <p class="mb-0 small">Maybank (1155) is shown with a sample dividend decision. This is a visual prototype, not live market or member data.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="d-flex justify-content-end mt-4">
-                        <button class="btn btn-dark rounded-3 px-4" @onclick="() => GoToScreen(2)" disabled="@(string.IsNullOrEmpty(selectedConcern))">
-                            Continue <i class="ti ti-arrow-right ms-1"></i>
-                        </button>
+                    <div class="d-flex justify-content-between gap-3 mt-4">
+                        <button class="btn btn-outline-dark rounded-3 px-4" @onclick="() => GoToScreen(1)"><i class="ti ti-arrow-left me-1"></i>Back</button>
+                        <button class="btn btn-dark rounded-3 px-4" @onclick="() => GoToScreen(3)">Continue to Scope <i class="ti ti-arrow-right ms-1"></i></button>
                     </div>
                 }
-                else if (screen == 2)
+                else if (screen == 3)
                 {
+                    <!-- SCREEN 3: SCOPE -->
                     <div class="decision-screen-heading">
-                        <span class="decision-screen-number">02</span>
+                        <span class="decision-screen-number">03</span>
                         <div>
-                            <p class="decision-panel-kicker mb-1">Choose a direction</p>
-                            <h2>What would you like to do?</h2>
-                            <p class="text-muted mb-0">There is no guaranteed outcome. Select the path you want to examine.</p>
+                            <p class="decision-panel-kicker mb-1">Step 3 · Decision Scope</p>
+                            <h2>At what level does this decision operate?</h2>
+                            <p class="text-muted mb-0">Decide whether this applies to an isolated company, an entire sector, or your whole portfolio.</p>
                         </div>
                     </div>
 
-                    <div class="decision-signal-summary mt-4">
-                        <div class="decision-signal-chip"><i class="ti ti-building-bank"></i> Maybank · 1155</div>
-                        <div class="decision-signal-metric"><span>Sample price</span><strong>RM9.87</strong></div>
-                        <div class="decision-signal-metric"><span>Dividend assumption</span><strong>RM0.31 / share</strong></div>
-                    </div>
-
-                    <div class="decision-action-list mt-4">
-                        @foreach (var action in Actions)
+                    <div class="decision-scope-grid mt-4">
+                        @foreach (var scopeOpt in Scopes)
                         {
-                            <button class="decision-action-row @(selectedAction == action.Key ? "is-selected" : "")" @onclick="() => SelectAction(action.Key)">
-                                <span class="decision-action-letter">@action.Key</span>
-                                <span class="text-start flex-grow-1"><strong>@action.Title</strong><small>@action.Description</small></span>
-                                <span class="decision-action-tag @action.Tone">@action.Tag</span>
-                                <i class="ti ti-chevron-right"></i>
+                            <button class="decision-scope-card @(selectedScope == scopeOpt.Key ? "is-selected" : "")"
+                                    @onclick="() => SelectScope(scopeOpt.Key)">
+                                <span class="decision-option-icon tone-blue"><i class="@scopeOpt.Icon"></i></span>
+                                <span class="text-start">
+                                    <strong>@scopeOpt.Title</strong>
+                                    <small>@scopeOpt.Description</small>
+                                </span>
+                                <i class="ti ti-arrow-up-right decision-option-arrow"></i>
                             </button>
                         }
                     </div>
 
-                    <div class="decision-form-grid mt-4">
-                        <div class="omm-form-section">
-                            <div class="omm-form-field">
-                                <label class="omm-form-label" for="decision-horizon">Your time horizon</label>
-                                <select id="decision-horizon" class="form-select omm-input" @bind="horizon">
-                                    <option>Days to weeks</option>
-                                    <option>Several months</option>
-                                    <option>Long term</option>
-                                </select>
-                                <p class="omm-form-help">This changes which risks matter most.</p>
-                            </div>
-                        </div>
-                        <div class="omm-form-section">
-                            <div class="omm-form-field">
-                                <label class="omm-form-label" for="decision-assumption">Your key assumption</label>
-                                <select id="decision-assumption" class="form-select omm-input" @bind="assumption">
-                                    <option>Price may fall below RM9.50</option>
-                                    <option>Dividend will meet expectations</option>
-                                    <option>Maybank is worth RM10–RM12 long term</option>
-                                </select>
-                                <p class="omm-form-help">You can test an alternative assumption next.</p>
+                    <!-- Target entity contextual editor -->
+                    <div class="decision-context-callout mt-4">
+                        <div class="omm-form-section p-0">
+                            <div class="row g-3">
+                                <div class="col-md-6 omm-form-field">
+                                    <label class="omm-form-label" for="target-security">Target Security / Company</label>
+                                    <input id="target-security" class="form-control omm-input" @bind="targetSecurity" placeholder="e.g. Maybank (1155)" />
+                                    <p class="omm-form-help">Applies if evaluating a single stock or primary exposure.</p>
+                                </div>
+                                <div class="col-md-6 omm-form-field">
+                                    <label class="omm-form-label" for="target-sector">Sector / Industry</label>
+                                    <input id="target-sector" class="form-control omm-input" @bind="targetSector" placeholder="e.g. Financial Services" />
+                                    <p class="omm-form-help">Industry category for transmission mapping.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="d-flex justify-content-between gap-3 mt-4">
-                        <button class="btn btn-outline-dark rounded-3 px-4" @onclick="() => GoToScreen(1)"><i class="ti ti-arrow-left me-1"></i>Back</button>
-                        <button class="btn btn-dark rounded-3 px-4" @onclick="() => GoToScreen(3)" disabled="@(string.IsNullOrEmpty(selectedAction))">See scenarios <i class="ti ti-arrow-right ms-1"></i></button>
+                        <button class="btn btn-outline-dark rounded-3 px-4" @onclick="() => GoToScreen(2)"><i class="ti ti-arrow-left me-1"></i>Back</button>
+                        <button class="btn btn-dark rounded-3 px-4" @onclick="() => GoToScreen(4)">Continue to Objective <i class="ti ti-arrow-right ms-1"></i></button>
                     </div>
                 }
-                else
+                else if (screen == 4)
                 {
+                    <!-- SCREEN 4: OBJECTIVE -->
                     <div class="decision-screen-heading">
-                        <span class="decision-screen-number">03</span>
+                        <span class="decision-screen-number">04</span>
                         <div>
-                            <p class="decision-panel-kicker mb-1">Explore the branches</p>
-                            <h2>What could happen next?</h2>
-                            <p class="text-muted mb-0">Compare outcomes under different market paths. These are scenarios, not forecasts.</p>
+                            <p class="decision-panel-kicker mb-1">Step 4 · Primary Objective</p>
+                            <h2>What outcome is most important to you?</h2>
+                            <p class="text-muted mb-0">Different objectives dictate fundamentally different action priorities.</p>
                         </div>
                     </div>
 
-                    <div class="decision-path-banner mt-4">
-                        <div class="d-flex align-items-start gap-3">
-                            <span class="decision-option-icon tone-gold"><i class="ti ti-route"></i></span>
-                            <div class="flex-grow-1">
-                                <p class="decision-panel-kicker mb-1">Your selected path</p>
-                                <h3 class="h5 mb-1">@DecisionLabel</h3>
-                                <p class="small text-muted mb-0">Assumption: @assumption · Horizon: @horizon</p>
-                            </div>
-                            <button class="btn btn-sm btn-link text-dark text-decoration-none" @onclick="() => GoToScreen(2)">Change</button>
-                        </div>
-                    </div>
-
-                    <div class="decision-outcome-grid mt-4">
-                        @foreach (var outcome in Outcomes)
+                    <div class="decision-option-grid mt-4">
+                        @foreach (var obj in Objectives)
                         {
-                            <article class="decision-outcome-card @outcome.Tone">
-                                <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
-                                    <span class="decision-outcome-label"><i class="@outcome.Icon me-1"></i>@outcome.Title</span>
-                                    <span class="decision-probability">@outcome.Label</span>
+                            <button class="decision-option-card @(selectedObjective == obj.Key ? "is-selected" : "")"
+                                    @onclick="() => SelectObjective(obj.Key)">
+                                <span class="decision-option-icon tone-gold"><i class="@obj.Icon"></i></span>
+                                <span class="text-start flex-grow-1">
+                                    <strong>@obj.Title</strong>
+                                    <small>@obj.Description</small>
+                                </span>
+                                <span class="decision-action-tag tag-gold ms-2">@obj.PrimaryBenefit</span>
+                            </button>
+                        }
+                    </div>
+
+                    <div class="d-flex justify-content-between gap-3 mt-4">
+                        <button class="btn btn-outline-dark rounded-3 px-4" @onclick="() => GoToScreen(3)"><i class="ti ti-arrow-left me-1"></i>Back</button>
+                        <button class="btn btn-dark rounded-3 px-4" @onclick="() => GoToScreen(5)">Build Impact Map <i class="ti ti-arrow-right ms-1"></i></button>
+                    </div>
+                }
+                else if (screen == 5)
+                {
+                    <!-- SCREEN 5: IMPACT MAP -->
+                    <div class="decision-screen-heading">
+                        <span class="decision-screen-number">05</span>
+                        <div>
+                            <p class="decision-panel-kicker mb-1">Step 5 · Transmission Impact Map</p>
+                            <h2>How does this signal transmit to your capital?</h2>
+                            <p class="text-muted mb-0">Tracing the transmission chain separates temporary sentiment noise from structural cash-flow impairment.</p>
+                        </div>
+                    </div>
+
+                    <div class="decision-signal-summary mt-4">
+                        <div class="decision-signal-chip">
+                            <i class="ti ti-info-circle"></i> @impactMap.Summary
+                        </div>
+                    </div>
+
+                    <!-- 4-Stage Transmission Nodes -->
+                    <div class="decision-impact-map mt-4">
+                        @foreach (var node in impactMap.Nodes)
+                        {
+                            <div class="decision-impact-card @node.Tone">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <span class="decision-eyebrow">@node.Stage</span>
+                                    <span class="decision-action-tag @(node.Severity == "high" ? "tag-red" : "tag-gold")">@node.Severity impact</span>
                                 </div>
-                                <h3>@outcome.Result</h3>
-                                <p>@outcome.Description</p>
-                                <div class="decision-outcome-footer"><span>Monitor</span><strong>@outcome.Monitor</strong></div>
+                                <h3 class="h6 mb-1">@node.Title</h3>
+                                <p class="mb-0">@node.Description</p>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Vulnerabilities vs Resilience -->
+                    <div class="row g-3 mt-3">
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded-3 bg-white h-100">
+                                <h4 class="h6 text-danger d-flex align-items-center gap-1 mb-2">
+                                    <i class="ti ti-alert-triangle"></i> Key Vulnerabilities
+                                </h4>
+                                <ul class="small mb-0 ps-3 text-muted">
+                                    @foreach (var vuln in impactMap.KeyVulnerabilities)
+                                    {
+                                        <li class="mb-1">@vuln</li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded-3 bg-white h-100">
+                                <h4 class="h6 text-success d-flex align-items-center gap-1 mb-2">
+                                    <i class="ti ti-shield-check"></i> Resilience Factors
+                                </h4>
+                                <ul class="small mb-0 ps-3 text-muted">
+                                    @foreach (var res in impactMap.KeyResilienceFactors)
+                                    {
+                                        <li class="mb-1">@res</li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between gap-3 mt-4">
+                        <button class="btn btn-outline-dark rounded-3 px-4" @onclick="() => GoToScreen(4)"><i class="ti ti-arrow-left me-1"></i>Back</button>
+                        <button class="btn btn-dark rounded-3 px-4" @onclick="() => GoToScreen(6)">Compare Options <i class="ti ti-arrow-right ms-1"></i></button>
+                    </div>
+                }
+                else if (screen == 6)
+                {
+                    <!-- SCREEN 6: OPTIONS -->
+                    <div class="decision-screen-heading">
+                        <span class="decision-screen-number">06</span>
+                        <div>
+                            <p class="decision-panel-kicker mb-1">Step 6 · Action Comparison</p>
+                            <h2>Which action best matches your risk budget?</h2>
+                            <p class="text-muted mb-0">Every choice has trade-offs. Select an action to test against deterministic scenario models.</p>
+                        </div>
+                    </div>
+
+                    <div class="decision-action-list mt-4">
+                        @foreach (var act in evaluatedOptions)
+                        {
+                            <div class="p-3 border rounded-3 bg-white mb-2 @(selectedAction == act.Key ? "border-dark shadow-sm" : "")"
+                                 role="button"
+                                 @onclick="() => SelectAction(act.Key)">
+                                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input type="radio" name="action-choice" checked="@(selectedAction == act.Key)" class="form-check-input mt-0" />
+                                        <h3 class="h6 mb-0">@act.Title</h3>
+                                    </div>
+                                    <span class="decision-action-tag @act.Tone">@act.Tag</span>
+                                </div>
+                                <p class="small text-muted mb-2">@act.Description</p>
+                                <div class="row g-2 small pt-2 border-top">
+                                    <div class="col-md-6">
+                                        <strong class="text-success"><i class="ti ti-check me-1"></i>Advantages:</strong>
+                                        <ul class="ps-3 mb-0 text-muted">
+                                            @foreach (var adv in act.Advantages)
+                                            {
+                                                <li>@adv</li>
+                                            }
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong class="text-secondary"><i class="ti ti-scale me-1"></i>Trade-offs:</strong>
+                                        <ul class="ps-3 mb-0 text-muted">
+                                            @foreach (var trade in act.TradeOffs)
+                                            {
+                                                <li>@trade</li>
+                                            }
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="mt-2 pt-2 border-top small text-muted">
+                                    <em>Suitability: @act.SuitabilityRationale</em>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="d-flex justify-content-between gap-3 mt-4">
+                        <button class="btn btn-outline-dark rounded-3 px-4" @onclick="() => GoToScreen(5)"><i class="ti ti-arrow-left me-1"></i>Back</button>
+                        <button class="btn btn-dark rounded-3 px-4" @onclick="() => GoToScreen(7)">Calculate Scenarios <i class="ti ti-arrow-right ms-1"></i></button>
+                    </div>
+                }
+                else if (screen == 7)
+                {
+                    <!-- SCREEN 7: SCENARIOS -->
+                    <div class="decision-screen-heading">
+                        <span class="decision-screen-number">07</span>
+                        <div>
+                            <p class="decision-panel-kicker mb-1">Step 7 · Scenario Branches</p>
+                            <h2>Deterministic financial branches for @ActiveTargetLabel</h2>
+                            <p class="text-muted mb-0">Inspect how your selected action performs across recovery, steady, and stress branches.</p>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Parameter Inputs -->
+                    <div class="p-3 border rounded-3 bg-white mt-4">
+                        <h3 class="h6 mb-3"><i class="ti ti-adjustments me-1"></i>Model Assumptions</h3>
+                        <div class="row g-3">
+                            <div class="col-md-4 omm-form-field">
+                                <label class="omm-form-label" for="calc-price">Sample Share Price (RM)</label>
+                                <input id="calc-price" type="number" step="0.01" class="form-control omm-input" @bind="calcPrice" @bind:after="RecalculateScenarios" />
+                                <p class="omm-form-help">Current reference share price.</p>
+                            </div>
+                            <div class="col-md-4 omm-form-field">
+                                <label class="omm-form-label" for="calc-dividend">Annual Dividend / Share (RM)</label>
+                                <input id="calc-dividend" type="number" step="0.01" class="form-control omm-input" @bind="calcDividend" @bind:after="RecalculateScenarios" />
+                                <p class="omm-form-help">Expected annual distribution.</p>
+                            </div>
+                            <div class="col-md-4 omm-form-field">
+                                <label class="omm-form-label" for="calc-stress">Stress Test Severity</label>
+                                <select id="calc-stress" class="form-select omm-input" @bind="stressAdjustment" @bind:after="RecalculateScenarios">
+                                    <option value="0">Standard Historical Stress (-12%)</option>
+                                    <option value="5">Moderate Stress (-17%)</option>
+                                    <option value="10">Severe Stress (-22%)</option>
+                                </select>
+                                <p class="omm-form-help">Simulate deeper market downside.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Scenario Outcome Cards -->
+                    <div class="decision-outcome-grid mt-4">
+                        @foreach (var branch in scenarios)
+                        {
+                            <article class="decision-outcome-card @branch.Tone">
+                                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                    <span class="decision-outcome-label"><i class="@branch.Icon me-1"></i>@branch.Title</span>
+                                    <span class="decision-probability">@branch.Label</span>
+                                </div>
+                                <div class="d-flex align-items-baseline gap-2 mb-2">
+                                    <h3 class="mb-0">RM@branch.TargetSharePrice.ToString("F2")</h3>
+                                    <span class="fw-bold @(branch.EstimatedTotalReturnPercent >= 0 ? "text-success" : "text-danger")">
+                                        @(branch.EstimatedTotalReturnPercent >= 0 ? "+" : "")@branch.EstimatedTotalReturnPercent.ToString("F1")% total return
+                                    </span>
+                                </div>
+                                <p class="mb-2">@branch.Description</p>
+                                <div class="small text-muted mb-2">
+                                    <strong>Dividend buffer:</strong> RM@branch.DividendForecastPerShare.ToString("F2") / share
+                                </div>
+                                <div class="decision-outcome-footer">
+                                    <span>Monitor:</span>
+                                    <strong>@branch.WhatToMonitor</strong>
+                                </div>
                             </article>
                         }
                     </div>
 
+                    <!-- Fork What-If Scenario -->
                     <div class="decision-fork-card mt-4">
                         <div class="d-flex gap-3 align-items-start">
                             <span class="decision-fork-icon"><i class="ti ti-git-branch"></i></span>
                             <div class="flex-grow-1">
-                                <h3 class="h6 mb-1">Create a “what if” branch</h3>
-                                <p class="small text-muted mb-3">Test another assumption without losing this pathway.</p>
+                                <h3 class="h6 mb-1">Create a "What If" branch</h3>
+                                <p class="small text-muted mb-3">Simulate an alternative assumption without losing your base calculation.</p>
                                 <div class="d-flex flex-wrap gap-2">
-                                    <button class="btn btn-sm btn-outline-dark rounded-3" @onclick="ForkScenario">What if price reaches RM9.50?</button>
-                                    <button class="btn btn-sm btn-outline-dark rounded-3" @onclick="ForkScenario">What if dividend is RM0.10?</button>
+                                    <button class="btn btn-sm btn-outline-dark rounded-3" @onclick="() => ForkWithAdjustment(5)">
+                                        What if price drops an extra 5%?
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-dark rounded-3" @onclick="() => ForkWithDividend(0.20m)">
+                                        What if dividend is cut to RM0.20?
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-dark rounded-3" @onclick="() => ForkWithDividend(0.40m)">
+                                        What if dividend increases to RM0.40?
+                                    </button>
                                 </div>
                                 @if (branchCreated)
                                 {
-                                    <p class="small text-success mb-0 mt-3"><i class="ti ti-check me-1"></i>New branch added to your pathway.</p>
+                                    <p class="small text-success mb-0 mt-3"><i class="ti ti-check me-1"></i>Custom branch recalculation updated above.</p>
                                 }
                             </div>
                         </div>
                     </div>
 
                     <div class="d-flex justify-content-between gap-3 mt-4">
-                        <button class="btn btn-outline-dark rounded-3 px-4" @onclick="() => GoToScreen(2)"><i class="ti ti-arrow-left me-1"></i>Change path</button>
-                        <button class="btn btn-dark rounded-3 px-4" @onclick="SavePlan"><i class="ti ti-calendar-event me-1"></i>Set a checkpoint</button>
+                        <button class="btn btn-outline-dark rounded-3 px-4" @onclick="() => GoToScreen(6)"><i class="ti ti-arrow-left me-1"></i>Back</button>
+                        <button class="btn btn-dark rounded-3 px-4" @onclick="() => GoToScreen(8)">Establish Checkpoint <i class="ti ti-arrow-right ms-1"></i></button>
                     </div>
+                }
+                else
+                {
+                    <!-- SCREEN 8: MONITORING CHECKPOINT -->
+                    <div class="decision-screen-heading">
+                        <span class="decision-screen-number">08</span>
+                        <div>
+                            <p class="decision-panel-kicker mb-1">Step 8 · Monitoring Checkpoint</p>
+                            <h2>Lock in your review triggers and remove anxiety.</h2>
+                            <p class="text-muted mb-0">A disciplined investor sets rules in advance so market fluctuations do not provoke emotional mistakes.</p>
+                        </div>
+                    </div>
+
+                    <div class="decision-path-banner mt-4">
+                        <div class="d-flex align-items-start gap-3">
+                            <span class="decision-option-icon tone-gold"><i class="ti ti-calendar-event"></i></span>
+                            <div class="flex-grow-1">
+                                <p class="decision-panel-kicker mb-1">Monitoring Protocol</p>
+                                <h3 class="h5 mb-1">@checkpoint.Title</h3>
+                                <p class="small text-muted mb-0">Review horizon: @checkpoint.ReviewHorizon</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-4 border rounded-3 bg-white mt-4">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <h4 class="h6 mb-2 text-muted text-uppercase tracking-wider">Trigger Condition</h4>
+                                <div class="p-3 bg-light rounded-3">
+                                    <p class="mb-0 fw-semibold"><i class="ti ti-bell me-2 text-warning"></i>@checkpoint.TriggerCondition</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h4 class="h6 mb-2 text-muted text-uppercase tracking-wider">Key Metric to Track</h4>
+                                <div class="p-3 bg-light rounded-3">
+                                    <p class="mb-0 fw-semibold"><i class="ti ti-activity me-2 text-primary"></i>@checkpoint.MetricToTrack</p>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <h4 class="h6 mb-2 text-muted text-uppercase tracking-wider">Action Rule If Triggered</h4>
+                                <div class="p-3 bg-light rounded-3 border-start border-4 border-success">
+                                    <p class="mb-0"><i class="ti ti-player-play me-2 text-success"></i>@checkpoint.ActionIfTriggered</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between gap-3 mt-4">
+                        <button class="btn btn-outline-dark rounded-3 px-4" @onclick="() => GoToScreen(7)"><i class="ti ti-arrow-left me-1"></i>Back to Scenarios</button>
+                        <button class="btn btn-dark rounded-3 px-4" @onclick="SavePlan" disabled="@planSaved">
+                            <i class="ti ti-bookmark me-1"></i>@(planSaved ? "Checkpoint Recorded" : "Save Decision Plan")
+                        </button>
+                    </div>
+
                     @if (planSaved)
                     {
-                        <div class="alert alert-success mt-3 mb-0 small"><i class="ti ti-check me-1"></i>Prototype checkpoint saved for review in 7 days.</div>
+                        <div class="alert alert-success mt-3 mb-0 small animate-fade-in">
+                            <i class="ti ti-circle-check me-2 fs-5 align-middle"></i>
+                            <strong>Decision pathway saved.</strong> Your disciplined monitoring checkpoint has been recorded. Review this position when the trigger condition is met or at the horizon review date.
+                        </div>
                     }
                 }
             </section>
@@ -257,88 +676,231 @@
 
 @code {
     private int screen = 1;
-    private string selectedConcern = "price";
-    private string selectedAction = "trim";
-    private string horizon = "Days to weeks";
-    private string assumption = "Price may fall below RM9.50";
-    private bool branchCreated;
-    private bool planSaved;
-    private bool isInterpreting;
     private string memberQuestion = string.Empty;
+    private bool isInterpreting;
     private InquiryIntentResult? intentResult;
 
-    private int CurrentStep => screen;
-    private string ConcernLabel => Concerns.FirstOrDefault(item => item.Key == selectedConcern)?.Title ?? "Choose a concern";
-    private string DecisionLabel => Actions.FirstOrDefault(item => item.Key == selectedAction)?.Title ?? "Choose an action";
-    private string ScenarioLabel => branchCreated ? "3 branches" : "2 branches";
+    private SignalTemplate? selectedSignal;
+    private SignalCategory? activeCategoryFilter;
+    private string selectedConcern = "price_drop";
+    private string selectedScope = "individual_stock";
+    private string selectedObjective = "income";
+    private string selectedAction = "hold";
+    private string targetSecurity = "Maybank (1155)";
+    private string targetSector = "Financial Services";
+
+    // Scenario inputs
+    private decimal calcPrice = 9.87m;
+    private decimal calcDividend = 0.31m;
+    private int stressAdjustment = 0;
+    private bool branchCreated;
+    private bool planSaved;
+
+    // Computed domain models
+    private IReadOnlyList<SignalTemplate> allSignals = [];
+    private IReadOnlyList<MemberConcernOption> Concerns = [];
+    private IReadOnlyList<ScopeOption> Scopes = [];
+    private IReadOnlyList<ObjectiveOption> Objectives = [];
+    private ImpactMapResult impactMap = null!;
+    private IReadOnlyList<ActionOption> evaluatedOptions = [];
+    private IReadOnlyList<ScenarioBranch> scenarios = [];
+    private MonitoringCheckpoint checkpoint = null!;
+
+    protected override void OnInitialized()
+    {
+        allSignals = DecisionEngine.GetCuratedSignals();
+        Concerns = DecisionEngine.GetConcerns();
+        Scopes = DecisionEngine.GetScopes();
+        Objectives = DecisionEngine.GetObjectives();
+
+        selectedSignal = allSignals[0];
+        targetSecurity = selectedSignal.DefaultSecurity;
+        targetSector = selectedSignal.DefaultSector;
+        selectedConcern = selectedSignal.DefaultConcern;
+        selectedScope = selectedSignal.DefaultScope;
+        selectedObjective = selectedSignal.DefaultObjective;
+
+        RefreshCalculations();
+    }
+
+    private IEnumerable<SignalTemplate> FilteredSignals =>
+        activeCategoryFilter.HasValue
+            ? allSignals.Where(s => s.Category == activeCategoryFilter.Value)
+            : allSignals;
+
+    private string ActiveTargetLabel =>
+        !string.IsNullOrWhiteSpace(targetSecurity) ? targetSecurity : (!string.IsNullOrWhiteSpace(targetSector) ? targetSector : "Portfolio");
+
+    private string SignalShortLabel => selectedSignal?.Category.ToString() ?? "Input";
+    private string ConcernShortLabel => Concerns.FirstOrDefault(c => c.Key == selectedConcern)?.Title ?? "Concern";
+    private string ScopeShortLabel => Scopes.FirstOrDefault(s => s.Key == selectedScope)?.Title ?? "Scope";
+    private string ObjectiveShortLabel => Objectives.FirstOrDefault(o => o.Key == selectedObjective)?.Title ?? "Objective";
+    private string ActionShortLabel => evaluatedOptions.FirstOrDefault(a => a.Key == selectedAction)?.Title ?? "Hold";
+    private string ScenarioShortLabel => branchCreated ? "Customized" : "3 Branches";
 
     private async Task InterpretQuestionAsync()
     {
+        if (string.IsNullOrWhiteSpace(memberQuestion)) return;
+
         isInterpreting = true;
-        intentResult = await IntentInterpreter.InterpretAsync(memberQuestion);
-        isInterpreting = false;
+        try
+        {
+            intentResult = await IntentInterpreter.InterpretAsync(memberQuestion);
+            if (intentResult.IsAvailable)
+            {
+                // Match to curated template and pre-populate parameters
+                var matched = DecisionEngine.MatchSignalFromAi(intentResult);
+                selectedSignal = matched;
+
+                if (!string.IsNullOrWhiteSpace(intentResult.MentionedSecurity))
+                    targetSecurity = intentResult.MentionedSecurity;
+                else
+                    targetSecurity = matched.DefaultSecurity;
+
+                if (!string.IsNullOrWhiteSpace(intentResult.MentionedSector))
+                    targetSector = intentResult.MentionedSector;
+                else
+                    targetSector = matched.DefaultSector;
+
+                selectedConcern = matched.DefaultConcern;
+                selectedScope = matched.DefaultScope;
+                selectedObjective = matched.DefaultObjective;
+
+                RefreshCalculations();
+            }
+        }
+        finally
+        {
+            isInterpreting = false;
+        }
     }
 
-    private static readonly IReadOnlyList<ConcernOption> Concerns =
-    [
-        new("price", "Price moved sharply", "A sudden rise or fall has changed your view.", "ti ti-chart-candle", "tone-red"),
-        new("dividend", "Dividend or company news", "A payout, project, or announcement needs context.", "ti ti-building-bank", "tone-gold"),
-        new("market", "Market or policy event", "A rate decision or global signal may affect you.", "ti ti-world", "tone-blue"),
-        new("decision", "Buy, hold, trim, or sell?", "You have an action in mind but want to compare paths.", "ti ti-arrows-exchange", "tone-green")
-    ];
+    private void SelectSignalTemplate(SignalTemplate sig)
+    {
+        selectedSignal = sig;
+        memberQuestion = sig.SampleQuery;
+        targetSecurity = sig.DefaultSecurity;
+        targetSector = sig.DefaultSector;
+        selectedConcern = sig.DefaultConcern;
+        selectedScope = sig.DefaultScope;
+        selectedObjective = sig.DefaultObjective;
+        RefreshCalculations();
+    }
 
-    private static readonly IReadOnlyList<ActionOption> Actions =
-    [
-        new("hold", "Hold for the dividend", "Keep exposure and preserve eligibility for the sample payout.", "Income", "tag-blue"),
-        new("trim", "Trim partially", "Reduce downside exposure while keeping some upside participation.", "Balanced", "tag-gold"),
-        new("sell", "Sell all", "Move to cash and protect against a short-term decline.", "Defensive", "tag-red"),
-        new("monitor", "Wait and monitor", "Set a checkpoint before committing to a trade.", "Patient", "tag-green")
-    ];
-
-    private static readonly IReadOnlyList<OutcomeOption> Outcomes =
-    [
-        new("Bullish path", "ti ti-trending-up", "Upward recovery", "A stronger market or positive company update supports the share price.", "RM10.50–RM12.00", "tone-green", "Project updates and sector momentum"),
-        new("Base path", "ti ti-minus", "Dividend offsets some movement", "The announcement is close to expectations and price movement remains contained.", "Around RM9.87", "tone-blue", "Dividend confirmation and ex-date price"),
-        new("Bearish path", "ti ti-trending-down", "Cash protects flexibility", "The project or wider market weighs on sentiment and the price moves lower.", "Below RM9.50", "tone-red", "Market trend and buyback level")
-    ];
+    private void FilterCategory(SignalCategory? cat) => activeCategoryFilter = cat;
 
     private void SelectConcern(string key)
     {
         selectedConcern = key;
-        screen = 1;
+        RefreshCalculations();
+    }
+
+    private void SelectConcernAndProceed(string key)
+    {
+        selectedConcern = key;
+        RefreshCalculations();
+        GoToScreen(2);
+    }
+
+    private void SelectScope(string key)
+    {
+        selectedScope = key;
+        RefreshCalculations();
+    }
+
+    private void SelectObjective(string key)
+    {
+        selectedObjective = key;
+        RefreshCalculations();
     }
 
     private void SelectAction(string key)
     {
         selectedAction = key;
-        screen = 2;
+        RefreshCalculations();
     }
 
     private void GoToScreen(int nextScreen)
     {
-        if (nextScreen == 2 && string.IsNullOrEmpty(selectedConcern)) return;
-        if (nextScreen == 3 && string.IsNullOrEmpty(selectedAction)) return;
-        screen = Math.Clamp(nextScreen, 1, 3);
+        screen = Math.Clamp(nextScreen, 1, 8);
     }
 
-    private void ForkScenario() => branchCreated = true;
+    private void RecalculateScenarios()
+    {
+        RefreshCalculations();
+    }
 
-    private void SavePlan() => planSaved = true;
+    private void ForkWithAdjustment(int extraStress)
+    {
+        stressAdjustment = extraStress;
+        branchCreated = true;
+        RefreshCalculations();
+    }
+
+    private void ForkWithDividend(decimal newDividend)
+    {
+        calcDividend = newDividend;
+        branchCreated = true;
+        RefreshCalculations();
+    }
+
+    private void SavePlan()
+    {
+        planSaved = true;
+    }
 
     private void ResetPathway()
     {
         screen = 1;
-        selectedConcern = "price";
-        selectedAction = "trim";
-        horizon = "Days to weeks";
-        assumption = "Price may fall below RM9.50";
-        branchCreated = false;
-        planSaved = false;
         memberQuestion = string.Empty;
         intentResult = null;
+        branchCreated = false;
+        planSaved = false;
+        stressAdjustment = 0;
+        calcPrice = 9.87m;
+        calcDividend = 0.31m;
+        selectedSignal = allSignals.FirstOrDefault();
+        if (selectedSignal != null)
+        {
+            targetSecurity = selectedSignal.DefaultSecurity;
+            targetSector = selectedSignal.DefaultSector;
+            selectedConcern = selectedSignal.DefaultConcern;
+            selectedScope = selectedSignal.DefaultScope;
+            selectedObjective = selectedSignal.DefaultObjective;
+        }
+        RefreshCalculations();
     }
 
-    private sealed record ConcernOption(string Key, string Title, string Description, string Icon, string Tone);
-    private sealed record ActionOption(string Key, string Title, string Description, string Tag, string Tone);
-    private sealed record OutcomeOption(string Title, string Icon, string Result, string Description, string Label, string Tone, string Monitor);
+    private void RefreshCalculations()
+    {
+        var category = selectedSignal?.Category ?? SignalCategory.IndividualStock;
+        impactMap = DecisionEngine.BuildImpactMap(category, selectedConcern, selectedScope, targetSecurity, targetSector);
+        evaluatedOptions = DecisionEngine.EvaluateActionOptions(selectedObjective, selectedConcern);
+
+        var calcInput = new ScenarioCalculationInput(calcPrice, calcDividend, null, "Several months", stressAdjustment);
+        scenarios = DecisionEngine.CalculateScenarios(calcInput, selectedAction);
+        checkpoint = DecisionEngine.GenerateCheckpoint(targetSecurity, selectedAction, "Several months");
+    }
+
+    private static string GetCategoryTone(SignalCategory cat) => cat switch
+    {
+        SignalCategory.IndividualStock => "tone-blue",
+        SignalCategory.Sector => "tone-gold",
+        SignalCategory.MalaysianMarket => "tone-green",
+        SignalCategory.GlobalEconomy => "tone-red",
+        SignalCategory.PortfolioDecision => "tone-purple",
+        SignalCategory.Opportunity => "tone-green",
+        _ => "tone-blue"
+    };
+
+    private static string GetCategoryIcon(SignalCategory cat) => cat switch
+    {
+        SignalCategory.IndividualStock => "ti ti-building-bank",
+        SignalCategory.Sector => "ti ti-category",
+        SignalCategory.MalaysianMarket => "ti ti-flag",
+        SignalCategory.GlobalEconomy => "ti ti-world",
+        SignalCategory.PortfolioDecision => "ti ti-chart-pie",
+        SignalCategory.Opportunity => "ti ti-bulb",
+        _ => "ti ti-sparkles"
+    };
 }

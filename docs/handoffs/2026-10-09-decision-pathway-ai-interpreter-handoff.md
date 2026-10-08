@@ -204,3 +204,42 @@ Also inspect whether Gemma and Gemini models accept the same `systemInstruction`
 - Preserve scaffolded Identity components.
 - Do not commit or push without user approval.
 - `git diff --stat` omits untracked files; use `git status --short` too.
+
+---
+
+## Resolution and implementation update (2026-10-09)
+
+### 1. Root cause diagnosed
+- **Google Generative Language API Schema Rejection (HTTP 400)**: The original `GoogleAiIntentInterpreter` sent nullable schema fields formatted as JSON schema arrays: `type: ["string", "null"]`. Google's Protobuf Schema specification expects `type` as an enum value (`type: "string"`), not a repeated list, and supports nullability via `nullable: true`. This caused every model in the fallback queue to return `HTTP 400 INVALID_ARGUMENT: Proto field is not repeating, cannot start list`.
+- **Model Lifecycle**: `gemini-2.5-flash-lite` was sunsetted by Google for new users (returning `HTTP 404 NOT_FOUND: no longer available to new users`).
+- **Gemma Backend Flakiness**: `gemma-4-31b-it` occasionally returns `HTTP 500 INTERNAL` on Google's backend, making reliable fallback to `gemini-flash-lite-latest` and `gemini-2.5-flash` essential.
+
+### 2. Code changes applied
+- **Schema fix**: Corrected nullable fields in `GoogleAiIntentInterpreter.BuildRequest` to `type = "string", nullable = true`.
+- **Defensive parsing**: Multi-part response text is concatenated (`string.Concat(parts.Select(p => p.Text))`) and cleaned of markdown fences (`CleanJson`) before deserialization into `InquiryIntentPayload`.
+- **Fast auth error exit**: HTTP 401/403 breaks the retry loop immediately rather than wasting time retrying invalid credentials.
+- **Model order**: Updated `GoogleAi:Models` in `OMM.Public/appsettings.json` and `OMM.Admin/appsettings.json` to:
+  1. `gemma-4-31b-it`
+  2. `gemini-flash-lite-latest`
+  3. `gemini-2.5-flash`
+- **8-step deterministic decision engine**: Implemented `IDeterministicDecisionEngine` / `DeterministicDecisionEngine` and models in `OMM.Shared.DecisionSupport`:
+  1. **Signal**: AI classification + curated templates for all 6 categories (individual stocks, sectors, Malaysian market events, global economic events, portfolio decisions, opportunity discovery).
+  2. **Member Concern**: Price drop, dividend security, macro shock, concentration, opportunity.
+  3. **Scope**: Individual stock, sector, Malaysian market (KLCI), global economy, entire portfolio.
+  4. **Objective**: Capital preservation, maximize income, balanced realignment, accumulate quality, patient observation.
+  5. **Impact Map**: 4-stage deterministic transmission (Trigger $\rightarrow$ Transmission $\rightarrow$ Corporate Impact $\rightarrow$ Market Pricing) with vulnerabilities and resilience factors.
+  6. **Options**: Action comparison matrix (Hold, Trim, Sell, Accumulate, Set Checkpoint) with trade-offs and suitability ratings.
+  7. **Scenario Branches**: Interactive financial branches (Bullish, Base, Bearish) with explicit deterministic calculations (target price, dividend forecast, total return %, monitor items) and What-If branch creation.
+  8. **Monitoring Checkpoint**: Advance trigger rules, review horizon, and actionable protocols to eliminate emotional trading.
+- **Public UI**: Overhauled `OMM.Public/Components/Pages/DecisionPathway.razor` into the full 8-step stepper with interactive navigation, model adjustments, and reset capability.
+
+### 3. Verification
+- Direct Google API tests confirmed `HTTP 200` responses and valid JSON payloads across models using `nullable: true`.
+- Live browser test on `/decision-pathway` successfully interpreted `"US FED increases interest rates by 0.25 points. What could happen to Maybank?"`, rendering the `is-ready` state with classified entities, intent, confidence (95%), and next question.
+- Both `OMM.Public` and `OMM.Admin` build with 0 errors and 0 warnings.
+- No API keys were logged, exposed, or committed.
+
+### 4. Remaining work
+- Connect optional live portfolio holdings from `ApplicationDbContext` (when member is logged in) to pre-fill actual shares owned in Step 7.
+- Add optional email notification dispatch when a saved checkpoint review date is reached.
+

@@ -120,9 +120,9 @@ if (app.Logger.IsEnabled(LogLevel.Information))
 
 app.UseForwardedHeaders();
 
-if (app.Environment.IsDevelopment())
+await app.TryInitializeDatabaseAsync<ApplicationDbContext>(async services =>
 {
-    await app.TryInitializeDatabaseAsync<ApplicationDbContext>(services =>
+    if (app.Environment.IsDevelopment())
     {
         var dbContext = services.GetRequiredService<ApplicationDbContext>();
         var stockDataPath = Path.Combine(
@@ -131,13 +131,9 @@ if (app.Environment.IsDevelopment())
             "data",
             "klse-stocks.json");
 
-        return StockDataSeeder.SeedAsync(dbContext, stockDataPath);
-    });
-}
-else
-{
-    await app.TryCheckDatabaseAsync<ApplicationDbContext>();
-}
+        await StockDataSeeder.SeedAsync(dbContext, stockDataPath);
+    }
+});
 
 await using (var scope = app.Services.CreateAsyncScope())
 {

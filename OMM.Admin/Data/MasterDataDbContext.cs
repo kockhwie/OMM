@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using OMM.Shared.DecisionSupport;
+using OMM.Shared.Models;
 using OMM.Shared.Models.MasterData;
+
 
 namespace OMM.Admin.Data;
 
@@ -14,6 +16,8 @@ public class MasterDataDbContext(DbContextOptions<MasterDataDbContext> options) 
     public DbSet<Institution> Institutions => Set<Institution>();
     public DbSet<Stock> Stocks => Set<Stock>();
     public DbSet<SignalTemplate> DecisionSignalTemplates => Set<SignalTemplate>();
+    public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -103,6 +107,16 @@ public class MasterDataDbContext(DbContextOptions<MasterDataDbContext> options) 
             entity.Property(e => e.CreatedByUserId).HasColumnType("text");
             entity.Property(e => e.ModifiedByUserId).HasColumnType("text");
             entity.Property(e => e.DeletedByUserId).HasColumnType("text");
+        });
+
+        modelBuilder.Entity<SystemSetting>(entity =>
+        {
+            entity.ToTable("SystemSetting", "public");
+            entity.HasKey(e => e.Key);
+            entity.Property(e => e.Key).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Value).HasColumnType("text").IsRequired();
+            entity.Property(e => e.Description).HasColumnType("text");
+            entity.Property(e => e.ModifiedByUserId).HasColumnType("text");
         });
     }
 }

@@ -1,18 +1,26 @@
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.Extensions.Hosting
 @using OMM.Public.Data
+@using OMM.Shared.Infrastructure.Settings
 
 @inject SignInManager<ApplicationUser> SignInManager
 @inject IdentityRedirectManager RedirectManager
+@inject ISystemSettingsService SystemSettingsService
+@inject IHostEnvironment HostEnvironment
 
 @if (externalLogins.Length == 0)
 {
-    <div>
-        <p>
-            There are no external authentication services configured. See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">article
-            about setting up this ASP.NET application to support logging in via external services</a>.
-        </p>
-    </div>
+    @* Preserve scaffolded template note in Development, but avoid showing developer guidance to public users in Production *@
+    @if (HostEnvironment.IsDevelopment())
+    {
+        <div>
+            <p class="text-muted small">
+                There are no external authentication services configured or enabled. See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">article
+                about setting up this ASP.NET application to support logging in via external services</a>.
+            </p>
+        </div>
+    }
 }
 else
 {
@@ -62,6 +70,10 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        externalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToArray();
+        var isGoogleEnabled = await SystemSettingsService.IsGoogleAuthEnabledAsync();
+        var schemes = await SignInManager.GetExternalAuthenticationSchemesAsync();
+        externalLogins = schemes
+            .Where(scheme => !string.Equals(scheme.Name, "Google", StringComparison.OrdinalIgnoreCase) || isGoogleEnabled)
+            .ToArray();
     }
 }

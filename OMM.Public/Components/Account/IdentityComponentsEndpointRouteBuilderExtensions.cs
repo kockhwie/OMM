@@ -9,7 +9,7 @@ using OMM.Public.Components.Account.Pages;
 using OMM.Public.Components.Account.Pages.Manage;
 using OMM.Public.Data;
 using System.Security.Claims;
-using System.Text.Json;
+using OMM.Shared.Infrastructure.Settings;
 
 namespace Microsoft.AspNetCore.Routing;
 
@@ -22,12 +22,23 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
 
         var accountGroup = endpoints.MapGroup("/Account");
 
-        accountGroup.MapPost("/PerformExternalLogin", (
+        accountGroup.MapPost("/PerformExternalLogin", async (
             HttpContext context,
             [FromServices] SignInManager<ApplicationUser> signInManager,
+            [FromServices] ISystemSettingsService systemSettings,
             [FromForm] string provider,
             [FromForm] string returnUrl) =>
         {
+            if (string.Equals(provider, "Google", StringComparison.OrdinalIgnoreCase) &&
+                !await systemSettings.IsGoogleAuthEnabledAsync(context.RequestAborted))
+            {
+                var failureRedirect = UriHelper.BuildRelative(
+                    context.Request.PathBase,
+                    "/Account/Login",
+                    QueryString.Create("error", "Google authentication is currently disabled by administrator."));
+                return TypedResults.LocalRedirect(failureRedirect);
+            }
+
             IEnumerable<KeyValuePair<string, StringValues>> query = [
                 new("ReturnUrl", returnUrl),
                 new("Action", ExternalLogin.LoginCallbackAction)];

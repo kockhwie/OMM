@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using OMM.Shared.DecisionSupport;
+using OMM.Shared.Models;
 using OMM.Shared.Models.MasterData;
 
 namespace OMM.Public.Data;
@@ -18,6 +19,7 @@ public partial class ApplicationDbContext(DbContextOptions<ApplicationDbContext>
     public DbSet<Stock> Stocks => Set<Stock>();
     public DbSet<DecisionPathwayRecord> DecisionPathways => Set<DecisionPathwayRecord>();
     public DbSet<SignalTemplate> DecisionSignalTemplates => Set<SignalTemplate>();
+    public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -53,6 +55,16 @@ public partial class ApplicationDbContext(DbContextOptions<ApplicationDbContext>
             entity.Property(e => e.DeletedByUserId).HasColumnType("text");
             entity.HasQueryFilter(e => !e.IsDeleted);
             entity.HasIndex(e => new { e.IsActive, e.SortOrder });
+        });
+
+        modelBuilder.Entity<SystemSetting>(entity =>
+        {
+            entity.ToTable("SystemSetting");
+            entity.HasKey(e => e.Key);
+            entity.Property(e => e.Key).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Value).HasColumnType("text").IsRequired();
+            entity.Property(e => e.Description).HasColumnType("text");
+            entity.Property(e => e.ModifiedByUserId).HasColumnType("text");
         });
 
         modelBuilder.Entity<Country>(entity =>

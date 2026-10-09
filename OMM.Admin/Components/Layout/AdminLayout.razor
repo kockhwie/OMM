@@ -52,6 +52,10 @@
                 <i class="ti ti-mail-check"></i>
                 <span class="sidebar-label">Test Email</span>
             </NavLink>
+            <NavLink class="sidebar-link" href="admin/settings" data-bs-toggle="tooltip" data-bs-placement="right" title="Settings">
+                <i class="ti ti-settings"></i>
+                <span class="sidebar-label">Settings</span>
+            </NavLink>
         </nav>
 
         <div class="admin-sidebar-footer p-3 border-top">
@@ -124,6 +128,10 @@
                     <NavLink class="sidebar-link" href="admin/email-test" @onclick="ToggleMobileNav">
                         <i class="ti ti-mail-check"></i>
                         <span>Test Email</span>
+                    </NavLink>
+                    <NavLink class="sidebar-link" href="admin/settings" @onclick="ToggleMobileNav">
+                        <i class="ti ti-settings"></i>
+                        <span>Settings</span>
                     </NavLink>
                 </nav>
                 <div class="admin-sidebar-footer p-3 border-top">

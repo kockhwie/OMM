@@ -11,6 +11,7 @@ using OMM.Public.Services;
 using OMM.Shared.Database;
 using OMM.Shared.Infrastructure;
 using OMM.Shared.Infrastructure.Email;
+using OMM.Shared.Infrastructure.Settings;
 using OMM.Shared.DecisionSupport;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -105,6 +106,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 
 builder.Services.AddSharedIdentityEmail<ApplicationUser>(builder.Configuration);
 builder.Services.AddSharedDecisionSupport(builder.Configuration);
+builder.Services.AddSharedSystemSettings();
 builder.Services.AddSingleton<IKlseStockLookupService, KlseStockLookupService>();
 
 var app = builder.Build();

@@ -258,8 +258,8 @@
                     </div>
 
                     <!-- Curated Signals Picker -->
-                    <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-3 mt-4">
-                        <h3 class="h6 mb-0">Or choose a question starter</h3>
+                    <div class="align-items-lg-center justify-content-between gap-3 mb-3 mt-3">
+                        <h3 class="h6 mb-2">Or choose a question starter</h3>
                         <div class="d-flex flex-wrap gap-1 align-items-center" role="group" aria-label="Filter question starters by category">
                             <button type="button" class="btn btn-sm rounded-3 fw-medium px-3 py-2 @(activeCategoryFilter == null ? "btn-dark text-white" : "btn-outline-secondary bg-white text-dark border-light-subtle")" aria-pressed="@(activeCategoryFilter == null ? "true" : "false")" @onclick="() => FilterCategory(null)">All</button>
                             <button type="button" class="btn btn-sm rounded-3 fw-medium px-3 py-2 @(activeCategoryFilter == SignalCategory.IndividualStock ? "btn-dark text-white" : "btn-outline-secondary bg-white text-dark border-light-subtle")" aria-pressed="@(activeCategoryFilter == SignalCategory.IndividualStock ? "true" : "false")" @onclick="() => FilterCategory(SignalCategory.IndividualStock)">Stocks</button>

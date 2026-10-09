@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using OMM.Shared.DecisionSupport;
 using OMM.Shared.Models.MasterData;
 
 namespace OMM.Admin.Data;
@@ -12,10 +13,33 @@ public class MasterDataDbContext(DbContextOptions<MasterDataDbContext> options) 
     public DbSet<SubSector> SubSectors => Set<SubSector>();
     public DbSet<Institution> Institutions => Set<Institution>();
     public DbSet<Stock> Stocks => Set<Stock>();
+    public DbSet<SignalTemplate> DecisionSignalTemplates => Set<SignalTemplate>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<SignalTemplate>(entity =>
+        {
+            entity.ToTable("DecisionSignalTemplate", "public");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasMaxLength(100);
+            entity.Property(e => e.Category).HasConversion<string>().HasMaxLength(40);
+            entity.Property(e => e.Title).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Description).HasMaxLength(600).IsRequired();
+            entity.Property(e => e.SampleQuery).HasMaxLength(1000).IsRequired();
+            entity.Property(e => e.DefaultSecurity).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.DefaultSector).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.DefaultConcern).HasMaxLength(60).IsRequired();
+            entity.Property(e => e.DefaultScope).HasMaxLength(60).IsRequired();
+            entity.Property(e => e.DefaultObjective).HasMaxLength(60).IsRequired();
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.CreatedByUserId).HasColumnType("text");
+            entity.Property(e => e.ModifiedByUserId).HasColumnType("text");
+            entity.Property(e => e.DeletedByUserId).HasColumnType("text");
+            entity.HasQueryFilter(e => !e.IsDeleted);
+            entity.HasIndex(e => new { e.IsActive, e.SortOrder });
+        });
 
         modelBuilder.Entity<Country>(entity =>
         {

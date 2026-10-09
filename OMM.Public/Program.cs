@@ -35,6 +35,7 @@ builder.Services.AddScoped<IMinerProfileService, MinerProfileService>();
 builder.Services.AddScoped<IOnboardingService, OnboardingService>();
 builder.Services.AddScoped<PublicMemberMigrationService>();
 builder.Services.AddScoped<IDecisionPathwayStore, EfDecisionPathwayStore>();
+builder.Services.AddScoped<IDecisionSignalCatalog, EfDecisionSignalCatalog>();
 builder.Services.AddMemoryCache();
 builder.Services.AddDatabaseAvailability();
 builder.Services.AddDatabaseAlerting(builder.Configuration);
@@ -108,11 +109,14 @@ builder.Services.AddSingleton<IKlseStockLookupService, KlseStockLookupService>()
 
 var app = builder.Build();
 
-app.Logger.LogInformation(
-    "Google external authentication {GoogleAuthenticationStatus}. Client ID configured: {ClientIdConfigured}; client secret configured: {ClientSecretConfigured}.",
-    googleAuthenticationConfigured ? "registered" : "not registered",
-    !string.IsNullOrWhiteSpace(googleClientId),
-    !string.IsNullOrWhiteSpace(googleClientSecret));
+if (app.Logger.IsEnabled(LogLevel.Information))
+{
+    app.Logger.LogInformation(
+        "Google external authentication {GoogleAuthenticationStatus}. Client ID configured: {ClientIdConfigured}; client secret configured: {ClientSecretConfigured}.",
+        googleAuthenticationConfigured ? "registered" : "not registered",
+        !string.IsNullOrWhiteSpace(googleClientId),
+        !string.IsNullOrWhiteSpace(googleClientSecret));
+}
 
 app.UseForwardedHeaders();
 

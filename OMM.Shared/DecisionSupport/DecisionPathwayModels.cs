@@ -1,3 +1,5 @@
+using OMM.Shared.Models.MasterData;
+
 namespace OMM.Shared.DecisionSupport;
 
 /// <summary>
@@ -13,17 +15,33 @@ public enum SignalCategory
     Opportunity
 }
 
-public sealed record SignalTemplate(
-    string Id,
-    SignalCategory Category,
-    string Title,
-    string Description,
-    string SampleQuery,
-    string DefaultSecurity,
-    string DefaultSector,
-    string DefaultConcern,
-    string DefaultScope,
-    string DefaultObjective);
+public sealed class SignalTemplate(
+    string id,
+    SignalCategory category,
+    string title,
+    string description,
+    string sampleQuery,
+    string defaultSecurity,
+    string defaultSector,
+    string defaultConcern,
+    string defaultScope,
+    string defaultObjective,
+    bool isActive = true,
+    int sortOrder = 0) : AuditableEntity
+{
+    public string Id { get; set; } = id;
+    public SignalCategory Category { get; set; } = category;
+    public string Title { get; set; } = title;
+    public string Description { get; set; } = description;
+    public string SampleQuery { get; set; } = sampleQuery;
+    public string DefaultSecurity { get; set; } = defaultSecurity;
+    public string DefaultSector { get; set; } = defaultSector;
+    public string DefaultConcern { get; set; } = defaultConcern;
+    public string DefaultScope { get; set; } = defaultScope;
+    public string DefaultObjective { get; set; } = defaultObjective;
+    public bool IsActive { get; set; } = isActive;
+    public int SortOrder { get; set; } = sortOrder;
+}
 
 public sealed record MemberConcernOption(
     string Key,

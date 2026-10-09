@@ -1,11 +1,17 @@
 @page "/decision-pathway"
 @layout MainLayout
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.Extensions.Options
+@using OMM.Public.Data
 @using System.Security.Claims
 @using OMM.Shared.DecisionSupport
+@inject IDbContextFactory<ApplicationDbContext> DbContextFactory
+@inject IDecisionSignalCatalog SignalCatalog
 @inject IInquiryIntentInterpreter IntentInterpreter
 @inject IDeterministicDecisionEngine DecisionEngine
 @inject IDecisionPathwayService DecisionPathwayService
 @inject ILogger<DecisionPathway> Logger
+@inject IOptions<GoogleAiOptions> GoogleAiOptions
 
 <PageTitle>Decision Pathway - OhMyMine</PageTitle>
 
@@ -108,7 +114,7 @@
                         </div>
                     </div>
 
-                    <!-- Free Text AI Intake -->
+                    <!-- Free Text Question Intake -->
                     <div class="decision-question-card mt-4 mb-4">
                         <div class="d-flex align-items-start gap-3">
                             <span class="decision-option-icon tone-blue"><i class="ti ti-sparkles"></i></span>
@@ -118,22 +124,35 @@
                                           class="form-control omm-input decision-question-input"
                                           rows="3"
                                           @bind="memberQuestion"
+                                          @bind:event="oninput"
                                           placeholder="Example: US FED increases interest rates by 0.25 points. What could happen to Maybank?"></textarea>
 
                                 <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3">
                                     <span class="decision-question-help">
-                                        <i class="ti ti-lock me-1"></i>Only this question is interpreted for classification; your portfolio records stay strictly in OMM.
+                                        @if (AiEnabled)
+                                        {
+                                            <span><i class="ti ti-lock me-1"></i>Only this question is sent for classification; portfolio records stay in OMM.</span>
+                                        }
+                                        else
+                                        {
+                                            <span><i class="ti ti-lock me-1"></i>AI classification is off. Your question stays in OMM and continues through guided steps.</span>
+                                        }
                                     </span>
-                                    <button class="btn btn-dark rounded-3 px-4" @onclick="InterpretQuestionAsync" disabled="@(string.IsNullOrWhiteSpace(memberQuestion) || isInterpreting)">
+                                    <button class="btn btn-primary rounded-3 px-4" @onclick="InterpretQuestionAsync" disabled="@(string.IsNullOrWhiteSpace(memberQuestion) || isInterpreting)">
                                         @if (isInterpreting)
                                         {
                                             <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
                                         }
-                                        Understand my question <i class="ti ti-arrow-right ms-1"></i>
+                                        @(AiEnabled ? "Classify question" : "Continue with question") <i class="ti ti-arrow-right ms-1"></i>
                                     </button>
                                 </div>
 
-                                @if (intentResult is not null)
+                                @if (!string.IsNullOrWhiteSpace(classificationMessage))
+                                {
+                                    <div class="alert alert-warning py-2 px-3 small mt-3 mb-0" role="status">@classificationMessage</div>
+                                }
+
+                                @if (AiEnabled && intentResult is not null)
                                 {
                                     @* --- Determine which card state to show --- *@
                                     var isVague = intentResult.IsAvailable && (intentResult.SignalType == "unknown" || intentResult.Confidence < 0.4m);
@@ -239,23 +258,33 @@
                     </div>
 
                     <!-- Curated Signals Picker -->
-                    <div class="d-flex align-items-center justify-content-between gap-2 mb-3 mt-4">
-                        <h3 class="h6 mb-0 text-muted text-uppercase tracking-wider">Or choose a pre-configured market signal</h3>
-                        <div class="btn-group btn-group-sm" role="group">
-                            <button type="button" class="btn btn-outline-secondary @(activeCategoryFilter == null ? "active" : "")" @onclick="() => FilterCategory(null)">All</button>
-                            <button type="button" class="btn btn-outline-secondary @(activeCategoryFilter == SignalCategory.IndividualStock ? "active" : "")" @onclick="() => FilterCategory(SignalCategory.IndividualStock)">Stocks</button>
-                            <button type="button" class="btn btn-outline-secondary @(activeCategoryFilter == SignalCategory.Sector ? "active" : "")" @onclick="() => FilterCategory(SignalCategory.Sector)">Sectors</button>
-                            <button type="button" class="btn btn-outline-secondary @(activeCategoryFilter == SignalCategory.MalaysianMarket ? "active" : "")" @onclick="() => FilterCategory(SignalCategory.MalaysianMarket)">Malaysia</button>
-                            <button type="button" class="btn btn-outline-secondary @(activeCategoryFilter == SignalCategory.GlobalEconomy ? "active" : "")" @onclick="() => FilterCategory(SignalCategory.GlobalEconomy)">Global</button>
-                            <button type="button" class="btn btn-outline-secondary @(activeCategoryFilter == SignalCategory.PortfolioDecision ? "active" : "")" @onclick="() => FilterCategory(SignalCategory.PortfolioDecision)">Portfolio</button>
-                            <button type="button" class="btn btn-outline-secondary @(activeCategoryFilter == SignalCategory.Opportunity ? "active" : "")" @onclick="() => FilterCategory(SignalCategory.Opportunity)">Opportunity</button>
+                    <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-3 mt-4">
+                        <h3 class="h6 mb-0">Or choose a question starter</h3>
+                        <div class="d-flex flex-wrap gap-1 align-items-center" role="group" aria-label="Filter question starters by category">
+                            <button type="button" class="btn btn-sm rounded-3 fw-medium px-3 py-2 @(activeCategoryFilter == null ? "btn-dark text-white" : "btn-outline-secondary bg-white text-dark border-light-subtle")" aria-pressed="@(activeCategoryFilter == null ? "true" : "false")" @onclick="() => FilterCategory(null)">All</button>
+                            <button type="button" class="btn btn-sm rounded-3 fw-medium px-3 py-2 @(activeCategoryFilter == SignalCategory.IndividualStock ? "btn-dark text-white" : "btn-outline-secondary bg-white text-dark border-light-subtle")" aria-pressed="@(activeCategoryFilter == SignalCategory.IndividualStock ? "true" : "false")" @onclick="() => FilterCategory(SignalCategory.IndividualStock)">Stocks</button>
+                            <button type="button" class="btn btn-sm rounded-3 fw-medium px-3 py-2 @(activeCategoryFilter == SignalCategory.Sector ? "btn-dark text-white" : "btn-outline-secondary bg-white text-dark border-light-subtle")" aria-pressed="@(activeCategoryFilter == SignalCategory.Sector ? "true" : "false")" @onclick="() => FilterCategory(SignalCategory.Sector)">Sectors</button>
+                            <button type="button" class="btn btn-sm rounded-3 fw-medium px-3 py-2 @(activeCategoryFilter == SignalCategory.MalaysianMarket ? "btn-dark text-white" : "btn-outline-secondary bg-white text-dark border-light-subtle")" aria-pressed="@(activeCategoryFilter == SignalCategory.MalaysianMarket ? "true" : "false")" @onclick="() => FilterCategory(SignalCategory.MalaysianMarket)">Malaysia</button>
+                            <button type="button" class="btn btn-sm rounded-3 fw-medium px-3 py-2 @(activeCategoryFilter == SignalCategory.GlobalEconomy ? "btn-dark text-white" : "btn-outline-secondary bg-white text-dark border-light-subtle")" aria-pressed="@(activeCategoryFilter == SignalCategory.GlobalEconomy ? "true" : "false")" @onclick="() => FilterCategory(SignalCategory.GlobalEconomy)">Global</button>
+                            <button type="button" class="btn btn-sm rounded-3 fw-medium px-3 py-2 @(activeCategoryFilter == SignalCategory.PortfolioDecision ? "btn-dark text-white" : "btn-outline-secondary bg-white text-dark border-light-subtle")" aria-pressed="@(activeCategoryFilter == SignalCategory.PortfolioDecision ? "true" : "false")" @onclick="() => FilterCategory(SignalCategory.PortfolioDecision)">Portfolio</button>
+                            <button type="button" class="btn btn-sm rounded-3 fw-medium px-3 py-2 @(activeCategoryFilter == SignalCategory.Opportunity ? "btn-dark text-white" : "btn-outline-secondary bg-white text-dark border-light-subtle")" aria-pressed="@(activeCategoryFilter == SignalCategory.Opportunity ? "true" : "false")" @onclick="() => FilterCategory(SignalCategory.Opportunity)">Opportunity</button>
                         </div>
                     </div>
 
+                    @if (!string.IsNullOrWhiteSpace(signalCatalogError))
+                    {
+                        <div class="alert alert-warning" role="status">@signalCatalogError</div>
+                    }
+                    else if (!FilteredSignals.Any())
+                    {
+                        <p class="small text-muted border rounded-3 p-3">No starters in this category. Ask in your own words or choose another category.</p>
+                    }
+                    else
+                    {
                     <div class="decision-option-grid">
                         @foreach (var sig in FilteredSignals)
                         {
-                            <button class="decision-option-card @(selectedSignal?.Id == sig.Id ? "is-selected" : "")"
+                            <button type="button" class="decision-option-card @(selectedSignal?.Id == sig.Id ? "is-selected" : "")"
                                     @onclick="() => SelectSignalTemplate(sig)">
                                 <span class="decision-option-icon @GetCategoryTone(sig.Category)">
                                     <i class="@GetCategoryIcon(sig.Category)"></i>
@@ -268,6 +297,7 @@
                             </button>
                         }
                     </div>
+                    }
 
                     <div class="d-flex justify-content-end mt-4">
                         <button class="btn btn-dark rounded-3 px-4" @onclick="() => GoToScreen(2)">
@@ -532,14 +562,14 @@
                         <h3 class="h6 mb-3"><i class="ti ti-adjustments me-1"></i>Model Assumptions</h3>
                         <div class="row g-3">
                             <div class="col-md-4 omm-form-field">
-                                <label class="omm-form-label" for="calc-price">Sample Share Price (RM)</label>
-                                <input id="calc-price" type="number" step="0.01" class="form-control omm-input" @bind="calcPrice" @bind:after="RecalculateScenarios" />
-                                <p class="omm-form-help">Current reference share price.</p>
+                                <label class="omm-form-label" for="calc-price">Reference Share Price (RM)</label>
+                                <input id="calc-price" type="number" min="0" step="0.01" class="form-control omm-input" @bind="calcPrice" @bind:after="RecalculateScenarios" />
+                                <p class="omm-form-help">@StockDataStatus</p>
                             </div>
                             <div class="col-md-4 omm-form-field">
                                 <label class="omm-form-label" for="calc-dividend">Annual Dividend / Share (RM)</label>
-                                <input id="calc-dividend" type="number" step="0.01" class="form-control omm-input" @bind="calcDividend" @bind:after="RecalculateScenarios" />
-                                <p class="omm-form-help">Expected annual distribution.</p>
+                                <input id="calc-dividend" type="number" min="0" step="0.01" class="form-control omm-input" @bind="calcDividend" @bind:after="RecalculateScenarios" />
+                                <p class="omm-form-help">Optional stored DPS or your own estimate; not a forecast.</p>
                             </div>
                             <div class="col-md-4 omm-form-field">
                                 <label class="omm-form-label" for="calc-stress">Stress Test Severity</label>
@@ -554,6 +584,12 @@
                     </div>
 
                     <!-- Scenario Outcome Cards -->
+                    @if (calcPrice is null or <= 0)
+                    {
+                        <div class="alert alert-info mt-4 mb-0" role="status">Enter a reference share price to calculate scenarios. No sample market price is substituted.</div>
+                    }
+                    else
+                    {
                     <div class="decision-outcome-grid mt-4">
                         @foreach (var branch in scenarios)
                         {
@@ -569,9 +605,12 @@
                                     </span>
                                 </div>
                                 <p class="mb-2">@branch.Description</p>
-                                <div class="small text-muted mb-2">
-                                    <strong>Dividend buffer:</strong> RM@branch.DividendForecastPerShare.ToString("F2") / share
-                                </div>
+                                @if (calcDividend is > 0)
+                                {
+                                    <div class="small text-muted mb-2">
+                                        <strong>Dividend assumption:</strong> RM@branch.DividendForecastPerShare.ToString("F2") / share
+                                    </div>
+                                }
                                 <div class="decision-outcome-footer">
                                     <span>Monitor:</span>
                                     <strong>@branch.WhatToMonitor</strong>
@@ -579,6 +618,7 @@
                             </article>
                         }
                     </div>
+                    }
 
                     <!-- Fork What-If Scenario -->
                     <div class="decision-fork-card mt-4">
@@ -591,12 +631,15 @@
                                     <button class="btn btn-sm btn-outline-dark rounded-3" @onclick="() => ForkWithAdjustment(5)">
                                         What if price drops an extra 5%?
                                     </button>
-                                    <button class="btn btn-sm btn-outline-dark rounded-3" @onclick="() => ForkWithDividend(0.20m)">
-                                        What if dividend is cut to RM0.20?
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-dark rounded-3" @onclick="() => ForkWithDividend(0.40m)">
-                                        What if dividend increases to RM0.40?
-                                    </button>
+                                    @if (calcDividend is > 0)
+                                    {
+                                        <button class="btn btn-sm btn-outline-dark rounded-3" @onclick="() => ForkWithDividend(calcDividend.Value * 0.75m)">
+                                            What if dividend falls 25%?
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-dark rounded-3" @onclick="() => ForkWithDividend(calcDividend.Value * 1.25m)">
+                                            What if dividend rises 25%?
+                                        </button>
+                                    }
                                 </div>
                                 @if (branchCreated)
                                 {
@@ -687,6 +730,8 @@
     private string memberQuestion = string.Empty;
     private bool isInterpreting;
     private InquiryIntentResult? intentResult;
+    private string? classificationMessage;
+    private string? signalCatalogError;
 
     private SignalTemplate? selectedSignal;
     private SignalCategory? activeCategoryFilter;
@@ -694,17 +739,20 @@
     private string selectedScope = "individual_stock";
     private string selectedObjective = "income";
     private string selectedAction = "hold";
-    private string targetSecurity = "Maybank (1155)";
-    private string targetSector = "Financial Services";
+    private string targetSecurity = string.Empty;
+    private string targetSector = string.Empty;
 
     // Scenario inputs
-    private decimal calcPrice = 9.87m;
-    private decimal calcDividend = 0.31m;
+    private decimal? calcPrice;
+    private decimal? calcDividend;
     private int stressAdjustment = 0;
     private bool branchCreated;
     private bool planSaved;
     private bool isSaving;
     private string? saveError;
+    private string stockDataStatus = "Select a stock starter or enter a reference price.";
+    private bool AiEnabled => GoogleAiOptions.Value.Enabled;
+    private string StockDataStatus => stockDataStatus;
 
     [CascadingParameter]
     private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
@@ -719,19 +767,22 @@
     private IReadOnlyList<ScenarioBranch> scenarios = [];
     private MonitoringCheckpoint checkpoint = null!;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        allSignals = DecisionEngine.GetCuratedSignals();
         Concerns = DecisionEngine.GetConcerns();
         Scopes = DecisionEngine.GetScopes();
         Objectives = DecisionEngine.GetObjectives();
 
-        selectedSignal = allSignals[0];
-        targetSecurity = selectedSignal.DefaultSecurity;
-        targetSector = selectedSignal.DefaultSector;
-        selectedConcern = selectedSignal.DefaultConcern;
-        selectedScope = selectedSignal.DefaultScope;
-        selectedObjective = selectedSignal.DefaultObjective;
+        try
+        {
+            allSignals = await SignalCatalog.GetActiveSignalsAsync();
+        }
+        catch (Exception exception)
+        {
+            Logger.LogError(exception, "Unable to load the Decision Pathway question-starter catalog.");
+            allSignals = [];
+            signalCatalogError = "Question starters are temporarily unavailable. You can still enter a question and continue with guided steps.";
+        }
 
         RefreshCalculations();
     }
@@ -749,38 +800,60 @@
     private string ScopeShortLabel => Scopes.FirstOrDefault(s => s.Key == selectedScope)?.Title ?? "Scope";
     private string ObjectiveShortLabel => Objectives.FirstOrDefault(o => o.Key == selectedObjective)?.Title ?? "Objective";
     private string ActionShortLabel => evaluatedOptions.FirstOrDefault(a => a.Key == selectedAction)?.Title ?? "Hold";
-    private string ScenarioShortLabel => branchCreated ? "Customized" : "3 Branches";
+    private string ScenarioShortLabel => branchCreated ? "Customized" : scenarios.Count == 0 ? "Price needed" : "3 Branches";
 
     private async Task InterpretQuestionAsync()
     {
         if (string.IsNullOrWhiteSpace(memberQuestion)) return;
 
         isInterpreting = true;
+        classificationMessage = null;
         try
         {
-            intentResult = await IntentInterpreter.InterpretAsync(memberQuestion);
-            if (intentResult.IsAvailable)
+            if (!AiEnabled)
             {
-                // Match to curated template and pre-populate parameters
-                var matched = DecisionEngine.MatchSignalFromAi(intentResult);
-                selectedSignal = matched;
-
-                if (!string.IsNullOrWhiteSpace(intentResult.MentionedSecurity))
-                    targetSecurity = intentResult.MentionedSecurity;
-                else
-                    targetSecurity = matched.DefaultSecurity;
-
-                if (!string.IsNullOrWhiteSpace(intentResult.MentionedSector))
-                    targetSector = intentResult.MentionedSector;
-                else
-                    targetSector = matched.DefaultSector;
-
-                selectedConcern = matched.DefaultConcern;
-                selectedScope = matched.DefaultScope;
-                selectedObjective = matched.DefaultObjective;
-
-                RefreshCalculations();
+                intentResult = null;
+                classificationMessage = "AI classification is disabled. Continue with the guided questions and set the scope and concern yourself.";
+                await UseGeneralQuestionAsync(SignalCategory.PortfolioDecision, null, null);
+                GoToScreen(2);
+                return;
             }
+
+            intentResult = await IntentInterpreter.InterpretAsync(memberQuestion);
+            if (!intentResult.IsAvailable || intentResult.SignalType == "unknown" || intentResult.Confidence < 0.4m)
+            {
+                classificationMessage = intentResult.IsAvailable
+                    ? "OMM needs more detail to classify this question. Continue with the guided questions."
+                    : intentResult.ErrorMessage ?? "AI classification is unavailable. Continue with the guided questions.";
+                await UseGeneralQuestionAsync(GetSignalCategory(intentResult.SignalType), intentResult.MentionedSecurity, intentResult.MentionedSector);
+                GoToScreen(2);
+                return;
+            }
+
+            var matched = DecisionEngine.MatchSignalFromAi(intentResult, allSignals);
+            if (matched.Id.StartsWith("member-question-", StringComparison.Ordinal))
+            {
+                matched.SampleQuery = memberQuestion.Trim();
+                matched.Title = memberQuestion.Trim().Length <= 200 ? memberQuestion.Trim() : $"{memberQuestion.Trim()[..197]}…";
+            }
+
+            selectedSignal = matched;
+            targetSecurity = intentResult.MentionedSecurity ?? matched.DefaultSecurity;
+            targetSector = intentResult.MentionedSector ?? matched.DefaultSector;
+            selectedConcern = matched.DefaultConcern;
+            selectedScope = matched.DefaultScope;
+            selectedObjective = matched.DefaultObjective;
+            await LoadStoredStockDataAsync();
+            RefreshCalculations();
+            GoToScreen(2);
+        }
+        catch (Exception exception)
+        {
+            Logger.LogWarning(exception, "AI classification failed for a Decision Pathway question.");
+            intentResult = null;
+            classificationMessage = "AI classification is unavailable. Continue with the guided questions.";
+            await UseGeneralQuestionAsync(SignalCategory.PortfolioDecision, null, null);
+            GoToScreen(2);
         }
         finally
         {
@@ -788,7 +861,7 @@
         }
     }
 
-    private void SelectSignalTemplate(SignalTemplate sig)
+    private async Task SelectSignalTemplate(SignalTemplate sig)
     {
         selectedSignal = sig;
         memberQuestion = sig.SampleQuery;
@@ -797,8 +870,107 @@
         selectedConcern = sig.DefaultConcern;
         selectedScope = sig.DefaultScope;
         selectedObjective = sig.DefaultObjective;
+        classificationMessage = null;
+        await LoadStoredStockDataAsync();
         RefreshCalculations();
     }
+
+    private async Task UseGeneralQuestionAsync(SignalCategory category, string? security, string? sector)
+    {
+        selectedSignal = CreateGeneralSignal(category, memberQuestion, security, sector);
+        targetSecurity = security ?? string.Empty;
+        targetSector = sector ?? string.Empty;
+        selectedConcern = category == SignalCategory.PortfolioDecision ? "concentration" : "price_drop";
+        selectedScope = category switch
+        {
+            SignalCategory.IndividualStock => "individual_stock",
+            SignalCategory.Sector => "sector",
+            SignalCategory.MalaysianMarket => "malaysian_market",
+            SignalCategory.GlobalEconomy => "global_economy",
+            _ => "portfolio"
+        };
+        selectedObjective = "balanced";
+        await LoadStoredStockDataAsync();
+        RefreshCalculations();
+    }
+
+    private SignalTemplate CreateGeneralSignal(SignalCategory category, string question, string? security, string? sector)
+    {
+        var title = question.Trim();
+        if (title.Length > 200)
+        {
+            title = $"{title[..197]}…";
+        }
+
+        return new SignalTemplate(
+            $"member-question-{Guid.NewGuid():N}",
+            category,
+            string.IsNullOrWhiteSpace(title) ? "Guided decision" : title,
+            "Member-entered question classified through guided deterministic steps.",
+            question.Trim(),
+            security ?? string.Empty,
+            sector ?? string.Empty,
+            category == SignalCategory.PortfolioDecision ? "concentration" : "price_drop",
+            selectedScope,
+            "balanced",
+            isActive: false);
+    }
+
+    private async Task LoadStoredStockDataAsync()
+    {
+        calcPrice = null;
+        calcDividend = null;
+        stockDataStatus = "No stored price data found. Enter a reference price to model scenarios.";
+
+        var target = targetSecurity.Trim();
+        if (target.Length == 0)
+        {
+            return;
+        }
+
+        var name = target.Split('(', '/')[0].Trim();
+        if (name.Length == 0)
+        {
+            return;
+        }
+
+        try
+        {
+            await using var dbContext = await DbContextFactory.CreateDbContextAsync();
+            var stock = await dbContext.Stocks
+                .AsNoTracking()
+                .Where(item => item.IsActive &&
+                    (EF.Functions.ILike(item.ShortName_EN, $"%{name}%") || EF.Functions.ILike(item.StockCode, $"%{name}%")))
+                .OrderBy(item => item.ShortName_EN.Length)
+                .FirstOrDefaultAsync();
+
+            if (stock is null)
+            {
+                return;
+            }
+
+            calcPrice = stock.CurrentPrice is > 0 ? stock.CurrentPrice : null;
+            calcDividend = stock.DPS is > 0 ? stock.DPS : null;
+            stockDataStatus = stock.LastScrapedAt is { } refreshedAt
+                ? $"Stored master data as of {refreshedAt.ToLocalTime():g}; not a live quote."
+                : "Stored master data has no update timestamp; not a live quote.";
+        }
+        catch (Exception exception)
+        {
+            Logger.LogWarning(exception, "Unable to load stored stock data for the Decision Pathway.");
+            stockDataStatus = "Stored stock data is unavailable. Enter a reference price manually.";
+        }
+    }
+
+    private static SignalCategory GetSignalCategory(string signalType) => signalType switch
+    {
+        "stock_event" => SignalCategory.IndividualStock,
+        "sector_event" => SignalCategory.Sector,
+        "market_event" => SignalCategory.MalaysianMarket,
+        "economic_event" => SignalCategory.GlobalEconomy,
+        "opportunity" => SignalCategory.Opportunity,
+        _ => SignalCategory.PortfolioDecision
+    };
 
     private void FilterCategory(SignalCategory? cat) => activeCategoryFilter = cat;
 
@@ -864,12 +1036,11 @@
             return;
         }
 
-        var signal = selectedSignal;
-        if (signal is null)
-        {
-            saveError = "Select a signal before saving this decision pathway.";
-            return;
-        }
+        var signal = selectedSignal ?? CreateGeneralSignal(
+            SignalCategory.PortfolioDecision,
+            memberQuestion,
+            targetSecurity,
+            targetSector);
 
         var user = (await AuthenticationStateTask).User;
         var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -914,38 +1085,42 @@
         }
     }
 
-    private void ResetPathway()
+    private Task ResetPathway()
     {
         screen = 1;
         memberQuestion = string.Empty;
         intentResult = null;
+        classificationMessage = null;
         branchCreated = false;
         planSaved = false;
         isSaving = false;
         saveError = null;
         stressAdjustment = 0;
-        calcPrice = 9.87m;
-        calcDividend = 0.31m;
-        selectedSignal = allSignals.FirstOrDefault();
-        if (selectedSignal != null)
-        {
-            targetSecurity = selectedSignal.DefaultSecurity;
-            targetSector = selectedSignal.DefaultSector;
-            selectedConcern = selectedSignal.DefaultConcern;
-            selectedScope = selectedSignal.DefaultScope;
-            selectedObjective = selectedSignal.DefaultObjective;
-        }
+        calcPrice = null;
+        calcDividend = null;
+        stockDataStatus = "Select a stock starter or enter a reference price.";
+        selectedSignal = null;
+        targetSecurity = string.Empty;
+        targetSector = string.Empty;
+        selectedConcern = "price_drop";
+        selectedScope = "individual_stock";
+        selectedObjective = "balanced";
+        activeCategoryFilter = null;
         RefreshCalculations();
+        return Task.CompletedTask;
     }
 
     private void RefreshCalculations()
     {
-        var category = selectedSignal?.Category ?? SignalCategory.IndividualStock;
+        var category = selectedSignal?.Category ?? SignalCategory.PortfolioDecision;
         impactMap = DecisionEngine.BuildImpactMap(category, selectedConcern, selectedScope, targetSecurity, targetSector);
         evaluatedOptions = DecisionEngine.EvaluateActionOptions(selectedObjective, selectedConcern);
 
-        var calcInput = new ScenarioCalculationInput(calcPrice, calcDividend, null, "Several months", stressAdjustment);
-        scenarios = DecisionEngine.CalculateScenarios(calcInput, selectedAction);
+        scenarios = calcPrice is > 0
+            ? DecisionEngine.CalculateScenarios(
+                new ScenarioCalculationInput(calcPrice.Value, calcDividend ?? 0m, null, "Several months", stressAdjustment),
+                selectedAction)
+            : [];
         checkpoint = DecisionEngine.GenerateCheckpoint(targetSecurity, selectedAction, "Several months");
     }
 
@@ -962,7 +1137,7 @@
 
     private static string GetCategoryIcon(SignalCategory cat) => cat switch
     {
-        SignalCategory.IndividualStock => "ti ti-building-bank",
+        SignalCategory.IndividualStock => "ti ti-chart-candle",
         SignalCategory.Sector => "ti ti-category",
         SignalCategory.MalaysianMarket => "ti ti-flag",
         SignalCategory.GlobalEconomy => "ti ti-world",

@@ -11,8 +11,8 @@ public sealed class DecisionPathwayRecord
     public string ScopeKey { get; set; } = string.Empty;
     public string ObjectiveKey { get; set; } = string.Empty;
     public string SelectedActionKey { get; set; } = string.Empty;
-    public decimal CurrentSharePrice { get; set; }
-    public decimal AnnualDividendPerShare { get; set; }
+    public decimal? CurrentSharePrice { get; set; }
+    public decimal? AnnualDividendPerShare { get; set; }
     public string HorizonLabel { get; set; } = string.Empty;
     public string CheckpointTitle { get; set; } = string.Empty;
     public string CheckpointTriggerCondition { get; set; } = string.Empty;

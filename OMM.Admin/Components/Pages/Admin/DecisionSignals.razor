@@ -1,0 +1,419 @@
+@page "/admin/decision-signals"
+@rendermode InteractiveServer
+@using System.ComponentModel.DataAnnotations
+@using System.Security.Claims
+@using Microsoft.EntityFrameworkCore
+@using OMM.Admin.Data
+@using OMM.Shared.DecisionSupport
+@inject IDbContextFactory<MasterDataDbContext> DbContextFactory
+@inject IDeterministicDecisionEngine DecisionEngine
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>Decision Signals - OMM Admin</PageTitle>
+
+<div class="container-fluid p-0">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <h1 class="h3 fw-bold text-dark mb-1">Question starters</h1>
+            <p class="text-muted mb-0">Maintain reusable examples for common decisions. These are prompts, not a live market-news feed.</p>
+        </div>
+        <button class="btn btn-primary" @onclick="OpenAddForm" disabled="@_isLoading">
+            <i class="ti ti-plus me-1"></i>Add question starter
+        </button>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(_statusMessage))
+    {
+        <div class="alert alert-@_statusClass alert-dismissible fade show" role="alert">
+            @_statusMessage
+            <button type="button" class="btn-close" @onclick="() => _statusMessage = null" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (_isLoading)
+    {
+        <div class="text-center py-5"><span class="spinner-border text-primary" role="status"></span></div>
+    }
+    else
+    {
+        <div class="card border-0 shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Starter</th>
+                            <th>Category</th>
+                            <th>Display order</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var signal in _signals)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-semibold">@signal.Title</div>
+                                    <div class="small text-muted">@signal.SampleQuery</div>
+                                </td>
+                                <td>@GetCategoryLabel(signal.Category)</td>
+                                <td>@signal.SortOrder</td>
+                                <td>
+                                    @if (signal.IsDeleted)
+                                    {
+                                        <span class="badge bg-secondary-subtle text-secondary">Deleted</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge @(signal.IsActive ? "bg-success-subtle text-success" : "bg-secondary-subtle text-secondary")">@(signal.IsActive ? "Active" : "Hidden")</span>
+                                    }
+                                </td>
+                                <td class="text-end text-nowrap">
+                                    @if (!signal.IsDeleted)
+                                    {
+                                        <button class="btn btn-sm btn-outline-secondary" title="Edit starter" @onclick="() => OpenEditForm(signal)"><i class="ti ti-edit"></i></button>
+                                        <button class="btn btn-sm btn-outline-secondary" title="@(signal.IsActive ? "Hide starter" : "Show starter")" @onclick="() => ToggleActiveAsync(signal)"><i class="ti @(signal.IsActive ? "ti-eye-off" : "ti-eye")"></i></button>
+                                        <button class="btn btn-sm btn-outline-danger" title="Delete starter" @onclick="() => SetDeletedAsync(signal, true)"><i class="ti ti-trash"></i></button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-sm btn-outline-success" title="Restore starter" @onclick="() => SetDeletedAsync(signal, false)"><i class="ti ti-restore"></i></button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                        @if (_signals.Count == 0)
+                        {
+                            <tr><td colspan="5" class="text-center text-muted py-5">No question starters have been added.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+@if (_isFormOpen)
+{
+    <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true" style="background: rgb(0 0 0 / 55%);">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title h5">@(_isNew ? "Add question starter" : "Edit question starter")</h2>
+                    <button type="button" class="btn-close" @onclick="CloseForm" disabled="@_isSaving" aria-label="Close"></button>
+                </div>
+                <EditForm Model="_form" OnValidSubmit="SaveAsync">
+                    <DataAnnotationsValidator />
+                    <div class="modal-body">
+                        @if (!string.IsNullOrWhiteSpace(_formError))
+                        {
+                            <div class="alert alert-danger" role="alert">@_formError</div>
+                        }
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label class="form-label" for="signal-title">Title</label>
+                                <InputText id="signal-title" class="form-control" @bind-Value="_form.Title" />
+                                <ValidationMessage For="@(() => _form.Title)" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="signal-category">Category</label>
+                                <InputSelect id="signal-category" class="form-select" @bind-Value="_form.Category">
+                                    @foreach (var category in Enum.GetValues<SignalCategory>())
+                                    {
+                                        <option value="@category">@GetCategoryLabel(category)</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" for="signal-description">Description</label>
+                                <InputTextArea id="signal-description" class="form-control" rows="2" @bind-Value="_form.Description" />
+                                <ValidationMessage For="@(() => _form.Description)" />
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" for="signal-query">Example question</label>
+                                <InputTextArea id="signal-query" class="form-control" rows="3" @bind-Value="_form.SampleQuery" />
+                                <ValidationMessage For="@(() => _form.SampleQuery)" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="signal-security">Default security or target</label>
+                                <InputText id="signal-security" class="form-control" @bind-Value="_form.DefaultSecurity" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="signal-sector">Default sector</label>
+                                <InputText id="signal-sector" class="form-control" @bind-Value="_form.DefaultSector" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="signal-concern">Default concern</label>
+                                <InputSelect id="signal-concern" class="form-select" @bind-Value="_form.DefaultConcern">
+                                    @foreach (var concern in _concerns)
+                                    {
+                                        <option value="@concern.Key">@concern.Title</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="signal-scope">Default scope</label>
+                                <InputSelect id="signal-scope" class="form-select" @bind-Value="_form.DefaultScope">
+                                    @foreach (var scope in _scopes)
+                                    {
+                                        <option value="@scope.Key">@scope.Title</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="signal-objective">Default objective</label>
+                                <InputSelect id="signal-objective" class="form-select" @bind-Value="_form.DefaultObjective">
+                                    @foreach (var objective in _objectives)
+                                    {
+                                        <option value="@objective.Key">@objective.Title</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label" for="signal-order">Display order</label>
+                                <InputNumber id="signal-order" class="form-control" @bind-Value="_form.SortOrder" />
+                                <ValidationMessage For="@(() => _form.SortOrder)" />
+                            </div>
+                            <div class="col-md-3 d-flex align-items-end">
+                                <div class="form-check mb-2">
+                                    <InputCheckbox id="signal-active" class="form-check-input" @bind-Value="_form.IsActive" />
+                                    <label class="form-check-label" for="signal-active">Visible to members</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" @onclick="CloseForm" disabled="@_isSaving">Cancel</button>
+                        <button type="submit" class="btn btn-primary" disabled="@_isSaving">
+                            @if (_isSaving)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                            }
+                            Save starter
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<SignalTemplate> _signals = [];
+    private IReadOnlyList<MemberConcernOption> _concerns = [];
+    private IReadOnlyList<ScopeOption> _scopes = [];
+    private IReadOnlyList<ObjectiveOption> _objectives = [];
+    private SignalTemplateForm _form = new();
+    private bool _isLoading = true;
+    private bool _isFormOpen;
+    private bool _isNew;
+    private bool _isSaving;
+    private string? _statusMessage;
+    private string _statusClass = "success";
+    private string? _formError;
+
+    protected override void OnInitialized()
+    {
+        _concerns = DecisionEngine.GetConcerns();
+        _scopes = DecisionEngine.GetScopes();
+        _objectives = DecisionEngine.GetObjectives();
+    }
+
+    protected override async Task OnInitializedAsync() => await LoadSignalsAsync();
+
+    private async Task LoadSignalsAsync()
+    {
+        _isLoading = true;
+        try
+        {
+            await using var dbContext = await DbContextFactory.CreateDbContextAsync();
+            _signals = await dbContext.DecisionSignalTemplates
+                .IgnoreQueryFilters()
+                .AsNoTracking()
+                .OrderBy(signal => signal.SortOrder)
+                .ThenBy(signal => signal.Title)
+                .ToListAsync();
+        }
+        catch (Exception)
+        {
+            _statusClass = "danger";
+            _statusMessage = "Question starters could not be loaded. Check the database connection and try again.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void OpenAddForm()
+    {
+        _isNew = true;
+        _formError = null;
+        _form = new SignalTemplateForm
+        {
+            Category = SignalCategory.IndividualStock,
+            DefaultConcern = _concerns.FirstOrDefault()?.Key ?? "price_drop",
+            DefaultScope = _scopes.FirstOrDefault()?.Key ?? "individual_stock",
+            DefaultObjective = _objectives.FirstOrDefault()?.Key ?? "balanced",
+            SortOrder = _signals.Count == 0 ? 10 : _signals.Max(signal => signal.SortOrder) + 10
+        };
+        _isFormOpen = true;
+    }
+
+    private void OpenEditForm(SignalTemplate signal)
+    {
+        _isNew = false;
+        _formError = null;
+        _form = new SignalTemplateForm
+        {
+            Id = signal.Id,
+            Category = signal.Category,
+            Title = signal.Title,
+            Description = signal.Description,
+            SampleQuery = signal.SampleQuery,
+            DefaultSecurity = signal.DefaultSecurity,
+            DefaultSector = signal.DefaultSector,
+            DefaultConcern = signal.DefaultConcern,
+            DefaultScope = signal.DefaultScope,
+            DefaultObjective = signal.DefaultObjective,
+            IsActive = signal.IsActive,
+            SortOrder = signal.SortOrder
+        };
+        _isFormOpen = true;
+    }
+
+    private async Task SaveAsync()
+    {
+        _isSaving = true;
+        _formError = null;
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var userId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var now = DateTimeOffset.UtcNow;
+            await using var dbContext = await DbContextFactory.CreateDbContextAsync();
+            SignalTemplate signal;
+            if (_isNew)
+            {
+                signal = new SignalTemplate(
+                    $"custom-{Guid.NewGuid():N}", _form.Category, _form.Title.Trim(), _form.Description.Trim(), _form.SampleQuery.Trim(),
+                    _form.DefaultSecurity.Trim(), _form.DefaultSector.Trim(), _form.DefaultConcern, _form.DefaultScope, _form.DefaultObjective,
+                    _form.IsActive, _form.SortOrder)
+                {
+                    CreatedAt = now,
+                    CreatedByUserId = userId
+                };
+                dbContext.DecisionSignalTemplates.Add(signal);
+            }
+            else
+            {
+                signal = await dbContext.DecisionSignalTemplates.SingleAsync(item => item.Id == _form.Id);
+                signal.Category = _form.Category;
+                signal.Title = _form.Title.Trim();
+                signal.Description = _form.Description.Trim();
+                signal.SampleQuery = _form.SampleQuery.Trim();
+                signal.DefaultSecurity = _form.DefaultSecurity.Trim();
+                signal.DefaultSector = _form.DefaultSector.Trim();
+                signal.DefaultConcern = _form.DefaultConcern;
+                signal.DefaultScope = _form.DefaultScope;
+                signal.DefaultObjective = _form.DefaultObjective;
+                signal.IsActive = _form.IsActive;
+                signal.SortOrder = _form.SortOrder;
+                signal.ModifiedAt = now;
+                signal.ModifiedByUserId = userId;
+            }
+
+            await dbContext.SaveChangesAsync();
+            _isFormOpen = false;
+            _statusClass = "success";
+            _statusMessage = "Question starter saved.";
+            await LoadSignalsAsync();
+        }
+        catch (DbUpdateException)
+        {
+            _formError = "The starter could not be saved. Check the values and try again.";
+        }
+        catch (Exception)
+        {
+            _formError = "The starter could not be saved. Check the database connection and try again.";
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private async Task ToggleActiveAsync(SignalTemplate signal)
+    {
+        await UpdateSignalAsync(signal, isActive: !signal.IsActive);
+    }
+
+    private async Task SetDeletedAsync(SignalTemplate signal, bool isDeleted)
+    {
+        await UpdateSignalAsync(signal, isActive: false, isDeleted: isDeleted);
+    }
+
+    private async Task UpdateSignalAsync(SignalTemplate signal, bool? isActive = null, bool? isDeleted = null)
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var userId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var now = DateTimeOffset.UtcNow;
+            await using var dbContext = await DbContextFactory.CreateDbContextAsync();
+            var item = await dbContext.DecisionSignalTemplates.IgnoreQueryFilters().SingleAsync(value => value.Id == signal.Id);
+            if (isActive.HasValue)
+            {
+                item.IsActive = isActive.Value;
+            }
+
+            if (isDeleted.HasValue)
+            {
+                item.IsDeleted = isDeleted.Value;
+                item.DeletedAt = isDeleted.Value ? now : null;
+                item.DeletedByUserId = isDeleted.Value ? userId : null;
+            }
+
+            item.ModifiedAt = now;
+            item.ModifiedByUserId = userId;
+            await dbContext.SaveChangesAsync();
+            _statusClass = "success";
+            _statusMessage = "Question starter updated.";
+            await LoadSignalsAsync();
+        }
+        catch (Exception)
+        {
+            _statusClass = "danger";
+            _statusMessage = "Question starter could not be updated. Check the database connection and try again.";
+        }
+    }
+
+    private static string GetCategoryLabel(SignalCategory category) => category switch
+    {
+        SignalCategory.IndividualStock => "Stock",
+        SignalCategory.Sector => "Sector",
+        SignalCategory.MalaysianMarket => "Malaysia",
+        SignalCategory.GlobalEconomy => "Global",
+        SignalCategory.PortfolioDecision => "Portfolio",
+        SignalCategory.Opportunity => "Opportunity",
+        _ => category.ToString()
+    };
+
+    private void CloseForm() => _isFormOpen = false;
+
+    private sealed class SignalTemplateForm
+    {
+        public string Id { get; set; } = string.Empty;
+        public SignalCategory Category { get; set; }
+        [Required, StringLength(200)] public string Title { get; set; } = string.Empty;
+        [Required, StringLength(600)] public string Description { get; set; } = string.Empty;
+        [Required, StringLength(1000)] public string SampleQuery { get; set; } = string.Empty;
+        [Required, StringLength(200)] public string DefaultSecurity { get; set; } = "General";
+        [Required, StringLength(200)] public string DefaultSector { get; set; } = "General";
+        [Required, StringLength(60)] public string DefaultConcern { get; set; } = "price_drop";
+        [Required, StringLength(60)] public string DefaultScope { get; set; } = "individual_stock";
+        [Required, StringLength(60)] public string DefaultObjective { get; set; } = "balanced";
+        [Range(0, int.MaxValue)] public int SortOrder { get; set; }
+        public bool IsActive { get; set; } = true;
+    }
+}

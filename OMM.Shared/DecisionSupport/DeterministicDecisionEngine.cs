@@ -2,9 +2,7 @@ namespace OMM.Shared.DecisionSupport;
 
 public interface IDeterministicDecisionEngine
 {
-    IReadOnlyList<SignalTemplate> GetCuratedSignals();
-    SignalTemplate? FindSignalById(string id);
-    SignalTemplate MatchSignalFromAi(InquiryIntentResult intent);
+    SignalTemplate MatchSignalFromAi(InquiryIntentResult intent, IReadOnlyList<SignalTemplate> signals);
     IReadOnlyList<MemberConcernOption> GetConcerns();
     IReadOnlyList<ScopeOption> GetScopes();
     IReadOnlyList<ObjectiveOption> GetObjectives();
@@ -16,164 +14,6 @@ public interface IDeterministicDecisionEngine
 
 public sealed class DeterministicDecisionEngine : IDeterministicDecisionEngine
 {
-    private static readonly IReadOnlyList<SignalTemplate> CuratedSignals =
-    [
-        // 1. Individual Stock
-        new(
-            "stock-maybank-dividend",
-            SignalCategory.IndividualStock,
-            "Maybank (1155) · Dividend ex-date & margin shift",
-            "Evaluate income yield versus short-term share price compression after a distribution.",
-            "Maybank dividend announcement ex-date next week. Should I hold for the payout or trim?",
-            "Maybank (1155)",
-            "Financial Services",
-            "dividend",
-            "individual_stock",
-            "income"),
-        new(
-            "stock-tenaga-tariff",
-            SignalCategory.IndividualStock,
-            "Tenaga Nasional (5347) · Grid capex & tariff review",
-            "Regulatory tariff mechanism and energy transition capital expenditures.",
-            "Tenaga announced new grid modernization capex. What does this mean for earnings?",
-            "Tenaga Nasional (5347)",
-            "Utilities",
-            "valuation",
-            "individual_stock",
-            "growth"),
-        new(
-            "stock-inari-tech",
-            SignalCategory.IndividualStock,
-            "Inari Amertron (0166) · OSAT chip cycle demand",
-            "Semiconductor assembly demand swings and global smartphone order cycles.",
-            "Inari dropped after earnings guidance. Is this a temporary cyclical dip?",
-            "Inari Amertron (0166)",
-            "Technology",
-            "price_drop",
-            "individual_stock",
-            "opportunity"),
-
-        // 2. Sector Dynamics
-        new(
-            "sector-banking-nim",
-            SignalCategory.Sector,
-            "Banking Sector · Net Interest Margin & deposit competition",
-            "Funding costs increase as promotional fixed deposits reprice across lenders.",
-            "Malaysian banks are competing heavily for fixed deposits. How will this hit sector margins?",
-            "Banking Sector",
-            "Financial Services",
-            "earnings_risk",
-            "sector",
-            "balanced"),
-        new(
-            "sector-cpo-plantation",
-            SignalCategory.Sector,
-            "Plantation Sector · CPO export duty & production volume",
-            "Crude Palm Oil price swings influenced by regional weather patterns and biodiesel mandates.",
-            "CPO prices crossed RM4,200 per tonne. Are plantation stocks entering an upcycle?",
-            "Plantation Sector",
-            "Plantations",
-            "opportunity",
-            "sector",
-            "capital_growth"),
-
-        // 3. Malaysian Market Events
-        new(
-            "market-bnm-opr",
-            SignalCategory.MalaysianMarket,
-            "Bank Negara Malaysia · Overnight Policy Rate (OPR) change",
-            "Domestic benchmark interest rate shift affecting loan repayments, savings, and consumer spending.",
-            "BNM is expected to adjust the OPR rate. Which Malaysian sectors are most sensitive?",
-            "Bursa Malaysia (KLCI)",
-            "Broad Market",
-            "macro_shock",
-            "malaysian_market",
-            "capital_preservation"),
-        new(
-            "market-myr-fx",
-            SignalCategory.MalaysianMarket,
-            "Ringgit (MYR) Currency Movement · Import vs Export dynamics",
-            "Currency appreciation or depreciation shifting costs for importers and gains for exporters.",
-            "The Ringgit strengthened against the USD. Does this hurt export stocks or help domestic retail?",
-            "MYR Foreign Exchange",
-            "Multi-Sector",
-            "valuation",
-            "malaysian_market",
-            "balanced"),
-
-        // 4. Global Economic Events
-        new(
-            "global-us-fed-rate",
-            SignalCategory.GlobalEconomy,
-            "US Federal Reserve · Interest rate decision & USD liquidity",
-            "Global monetary tightening or easing shifting foreign fund flows in emerging markets.",
-            "US FED increases interest rates by 0.25 points. What could happen to Maybank and Malaysian equities?",
-            "Maybank / KLCI",
-            "Financials & Equities",
-            "macro_shock",
-            "global_economy",
-            "capital_preservation"),
-        new(
-            "global-tariffs-trade",
-            SignalCategory.GlobalEconomy,
-            "Global Trade Policy & Tariffs · Supply chain reallocation",
-            "Cross-border tariff announcements affecting multinational manufacturers and electronics exporters.",
-            "New US trade tariffs announced on Asian electronics. How will supply chains adjust?",
-            "Tech & Manufacturing",
-            "Technology & Industrials",
-            "macro_shock",
-            "global_economy",
-            "risk_reduction"),
-
-        // 5. Portfolio Decisions
-        new(
-            "portfolio-concentration-risk",
-            SignalCategory.PortfolioDecision,
-            "Portfolio Concentration · Single security over-allocation",
-            "Holding more than 30% of total portfolio in one company increases vulnerability to single shocks.",
-            "My Maybank shares now make up 40% of my total portfolio. Should I rebalance to reduce risk?",
-            "Member Portfolio",
-            "Diversified",
-            "concentration",
-            "portfolio",
-            "risk_reduction"),
-        new(
-            "portfolio-cash-drag",
-            SignalCategory.PortfolioDecision,
-            "Cash Drag vs Reinvestment · Liquidity deployment timing",
-            "High cash reserves sitting uninvested while inflation erodes purchasing power.",
-            "I have 35% cash in my investment account waiting for a crash. How should I pace deployment?",
-            "Cash & Equities",
-            "Cash & Multi-Asset",
-            "opportunity_cost",
-            "portfolio",
-            "balanced"),
-
-        // 6. Opportunity Discovery
-        new(
-            "opp-dividend-yield-window",
-            SignalCategory.Opportunity,
-            "Dividend Stalwart Pullback · 6%+ historical yield entry",
-            "High-quality dividend payer trading at an elevated trailing dividend yield following market weakness.",
-            "Quality banking and utility stocks dropped 8% this month, pushing dividend yields above 6.5%.",
-            "Dividend Champions",
-            "Financials & Utilities",
-            "opportunity",
-            "opportunity_discovery",
-            "income"),
-        new(
-            "opp-oversold-reaction",
-            SignalCategory.Opportunity,
-            "Market Overreaction · Disconnect between sentiment and cash flow",
-            "A company meets financial guidance but suffers price declines due to broad market panic.",
-            "Strong balance-sheet company sold off with the broader market panic. Is this a buying opportunity?",
-            "Selected Quality Stocks",
-            "Broad Market",
-            "opportunity",
-            "opportunity_discovery",
-            "capital_growth")
-    ];
-
     private static readonly IReadOnlyList<MemberConcernOption> Concerns =
     [
         new("price_drop", "Price moved sharply", "A sudden rise or fall has changed your valuation buffer.", "ti ti-chart-candle", "tone-red"),
@@ -201,12 +41,7 @@ public sealed class DeterministicDecisionEngine : IDeterministicDecisionEngine
         new("patient_monitor", "Patient Observation", "Establish clear rules and avoid emotional reactionary trading.", "ti ti-clock-pause", "Discipline")
     ];
 
-    public IReadOnlyList<SignalTemplate> GetCuratedSignals() => CuratedSignals;
-
-    public SignalTemplate? FindSignalById(string id) =>
-        CuratedSignals.FirstOrDefault(s => string.Equals(s.Id, id, StringComparison.OrdinalIgnoreCase));
-
-    public SignalTemplate MatchSignalFromAi(InquiryIntentResult intent)
+    public SignalTemplate MatchSignalFromAi(InquiryIntentResult intent, IReadOnlyList<SignalTemplate> signals)
     {
         var category = intent.SignalType switch
         {
@@ -216,22 +51,39 @@ public sealed class DeterministicDecisionEngine : IDeterministicDecisionEngine
             "economic_event" => SignalCategory.GlobalEconomy,
             "portfolio_decision" => SignalCategory.PortfolioDecision,
             "opportunity" => SignalCategory.Opportunity,
-            _ => SignalCategory.IndividualStock
+            _ => SignalCategory.PortfolioDecision
         };
 
-        // Try exact entity match
         if (!string.IsNullOrWhiteSpace(intent.MentionedSecurity))
         {
-            var stockMatch = CuratedSignals.FirstOrDefault(s =>
-                s.DefaultSecurity.Contains(intent.MentionedSecurity, StringComparison.OrdinalIgnoreCase));
-            if (stockMatch is not null) return stockMatch;
+            var stockMatch = signals.FirstOrDefault(signal =>
+                signal.DefaultSecurity.Contains(intent.MentionedSecurity, StringComparison.OrdinalIgnoreCase));
+            if (stockMatch is not null)
+            {
+                return stockMatch;
+            }
         }
 
-        // Try category match
-        var categoryMatch = CuratedSignals.FirstOrDefault(s => s.Category == category);
-        if (categoryMatch is not null) return categoryMatch;
-
-        return CuratedSignals[0];
+        var categoryMatch = signals.FirstOrDefault(signal => signal.Category == category);
+        return categoryMatch ?? new SignalTemplate(
+            $"member-question-{Guid.NewGuid():N}",
+            category,
+            string.IsNullOrWhiteSpace(intent.EventName) ? "Your question" : intent.EventName,
+            intent.Summary,
+            intent.Summary,
+            intent.MentionedSecurity ?? string.Empty,
+            intent.MentionedSector ?? string.Empty,
+            "macro_shock",
+            category switch
+            {
+                SignalCategory.IndividualStock => "individual_stock",
+                SignalCategory.Sector => "sector",
+                SignalCategory.MalaysianMarket => "malaysian_market",
+                SignalCategory.GlobalEconomy => "global_economy",
+                _ => "portfolio"
+            },
+            "balanced",
+            isActive: false);
     }
 
     public IReadOnlyList<MemberConcernOption> GetConcerns() => Concerns;
@@ -457,7 +309,7 @@ public sealed class DeterministicDecisionEngine : IDeterministicDecisionEngine
         string actionKey,
         string horizon)
     {
-        var target = !string.IsNullOrWhiteSpace(securityOrSector) ? securityOrSector : "Maybank (1155)";
+        var target = !string.IsNullOrWhiteSpace(securityOrSector) ? securityOrSector : "Selected position";
 
         return actionKey switch
         {

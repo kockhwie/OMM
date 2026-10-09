@@ -74,8 +74,8 @@ else if (pathwayPage is not null)
                             <div class="small text-muted mt-1">Review: @pathway.HorizonLabel</div>
                         </td>
                         <td class="text-nowrap">
-                            <div>RM @pathway.CurrentSharePrice.ToString("N2") / share</div>
-                            <div class="small text-muted">RM @pathway.AnnualDividendPerShare.ToString("N4") dividend / share</div>
+                            <div>@(pathway.CurrentSharePrice is { } sharePrice ? $"RM {sharePrice:N2} / share" : "No reference price recorded")</div>
+                            <div class="small text-muted">@(pathway.AnnualDividendPerShare is { } dividend ? $"RM {dividend:N4} dividend / share" : "No dividend assumption recorded")</div>
                         </td>
                     </tr>
                 }

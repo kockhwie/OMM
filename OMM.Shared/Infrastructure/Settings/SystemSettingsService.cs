@@ -114,4 +114,19 @@ public sealed class SystemSettingsService(
             "Controls whether members can log in or register via Google external authentication.",
             ct);
     }
+
+    public Task<bool> IsAiClassificationEnabledAsync(CancellationToken ct = default)
+    {
+        return GetBoolSettingAsync(SystemSettingKeys.AiClassificationEnabled, defaultValue: true, ct);
+    }
+
+    public Task SetAiClassificationEnabledAsync(bool enabled, string? userId = null, CancellationToken ct = default)
+    {
+        return SetSettingAsync(
+            SystemSettingKeys.AiClassificationEnabled,
+            enabled ? "true" : "false",
+            userId,
+            "Controls whether the AI classification feature is available on the Decision Pathway page.",
+            ct);
+    }
 }

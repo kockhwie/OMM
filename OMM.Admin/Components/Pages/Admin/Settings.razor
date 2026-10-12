@@ -3,6 +3,7 @@
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.Extensions.Configuration
+@using Microsoft.Extensions.Options
 @using OMM.Admin.Services.Admin
 @using OMM.Shared.Infrastructure.Settings
 @attribute [Authorize(Policy = "RequireAdminRole")]
@@ -11,6 +12,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IAuditLogger AuditLogger
 @inject IConfiguration Configuration
+@inject IOptions<OMM.Shared.DecisionSupport.GoogleAiOptions> GoogleAiOptions
 
 <PageTitle>System Settings - OMM Admin</PageTitle>
 
@@ -123,6 +125,95 @@
             </div>
         </div>
 
+        <!-- AI Classification Section -->
+        <div class="col-12 col-xl-8">
+            <div class="card border-0 bg-white shadow-sm rounded-4 p-4 mb-4">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div class="p-2 bg-warning-subtle text-warning rounded-3">
+                        <i class="ti ti-sparkles fs-4"></i>
+                    </div>
+                    <div>
+                        <h2 class="h5 fw-bold text-dark mb-0">AI Decision Classification</h2>
+                        <span class="text-muted small">Control whether AI-powered query classification is available to members on the Decision Pathway page.</span>
+                    </div>
+                </div>
+
+                <hr class="my-3 opacity-10" />
+
+                <!-- AI Classification Toggle -->
+                <div class="p-3 border rounded-3 bg-light-subtle mb-3">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle p-2 bg-white shadow-sm border d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                                <i class="ti ti-sparkles fs-4 text-warning"></i>
+                            </div>
+                            <div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <h3 class="h6 fw-bold mb-0">AI Query Classification</h3>
+                                    @if (_isAiLoading)
+                                    {
+                                        <span class="badge bg-secondary-subtle text-secondary border">Loading...</span>
+                                    }
+                                    else if (_aiClassificationEnabled)
+                                    {
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                            <i class="ti ti-circle-check me-1"></i>Enabled
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary-subtle text-secondary border">
+                                            <i class="ti ti-circle-x me-1"></i>Disabled
+                                        </span>
+                                    }
+                                </div>
+                                <p class="text-muted small mb-0 mt-1">
+                                    When enabled, members can type free-form questions on the Decision Pathway and have them classified by Google AI. When disabled, members continue through guided steps manually.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="form-check form-switch fs-4 ms-3 mb-0">
+                            <input class="form-check-input"
+                                   type="checkbox"
+                                   role="switch"
+                                   id="aiClassificationSwitch"
+                                   checked="@_aiClassificationEnabled"
+                                   disabled="@(_isAiLoading || _isAiSaving)"
+                                   @onchange="OnAiClassificationToggleChanged" />
+                        </div>
+                    </div>
+
+                    <!-- API key configuration status -->
+                    <div class="mt-3 pt-3 border-top small">
+                        @if (_isAiConfiguredInEnvironment)
+                        {
+                            <div class="text-success d-flex align-items-center gap-1">
+                                <i class="ti ti-circle-check"></i>
+                                <span>Google AI API key is configured in the environment / user secrets.</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-warning d-flex align-items-center gap-1">
+                                <i class="ti ti-alert-triangle"></i>
+                                <span>
+                                    <strong>Notice:</strong> Google AI API key is not detected in environment settings.
+                                    Even if toggled ON here, AI classification requires a valid key in <code>GoogleAi:ApiKey</code> (user secrets or environment variable).
+                                    Members will see a guided fallback until the key is configured.
+                                </span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="small text-muted bg-body-tertiary p-3 rounded-3 border">
+                    <i class="ti ti-info-circle me-1 text-warning"></i>
+                    <strong>Default Behavior:</strong> If no database record exists, AI classification defaults to <strong>Enabled</strong> (subject to the API key being present). Toggling writes to the <code>SystemSetting</code> table.
+                </div>
+            </div>
+        </div>
+
         <!-- Setting Information & Audit Side Card -->
         <div class="col-12 col-xl-4">
             <div class="card border-0 bg-white shadow-sm rounded-4 p-4">
@@ -171,6 +262,11 @@
     private bool _isSaving;
     private bool _isGoogleConfiguredInEnvironment;
 
+    private bool _aiClassificationEnabled;
+    private bool _isAiLoading = true;
+    private bool _isAiSaving;
+    private bool _isAiConfiguredInEnvironment;
+
     private string? _statusMessage;
     private string _statusClass = "success";
     private string _currentUserId = string.Empty;
@@ -196,15 +292,21 @@
                            ?? Configuration["ClientSecret"];
 
         _isGoogleConfiguredInEnvironment = !string.IsNullOrWhiteSpace(clientId) && !string.IsNullOrWhiteSpace(clientSecret);
+
+        var apiKey = Configuration["GoogleAi:ApiKey"]
+                     ?? Configuration["GoogleAi__ApiKey"];
+        _isAiConfiguredInEnvironment = !string.IsNullOrWhiteSpace(apiKey) || !string.IsNullOrWhiteSpace(GoogleAiOptions.Value.ApiKey);
     }
 
     private async Task LoadSettingsAsync()
     {
         _isLoading = true;
+        _isAiLoading = true;
         try
         {
             // Default is false if not found in database
             _googleAuthEnabled = await SystemSettingsService.IsGoogleAuthEnabledAsync();
+            _aiClassificationEnabled = await SystemSettingsService.IsAiClassificationEnabledAsync();
         }
         catch (Exception ex)
         {
@@ -214,6 +316,7 @@
         finally
         {
             _isLoading = false;
+            _isAiLoading = false;
         }
     }
 
@@ -253,6 +356,45 @@
         finally
         {
             _isSaving = false;
+        }
+    }
+
+    private async Task OnAiClassificationToggleChanged(ChangeEventArgs e)
+    {
+        if (e.Value is not bool newEnabled)
+        {
+            if (!bool.TryParse(e.Value?.ToString(), out newEnabled))
+            {
+                return;
+            }
+        }
+
+        _isAiSaving = true;
+        _statusMessage = null;
+
+        try
+        {
+            await SystemSettingsService.SetAiClassificationEnabledAsync(newEnabled, _currentUserId);
+            _aiClassificationEnabled = newEnabled;
+
+            await AuditLogger.LogAsync(
+                _currentUserId,
+                _currentUserName,
+                newEnabled ? "EnableAiClassification" : "DisableAiClassification",
+                targetUserId: null,
+                detail: $"AI decision classification was toggled to {(newEnabled ? "ENABLED" : "DISABLED")}.");
+
+            _statusClass = "success";
+            _statusMessage = $"AI classification has been successfully {(newEnabled ? "enabled" : "disabled")}.";
+        }
+        catch (Exception ex)
+        {
+            _statusClass = "danger";
+            _statusMessage = $"Failed to update AI classification setting: {ex.Message}";
+        }
+        finally
+        {
+            _isAiSaving = false;
         }
     }
 }

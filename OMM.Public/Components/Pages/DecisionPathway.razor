@@ -4,7 +4,18 @@
 @using Microsoft.Extensions.Options
 @using OMM.Public.Data
 @using System.Security.Claims
+@using Microsoft.Extensions.Caching.Memory
+
+@if (isInterpreting)
+{
+    <div class="loading-overlay">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
 @using OMM.Shared.DecisionSupport
+@using OMM.Shared.Infrastructure.Settings
 @inject IDbContextFactory<ApplicationDbContext> DbContextFactory
 @inject IDecisionSignalCatalog SignalCatalog
 @inject IInquiryIntentInterpreter IntentInterpreter
@@ -12,6 +23,8 @@
 @inject IDecisionPathwayService DecisionPathwayService
 @inject ILogger<DecisionPathway> Logger
 @inject IOptions<GoogleAiOptions> GoogleAiOptions
+@inject IMemoryCache MemoryCache
+@inject ISystemSettingsService SystemSettingsService
 
 <PageTitle>Decision Pathway - OhMyMine</PageTitle>
 
@@ -135,7 +148,10 @@
                                         }
                                         else
                                         {
-                                            <span><i class="ti ti-lock me-1"></i>AI classification is off. Your question stays in OMM and continues through guided steps.</span>
+                                            <span class="d-inline-flex align-items-center gap-1 text-warning fw-semibold">
+                                                <i class="ti ti-sparkles-off"></i>
+                                                AI classification is currently <strong>disabled</strong>. Your question will continue through guided steps.
+                                            </span>
                                         }
                                     </span>
                                     <button class="btn btn-primary rounded-3 px-4" @onclick="InterpretQuestionAsync" disabled="@(string.IsNullOrWhiteSpace(memberQuestion) || isInterpreting)">
@@ -146,6 +162,17 @@
                                         @(AiEnabled ? "Classify question" : "Continue with question") <i class="ti ti-arrow-right ms-1"></i>
                                     </button>
                                 </div>
+
+                                @if (!AiEnabled)
+                                {
+                                    <div class="alert alert-warning d-flex align-items-start gap-2 py-2 px-3 small mt-3 mb-0" role="status">
+                                        <i class="ti ti-sparkles-off mt-1"></i>
+                                        <span>
+                                            <strong>AI classification is off.</strong> You can still describe your signal here &mdash; OMM will carry it through the guided steps automatically.
+                                            Admins can re-enable AI classification in <strong>Admin &rsaquo; Settings</strong>.
+                                        </span>
+                                    </div>
+                                }
 
                                 @if (!string.IsNullOrWhiteSpace(classificationMessage))
                                 {
@@ -751,8 +778,10 @@
     private bool isSaving;
     private string? saveError;
     private string stockDataStatus = "Select a stock starter or enter a reference price.";
-    private bool AiEnabled => GoogleAiOptions.Value.Enabled;
+    // AI is active only when both the appsettings flag AND the DB toggle are on.
+    private bool AiEnabled => GoogleAiOptions.Value.Enabled && _aiDbEnabled;
     private string StockDataStatus => stockDataStatus;
+    private bool _aiDbEnabled = true;
 
     [CascadingParameter]
     private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
@@ -772,6 +801,9 @@
         Concerns = DecisionEngine.GetConcerns();
         Scopes = DecisionEngine.GetScopes();
         Objectives = DecisionEngine.GetObjectives();
+
+        // Load AI toggle from DB (default true when no DB record exists yet)
+        _aiDbEnabled = await SystemSettingsService.IsAiClassificationEnabledAsync();
 
         try
         {
@@ -806,27 +838,69 @@
     {
         if (string.IsNullOrWhiteSpace(memberQuestion)) return;
 
+        // Get authentication state and ensure user is logged in
+        var authState = await AuthenticationStateTask;
+        var user = authState.User;
+        var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            // User not logged in – require login for AI classification
+            classificationMessage = "You must sign in to use AI classification. Continue with guided questions.";
+            intentResult = null;
+            await UseGeneralQuestionAsync(SignalCategory.PortfolioDecision, null, null);
+            GoToScreen(2);
+            return;
+        }
+
+        // Rate limiting: max 10 AI calls per hour per user (null‑safe)
+        const int MaxCalls = 10;
+        var cacheKey = $"AiRateLimit_{userId}";
+        RateInfo? info = null;
+        if (!MemoryCache.TryGetValue(cacheKey, out info) || info == null)
+        {
+            info = new RateInfo { FirstRequestUtc = DateTime.UtcNow, Count = 0 };
+        }
+        // Reset counter if an hour has passed since first request
+        if (info.FirstRequestUtc.AddHours(1) <= DateTime.UtcNow)
+        {
+            info.FirstRequestUtc = DateTime.UtcNow;
+            info.Count = 0;
+        }
+        if (info.Count >= MaxCalls)
+        {
+            classificationMessage = "AI classification rate limit exceeded (10 calls per hour). Please try again later.";
+            intentResult = null;
+            await UseGeneralQuestionAsync(SignalCategory.PortfolioDecision, null, null);
+            GoToScreen(2);
+            return;
+        }
+        // Increment count and store back
+        info.Count++;
+        MemoryCache.Set(cacheKey, info, TimeSpan.FromHours(1));
+
         isInterpreting = true;
         classificationMessage = null;
         try
         {
             if (!AiEnabled)
             {
+                // AI is off — stay on screen 1; the banner below the button already explains why.
+                // Just pre-populate defaults so the user can still proceed via the Continue button.
                 intentResult = null;
-                classificationMessage = "AI classification is disabled. Continue with the guided questions and set the scope and concern yourself.";
+                classificationMessage = null;
                 await UseGeneralQuestionAsync(SignalCategory.PortfolioDecision, null, null);
-                GoToScreen(2);
                 return;
             }
 
             intentResult = await IntentInterpreter.InterpretAsync(memberQuestion);
             if (!intentResult.IsAvailable || intentResult.SignalType == "unknown" || intentResult.Confidence < 0.4m)
             {
+                // Vague or unknown classification – stay on Screen 1 to let the user add more detail
                 classificationMessage = intentResult.IsAvailable
                     ? "OMM needs more detail to classify this question. Continue with the guided questions."
                     : intentResult.ErrorMessage ?? "AI classification is unavailable. Continue with the guided questions.";
                 await UseGeneralQuestionAsync(GetSignalCategory(intentResult.SignalType), intentResult.MentionedSecurity, intentResult.MentionedSector);
-                GoToScreen(2);
+                // Do NOT advance to Screen 2; remain on the current screen so the user can provide more information
                 return;
             }
 
@@ -1124,7 +1198,14 @@
         checkpoint = DecisionEngine.GenerateCheckpoint(targetSecurity, selectedAction, "Several months");
     }
 
-    private static string GetCategoryTone(SignalCategory cat) => cat switch
+    // Helper class for rate‑limiting AI calls per user
+private class RateInfo
+{
+    public DateTime FirstRequestUtc { get; set; }
+    public int Count { get; set; }
+}
+
+private static string GetCategoryTone(SignalCategory cat) => cat switch
     {
         SignalCategory.IndividualStock => "tone-blue",
         SignalCategory.Sector => "tone-gold",

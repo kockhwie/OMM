@@ -5,6 +5,10 @@
     <File Path="docs/calculator-history-product-direction.md" />
     <File Path="docs/calculator-job-design.md" />
     <File Path="docs/scraper-design.md" />
+    <File Path="docs/database-availability-runbook.md" />
+    <File Path="docs/Decision Pathway Bug Fixes Implementaion Plan.md" />
+    <File Path="docs/handoff-adaptive-form-system.md" />
+    <File Path="docs/handoff-log-viewer.md" />
     <File Path="docs/handoff-phase-3-admin-layout.md" />
     <File Path="docs/handoff-phase-3.md" />
     <File Path="docs/handoff-phase-4.md" />
@@ -22,7 +26,10 @@
     <File Path="docs/phase-5-stock-crud.md" />
     <File Path="docs/phase-6-institution-crud.md" />
     <File Path="docs/phase-7-admin-user-management.md" />
+    <File Path="docs/sector-name-validation.md" />
     <File Path="docs/superpowers/plans/2026-09-07-database-availability-resilience.md" />
+    <File Path="docs/ui-form-standards.md" />
+    <File Path="docs/ui-ux-enhancements.md" />
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".gitignore" />

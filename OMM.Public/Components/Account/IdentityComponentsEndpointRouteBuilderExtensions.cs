@@ -1,17 +1,20 @@
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Primitives;
 using OMM.Public.Components.Account.Pages;
 using OMM.Public.Components.Account.Pages.Manage;
 using OMM.Public.Data;
 using System.Security.Claims;
+using System.Text.Json;
 using OMM.Shared.Infrastructure.Settings;
 
-namespace Microsoft.AspNetCore.Routing;
+namespace OMM.Public.Components.Account;
 
 internal static class IdentityComponentsEndpointRouteBuilderExtensions
 {
@@ -36,7 +39,7 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
                     context.Request.PathBase,
                     "/Account/Login",
                     QueryString.Create("error", "Google authentication is currently disabled by administrator."));
-                return TypedResults.LocalRedirect(failureRedirect);
+                return Results.LocalRedirect(failureRedirect);
             }
 
             IEnumerable<KeyValuePair<string, StringValues>> query = [
@@ -49,7 +52,7 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
                 QueryString.Create(query));
 
             var properties = signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
-            return TypedResults.Challenge(properties, [provider]);
+            return Results.Challenge(properties, [provider]);
         });
 
         accountGroup.MapPost("/Logout", async (
@@ -63,7 +66,7 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
             {
                 return TypedResults.LocalRedirect(destination);
             }
-            if (destination.StartsWith("/"))
+            if (destination.StartsWith('/'))
             {
                 return TypedResults.LocalRedirect(destination);
             }
@@ -143,7 +146,10 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
             }
 
             var userId = await userManager.GetUserIdAsync(user);
-            downloadLogger.LogInformation("User with ID '{UserId}' asked for their personal data.", userId);
+            if (downloadLogger.IsEnabled(LogLevel.Information))
+            {
+                downloadLogger.LogInformation("User with ID '{UserId}' asked for their personal data.", userId);
+            }
 
             // Only include personal data for download
             var personalData = new Dictionary<string, string>();

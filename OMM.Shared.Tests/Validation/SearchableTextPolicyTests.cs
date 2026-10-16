@@ -8,6 +8,8 @@ public sealed class SearchableTextPolicyTests
     [InlineData("MAIN")]
     [InlineData("Main Market")]
     [InlineData("Main-Market & Co.")]
+    [InlineData("What could happen to Maybank?")]
+    [InlineData("Inflation rate is 3.5%! Buy or \"Hold\"?")]
     public void StandardText_accepts_searchable_latin_text(string value)
     {
         Assert.True(SearchableTextPolicy.IsValidStandardText(value));

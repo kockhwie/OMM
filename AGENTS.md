@@ -88,3 +88,13 @@ In Blazor (.NET 8+), parameters passed across an SSR-to-interactive boundary (a 
 
 For new or refactored Public forms, follow `docs/ui-form-standards.md` and reuse the shared form primitives before creating component-specific spacing, typography, borders, or radii.
 
+---
+
+## UI Banner & Callout Responsive Standard
+
+- **No side-by-side badge/icon + multiline text splits**: NEVER use a horizontal two-column flex layout where a badge or icon is pinned on the left of multiline wrapped text. This creates massive vertical dead space above/below the badge and looks terrible on mobile/responsive viewports.
+- **Strict vertical stacking for callout banners**: Always stack banner elements vertically in clean document flow:
+  1. **Top**: Badge / Tag / Eyebrow (e.g., `Member Feature`, `Pro Plan`, status badge)
+  2. **Middle**: Full-width description text (spanning 100% of card width, no horizontal gutters)
+  3. **Bottom**: Action buttons (e.g., `[Sign in]`, `[Upgrade]`, or action links)
+

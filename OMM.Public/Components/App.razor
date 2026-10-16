@@ -72,12 +72,29 @@
             }
         };
 
+        window.scrollActiveDecisionStep = function () {
+            const el = document.querySelector('.decision-tree-node.is-current');
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
+        };
+
         window.ommTooltips.init();
         document.addEventListener('enhancedload', window.ommTooltips.init);
         new MutationObserver(window.ommTooltips.init).observe(document.body, {
             childList: true,
             subtree: true
         });
+
+        document.addEventListener('wheel', function (e) {
+            const tree = e.target.closest('.decision-tree');
+            if (tree && tree.scrollWidth > tree.clientWidth) {
+                if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+                    tree.scrollLeft += e.deltaY;
+                    e.preventDefault();
+                }
+            }
+        }, { passive: false });
     </script>
     
     <!-- Chart.js -->

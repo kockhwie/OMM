@@ -11,6 +11,10 @@
 - **Rule‑003** – *Demo folder exclusion* – Do not commit the `demo/` directory (covered by `.gitignore`).
 - **Rule‑004** – *No automatic test execution* – Do NOT run `dotnet test` automatically. Ask the user to run tests manually or prompt for explicit permission first.
 - **Rule‑005** – *No automatic git commits* – Do NOT perform `git commit` or `git push` automatically.
+- **Rule‑006** – *No side-by-side badge/icon + multiline text splits in banners/alerts* – NEVER use horizontal 2-column flex layouts where a badge or icon is pinned on the left of multiline wrapped text (it creates huge dead space above/below the badge and breaks on mobile). Always stack banners vertically:
+  1. Top: Badge / Tag / Eyebrow (e.g. `Member Feature`)
+  2. Middle: Full-width description text
+  3. Bottom: Action buttons (e.g. `Sign in`)
 
 ## Agents (optional)
 You can define additional agents that the IDE can invoke, for example:

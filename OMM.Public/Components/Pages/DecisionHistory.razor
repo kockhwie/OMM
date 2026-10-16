@@ -4,6 +4,7 @@
 @using System.Security.Claims
 @using OMM.Shared.DecisionSupport
 @inject IDecisionPathwayService DecisionPathwayService
+@inject IDeterministicDecisionEngine DecisionEngine
 @inject ILogger<DecisionHistory> Logger
 
 <PageTitle>Decision History - OhMyMine</PageTitle>
@@ -65,8 +66,8 @@ else if (pathwayPage is not null)
                             }
                         </td>
                         <td>
-                            <span class="badge text-bg-light border">@pathway.SelectedActionKey</span>
-                            <div class="small text-muted mt-1">@pathway.ConcernKey · @pathway.ObjectiveKey</div>
+                            <span class="badge text-bg-light border">@GetActionLabel(pathway.SelectedActionKey)</span>
+                            <div class="small text-muted mt-1">@GetConcernLabel(pathway.ConcernKey) · @GetObjectiveLabel(pathway.ObjectiveKey)</div>
                         </td>
                         <td>
                             <strong>@pathway.CheckpointTitle</strong>
@@ -104,9 +105,14 @@ else if (pathwayPage is not null)
     private bool isLoading = true;
     private string? loadError;
     private DecisionPathwayPage? pathwayPage;
+    private IReadOnlyList<MemberConcernOption> concerns = [];
+    private IReadOnlyList<ObjectiveOption> objectives = [];
 
     protected override async Task OnInitializedAsync()
     {
+        concerns = DecisionEngine.GetConcerns();
+        objectives = DecisionEngine.GetObjectives();
+
         var user = (await AuthenticationStateTask).User;
         userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -143,4 +149,20 @@ else if (pathwayPage is not null)
             isLoading = false;
         }
     }
+
+    private string GetActionLabel(string? key) => key switch
+    {
+        "hold" => "Hold and Reinvest",
+        "trim" => "Trim Partially (20%–35%)",
+        "sell" => "Sell and Move to Cash",
+        "accumulate" => "Accumulate on the Dip",
+        "monitor" => "Set a Checkpoint & Wait",
+        _ => string.IsNullOrWhiteSpace(key) ? "Hold" : key
+    };
+
+    private string GetConcernLabel(string? key) =>
+        concerns.FirstOrDefault(c => string.Equals(c.Key, key, StringComparison.OrdinalIgnoreCase))?.Title ?? key ?? "Concern";
+
+    private string GetObjectiveLabel(string? key) =>
+        objectives.FirstOrDefault(o => string.Equals(o.Key, key, StringComparison.OrdinalIgnoreCase))?.Title ?? key ?? "Objective";
 }

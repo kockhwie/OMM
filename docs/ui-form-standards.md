@@ -22,6 +22,7 @@ Use shared form classes before adding page-specific CSS. Forms should use a cons
 - Do not mix `form-control-sm` with standard controls in the same form row unless the shared standard defines that compact variant.
 - Keep focus styles visible for keyboard users.
 - Preserve shared mobile stacking behavior.
+- **Callout and alert banners layout**: NEVER use a horizontal two-column split with an icon or badge pinned on the left of multiline text. Always stack vertically: (1) Top: Badge / Eyebrow, (2) Middle: Full-width text, (3) Bottom: Action buttons.
 
 ## Review checklist
 

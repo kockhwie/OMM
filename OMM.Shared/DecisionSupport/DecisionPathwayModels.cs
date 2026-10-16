@@ -87,7 +87,8 @@ public sealed record ActionOption(
     string Tone,
     IReadOnlyList<string> Advantages,
     IReadOnlyList<string> TradeOffs,
-    string SuitabilityRationale);
+    string SuitabilityRationale,
+    string Fit = "Medium");
 
 public sealed record ScenarioBranch(
     string Key,

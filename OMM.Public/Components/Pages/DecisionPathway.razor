@@ -578,7 +578,10 @@
                                         <input type="radio" name="action-choice" checked="@(selectedAction == act.Key)" class="form-check-input mt-0" />
                                         <h3 class="h6 mb-0">@act.Title</h3>
                                     </div>
-                                    <span class="decision-action-tag @act.Tone">@act.Tag</span>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge @(act.Fit == "High" ? "bg-success-subtle text-success border border-success-subtle" : act.Fit == "Medium" ? "bg-primary-subtle text-primary border border-primary-subtle" : "bg-secondary-subtle text-secondary border border-secondary-subtle")">@act.Fit Fit</span>
+                                        <span class="decision-action-tag @act.Tone">@act.Tag</span>
+                                    </div>
                                 </div>
                                 <p class="small text-muted mb-2">@act.Description</p>
                                 <div class="row g-2 small pt-2 border-top">
@@ -619,15 +622,18 @@
                     <div class="decision-screen-heading">
                         <span class="decision-screen-number">07</span>
                         <div>
-                            <p class="decision-panel-kicker mb-1">Step 7 · Scenario Branches</p>
-                            <h2>Deterministic financial branches for @ActiveTargetLabel</h2>
-                            <p class="text-muted mb-0">Inspect how your selected action performs across recovery, steady, and stress branches.</p>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <p class="decision-panel-kicker mb-0">Step 7 · Scenario Branches</p>
+                                <span class="badge rounded-pill text-bg-light border small">Illustrative Scenarios</span>
+                            </div>
+                            <h2>Financial branches for @ActiveTargetLabel</h2>
+                            <p class="text-muted mb-0">Inspect how your selected action performs across recovery, steady, and stress branches. Assumes ±10% recovery / -12% stress as illustrative baselines; adjust below.</p>
                         </div>
                     </div>
 
                     <!-- Interactive Parameter Inputs -->
                     <div class="p-3 border rounded-3 bg-white mt-4">
-                        <h3 class="h6 mb-3"><i class="ti ti-adjustments me-1"></i>Model Assumptions</h3>
+                        <h3 class="h6 mb-3"><i class="ti ti-adjustments me-1"></i>Illustrative Assumptions & Parameters</h3>
                         <div class="row g-3">
                             <div class="col-md-4 omm-form-field">
                                 <label class="omm-form-label" for="calc-price">Reference Share Price (RM)</label>

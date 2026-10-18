@@ -308,30 +308,30 @@ public sealed class DeterministicDecisionEngine : IDeterministicDecisionEngine
     {
         var allActions = new List<(string Key, string Title, string Desc, string Tag, string Tone, string[] Adv, string[] Trades, string DefaultRationale)>
         {
-            ("hold", "Hold and Reinvest", "Keep existing share count, collect ongoing dividends, and ignore short-term market noise.", "Income Focus", "tag-blue",
+            ("hold", "Hold position", "Keep existing share count, collect ongoing dividends, and observe long-term business performance.", "Income Focus", "tag-blue",
                 ["Preserves eligibility for upcoming dividends", "Avoids transaction fees and selling at an inopportune moment", "Allows compounding through dividend reinvestment"],
-                ["Exposed to further downside if macro sentiment worsens", "Requires emotional patience during drawdowns"],
-                "Suitable if you have a multi-year horizon and low liquidity needs."),
+                ["Exposed to further downside if market sentiment worsens", "Requires emotional patience during drawdowns"],
+                "Tends to fit when you have a multi-year horizon and low liquidity needs."),
 
-            ("trim", "Trim Partially (20%–35%)", "Realize a portion of capital into cash while retaining core exposure for distributions.", "Balanced Defensive", "tag-gold",
+            ("trim", "Reduce exposure", "Realize a portion of capital into cash while retaining core exposure for distributions.", "Balanced Defensive", "tag-gold",
                 ["Reduces downside dollar exposure immediately", "Creates cash reserves to redeploy if prices drop further", "Maintains partial dividend income from remaining shares"],
                 ["Cuts future dividend cash flow proportionately", "Possible regret if the share price rebounds swiftly"],
-                "Provides peace of mind when position weight feels uncomfortable."),
+                "Tends to fit when position weight feels elevated or uncomfortable."),
 
-            ("sell", "Sell and Move to Cash", "Liquidate position completely to lock in capital and eliminate downside volatility.", "Full Defensive", "tag-red",
+            ("sell", "Exit position", "Liquidate position completely to lock in capital and eliminate downside volatility.", "Full Defensive", "tag-red",
                 ["Complete protection against further price declines", "Frees up 100% of capital for risk-free cash yields or new opportunities", "Eliminates monitoring stress"],
                 ["Forfeits all future dividend income", "Locks in any unrealized paper loss permanently", "Requires finding a better replacement asset"],
-                "Appropriate only if company fundamentals have broken down permanently."),
+                "Tends to fit when company fundamentals or thesis have broken down."),
 
-            ("accumulate", "Accumulate on the Dip", "Deploy staggered capital in tranches to lower average cost per share and lift portfolio yield.", "Opportunity Capture", "tag-green",
-                ["Enhances long-term yield on cost", "Lowers breakeven purchase price across the position", "Capitalizes on temporary market overreaction"],
+            ("accumulate", "Add gradually", "Deploy staggered capital in tranches to lower average cost per share and lift portfolio yield.", "Opportunity Capture", "tag-green",
+                ["Enhances long-term yield on cost", "Lowers breakeven purchase price across the position", "Capitalizes on temporary market discounts"],
                 ["Increases capital at risk if share price continues to decline", "Depletes cash reserves prematurely if done in a single lump sum"],
-                "Recommended only when dividend safety is confirmed by operating cash flow."),
+                "Tends to fit when dividend safety is supported by operating cash flow."),
 
-            ("monitor", "Set a Checkpoint & Wait", "Establish explicit measurable trigger rules and commit to making no trade today.", "Disciplined Patience", "tag-purple",
+            ("monitor", "Wait and review", "Establish explicit measurable trigger rules and commit to making no trade today.", "Disciplined Patience", "tag-purple",
                 ["Prevents impulsive emotional trading", "Allows market reaction to settle before committing capital", "Completely free of transaction costs"],
                 ["Does not change existing risk exposure today", "May miss a short-lived recovery bounce"],
-                "Best default when uncertain: let clear price or date triggers guide the next step.")
+                "Tends to fit when uncertain: allows clear price or date triggers to guide review.")
         };
 
         var scored = allActions.Select(action =>
@@ -363,13 +363,13 @@ public sealed class DeterministicDecisionEngine : IDeterministicDecisionEngine
                     if (key == "trim") { score = 95; fit = "High"; rationale = "Ideal fit for balanced objective: reduces risk exposure while preserving dividend continuity."; }
                     else if (key == "hold") { score = 80; fit = "High"; rationale = "Good fit: retains core compounding position if long-term business model remains solid."; }
                     else if (key == "monitor") { score = 70; fit = "Medium"; rationale = "Sensible choice: pauses trades until clearer intermediate price action emerges."; }
-                    else if (key == "accumulate") { score = 60; fit = "Medium"; rationale = "Selective fit: suitable only in disciplined, small tranches during market dips."; }
-                    else if (key == "sell") { score = 25; fit = "Low"; rationale = "Overly aggressive: liquidating completely forfeits recovery upside and dividend yield."; }
+                    else if (key == "accumulate") { score = 60; fit = "Medium"; rationale = "Selective fit: tends to fit in disciplined, smaller tranches during market dips."; }
+                    else if (key == "sell") { score = 25; fit = "Low"; rationale = "Overly defensive: liquidating completely forfeits recovery upside and dividend yield."; }
                     break;
 
                 case "opportunity":
                     if (key == "accumulate") { score = 95; fit = "High"; rationale = "Highest fit for opportunity: methodically acquires quality assets at discounted valuation multiples."; }
-                    else if (key == "hold") { score = 80; fit = "High"; rationale = "Solid fit: stands firm without panic-selling, allowing price recovery to unfold."; }
+                    else if (key == "hold") { score = 80; fit = "High"; rationale = "Solid fit: stands firm without selling, allowing price recovery to unfold."; }
                     else if (key == "monitor") { score = 65; fit = "Medium"; rationale = "Patience fit: monitors price action for a clear technical or valuation support floor."; }
                     else if (key == "trim") { score = 35; fit = "Low"; rationale = "Counter-productive: selling during an attractive valuation window locks in lower prices."; }
                     else if (key == "sell") { score = 10; fit = "Low"; rationale = "Opposite of opportunity capture: permanently exits at market lows."; }
@@ -377,9 +377,9 @@ public sealed class DeterministicDecisionEngine : IDeterministicDecisionEngine
 
                 case "patient_monitor":
                 default:
-                    if (key == "monitor") { score = 95; fit = "High"; rationale = "Highest fit: establishes objective trigger conditions and eliminates emotional knee-jerk trading."; }
+                    if (key == "monitor") { score = 95; fit = "High"; rationale = "Highest fit: establishes objective trigger conditions and avoids emotional knee-jerk trading."; }
                     else if (key == "hold") { score = 85; fit = "High"; rationale = "Natural partner to monitoring: lets current investments work quietly without friction."; }
-                    else if (key == "trim") { score = 60; fit = "Medium"; rationale = "Acceptable defensive hedge if position exceeds personal risk comfort."; }
+                    else if (key == "trim") { score = 60; fit = "Medium"; rationale = "Defensive hedge if position exceeds personal risk comfort."; }
                     else if (key == "accumulate") { score = 30; fit = "Low"; rationale = "Premature: deploys fresh capital before monitoring triggers confirm a bottom."; }
                     else if (key == "sell") { score = 20; fit = "Low"; rationale = "Impulsive exit: liquidates before predefined review horizons have played out."; }
                     break;
@@ -554,43 +554,55 @@ public sealed class DeterministicDecisionEngine : IDeterministicDecisionEngine
                 "Review available fixed income yields vs potential market re-entry opportunities.",
                 horizon,
                 "Risk-free yield rate & KLCI index valuation multiple",
-                "Deploy into conservative dividend stalwarts if market discount widens by >10%.",
+                "Review potential reallocation if market discount widens by >10%.",
                 reviewDate,
                 triggerBelow,
                 triggerAbove),
 
             "trim" => new(
-                $"Partial Trim Evaluation Checkpoint for {target}",
+                $"Exposure Reduction Checkpoint for {target}",
                 triggerBelow is > 0 && triggerAbove is > 0
                     ? $"Assess retained 70% exposure. Trigger below RM {triggerBelow.Value:F2} (-8%) or above RM {triggerAbove.Value:F2} (+10%)."
                     : "Assess whether retained 70% exposure feels comfortable after price volatility settles.",
                 horizon,
                 "Share price stability above support & dividend confirmation",
-                "If price rebounds past target, retain remaining stake; if it drops below support, pause further sales.",
+                "If price rebounds past target, retain remaining stake; if it drops below support, pause further adjustments.",
                 reviewDate,
                 triggerBelow,
                 triggerAbove),
 
             "accumulate" => new(
-                $"Tranche Execution Checkpoint for {target}",
+                $"Add Gradually Checkpoint for {target}",
                 triggerBelow is > 0
                     ? $"Verify first tranche. Trigger next tranche at or below RM {triggerBelow.Value:F2} (-10%)."
                     : "Verify that first accumulation tranche was completed and evaluate second tranche trigger.",
                 horizon,
                 "Price holding support level & confirmed dividend yield >6.0%",
-                "Execute tranche 2 only if fundamental cash flow remains intact.",
+                "Evaluate tranche 2 only if fundamental cash flow remains intact.",
+                reviewDate,
+                triggerBelow,
+                triggerAbove),
+
+            "monitor" => new(
+                $"Wait and Review Checkpoint for {target}",
+                triggerBelow is > 0 && triggerAbove is > 0
+                    ? $"Monitor price action and milestone triggers without placing orders. Re-evaluate if price moves below RM {triggerBelow.Value:F2} (-8%) or above RM {triggerAbove.Value:F2} (+10%)."
+                    : "Monitor price action and company announcements without trading today.",
+                horizon,
+                "Price stability range & forthcoming quarterly operating results",
+                "Re-assess options when scheduled horizon date is reached or if trigger boundary is breached.",
                 reviewDate,
                 triggerBelow,
                 triggerAbove),
 
             _ => new(
-                $"Hold & Dividend Review Checkpoint for {target}",
+                $"Hold Position Checkpoint for {target}",
                 triggerBelow is > 0
                     ? $"Check dividend confirmation. Stop/re-evaluate if price slips below RM {triggerBelow.Value:F2} (-8%)."
                     : "Check post-dividend share price performance and ex-date price recovery duration.",
                 horizon,
                 "Ex-dividend price recovery & next quarterly earnings announcement",
-                "If share price recovers within 14 days, maintain holding; if price slips >8%, revisit trim scenario.",
+                "If share price recovers within 14 days, maintain holding; if price slips >8%, revisit reduction scenario.",
                 reviewDate,
                 triggerBelow,
                 triggerAbove)

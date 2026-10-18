@@ -173,4 +173,37 @@ public class DeterministicDecisionEngineTests
         Assert.Null(checkpoint.SuggestedTriggerBelow);
         Assert.Null(checkpoint.SuggestedTriggerAbove);
     }
+
+    [Fact]
+    public void EvaluateActionOptions_UsesNeutralActionTitles_AndAvoidsDirectivePhrasing()
+    {
+        // Act
+        var options = _engine.EvaluateActionOptions("balanced", "price_drop");
+
+        // Assert
+        var titlesByKey = options.ToDictionary(o => o.Key, o => o.Title);
+        Assert.Equal("Hold position", titlesByKey["hold"]);
+        Assert.Equal("Reduce exposure", titlesByKey["trim"]);
+        Assert.Equal("Exit position", titlesByKey["sell"]);
+        Assert.Equal("Add gradually", titlesByKey["accumulate"]);
+        Assert.Equal("Wait and review", titlesByKey["monitor"]);
+
+        foreach (var opt in options)
+        {
+            Assert.DoesNotContain("Recommended only", opt.SuitabilityRationale, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("Appropriate only", opt.SuitabilityRationale, StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
+    [Fact]
+    public void GenerateCheckpoint_MonitorAction_GeneratesWaitAndReviewCheckpoint()
+    {
+        // Act
+        var checkpoint = _engine.GenerateCheckpoint("MAYBANK", "monitor", "3 months", 10.00m);
+
+        // Assert
+        Assert.Contains("Wait and Review", checkpoint.Title);
+        Assert.NotNull(checkpoint.SuggestedTriggerBelow);
+        Assert.NotNull(checkpoint.SuggestedTriggerAbove);
+    }
 }

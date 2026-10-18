@@ -309,12 +309,12 @@ else if (pathwayPage is not null)
 
     private string GetActionLabel(string? key) => key switch
     {
-        "hold" => "Hold and Reinvest",
-        "trim" => "Trim Partially (20%–35%)",
-        "sell" => "Sell and Move to Cash",
-        "accumulate" => "Accumulate on the Dip",
-        "monitor" => "Set a Checkpoint & Wait",
-        _ => string.IsNullOrWhiteSpace(key) ? "Hold" : key
+        "hold" => "Hold position",
+        "trim" => "Reduce exposure",
+        "sell" => "Exit position",
+        "accumulate" => "Add gradually",
+        "monitor" => "Wait and review",
+        _ => string.IsNullOrWhiteSpace(key) ? "Hold position" : key
     };
 
     private string GetConcernLabel(string? key) =>

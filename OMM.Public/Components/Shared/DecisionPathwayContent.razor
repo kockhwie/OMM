@@ -1,0 +1,1427 @@
+@namespace OMM.Public.Components.Shared
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.Extensions.Options
+@using OMM.Public.Data
+@using System.Security.Claims
+@using Microsoft.Extensions.Caching.Memory
+@using OMM.Public.Validation
+@using OMM.Shared.DecisionSupport
+@using OMM.Shared.Infrastructure.Settings
+@using OMM.Public.Services
+@using OMM.Public.Models
+
+@if (isInterpreting)
+{
+    <div class="loading-overlay">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+
+@inject IDbContextFactory<ApplicationDbContext> DbContextFactory
+@inject IDecisionSignalCatalog SignalCatalog
+@inject IInquiryIntentInterpreter IntentInterpreter
+@inject IDeterministicDecisionEngine DecisionEngine
+@inject IDecisionPathwayService DecisionPathwayService
+@inject IPortfolioContextProvider PortfolioContextProvider
+@inject ILogger<DecisionPathwayContent> Logger
+@inject IOptions<GoogleAiOptions> GoogleAiOptions
+@inject IMemoryCache MemoryCache
+@inject ISystemSettingsService SystemSettingsService
+@inject IJSRuntime JS
+@inject NavigationManager NavigationManager
+
+<div class="decision-pathway animate-fade-up">
+    <div class="decision-header d-flex flex-column flex-lg-row align-items-lg-end justify-content-between gap-3 mb-4">
+        <div class="decision-header-intro">
+            <div class="mb-2">
+                <span class="decision-eyebrow d-block mb-1">Decision Support System</span>
+                <span class="badge rounded-pill text-bg-light border">Deterministic Analysis</span>
+            </div>
+            <h1 class="mb-2">Turn any market signal into a disciplined next step.</h1>
+            <p class="text-muted mb-0">
+                Examine market events across stocks, sectors, domestic macro, and global policy. Understand the transmission mechanism and compare deterministic scenarios before taking action.
+            </p>
+        </div>
+        <button class="btn btn-link text-decoration-none text-dark p-0 decision-reset" @onclick="ResetPathway">
+            <i class="ti ti-refresh me-1"></i>Start over
+        </button>
+    </div>
+
+    <!-- 8-STEP WORKSPACE -->
+    <div class="decision-workspace">
+        <!-- Progress Stepper Tree -->
+        <aside class="decision-tree-panel">
+            <div class="decision-tree-heading">
+                <div>
+                    <span class="decision-eyebrow d-block">Progress</span>
+                    <p class="h5 mb-0">Decision Flow</p>
+                </div>
+                <span class="decision-step-count">Step @screen of 8</span>
+            </div>
+
+            <div class="decision-tree" role="navigation" aria-label="Decision Pathway Steps">
+                <button type="button" class="decision-tree-node @(screen == 1 ? "is-current" : "") @(screen > 1 ? "is-complete" : "")"
+                        @onclick="() => GoToScreen(1)">
+                    <span class="decision-node-marker"><i class="ti @(screen > 1 ? "ti-check" : "ti-bulb")"></i></span>
+                    <div>
+                        <strong>1. Signal</strong>
+                        <small>@SignalShortLabel</small>
+                    </div>
+                </button>
+                <div class="decision-tree-line"></div>
+
+                <button type="button" class="decision-tree-node @(screen == 2 ? "is-current" : "") @(screen > 2 ? "is-complete" : "")"
+                        @onclick="() => GoToScreen(2)">
+                    <span class="decision-node-marker"><i class="ti @(screen > 2 ? "ti-check" : "ti-heart-rate-monitor")"></i></span>
+                    <div>
+                        <strong>2. Concern</strong>
+                        <small>@ConcernShortLabel</small>
+                    </div>
+                </button>
+                <div class="decision-tree-line"></div>
+
+                <button type="button" class="decision-tree-node @(screen == 3 ? "is-current" : "") @(screen > 3 ? "is-complete" : "")"
+                        @onclick="() => GoToScreen(3)">
+                    <span class="decision-node-marker"><i class="ti @(screen > 3 ? "ti-check" : "ti-layers-intersect")"></i></span>
+                    <div>
+                        <strong>3. Scope</strong>
+                        <small>@ScopeShortLabel</small>
+                    </div>
+                </button>
+                <div class="decision-tree-line"></div>
+
+                <button type="button" class="decision-tree-node @(screen == 4 ? "is-current" : "") @(screen > 4 ? "is-complete" : "")"
+                        @onclick="() => GoToScreen(4)">
+                    <span class="decision-node-marker"><i class="ti @(screen > 4 ? "ti-check" : "ti-target")"></i></span>
+                    <div>
+                        <strong>4. Objective</strong>
+                        <small>@ObjectiveShortLabel</small>
+                    </div>
+                </button>
+                <div class="decision-tree-line"></div>
+
+                <button type="button" class="decision-tree-node @(screen == 5 ? "is-current" : "") @(screen > 5 ? "is-complete" : "")"
+                        @onclick="() => GoToScreen(5)">
+                    <span class="decision-node-marker"><i class="ti @(screen > 5 ? "ti-check" : "ti-git-commit")"></i></span>
+                    <div>
+                        <strong>5. Impact</strong>
+                        <small>Transmission</small>
+                    </div>
+                </button>
+                <div class="decision-tree-line"></div>
+
+                <button type="button" class="decision-tree-node @(screen == 6 ? "is-current" : "") @(screen > 6 ? "is-complete" : "")"
+                        @onclick="() => GoToScreen(6)">
+                    <span class="decision-node-marker"><i class="ti @(screen > 6 ? "ti-check" : "ti-arrows-split")"></i></span>
+                    <div>
+                        <strong>6. Options</strong>
+                        <small>@ActionShortLabel</small>
+                    </div>
+                </button>
+                <div class="decision-tree-line"></div>
+
+                <button type="button" class="decision-tree-node @(screen == 7 ? "is-current" : "") @(screen > 7 ? "is-complete" : "")"
+                        @onclick="() => GoToScreen(7)">
+                    <span class="decision-node-marker"><i class="ti @(screen > 7 ? "ti-check" : "ti-chart-dots")"></i></span>
+                    <div>
+                        <strong>7. Scenarios</strong>
+                        <small>@ScenarioShortLabel</small>
+                    </div>
+                </button>
+                <div class="decision-tree-line"></div>
+
+                <button type="button" class="decision-tree-node @(screen == 8 ? "is-current" : "")"
+                        @onclick="() => GoToScreen(8)">
+                    <span class="decision-node-marker"><i class="ti ti-flag"></i></span>
+                    <div>
+                        <strong>8. Plan</strong>
+                        <small>Checkpoint</small>
+                    </div>
+                </button>
+            </div>
+
+            <div class="decision-tree-note">
+                <i class="ti ti-info-circle fs-5 flex-shrink-0"></i>
+                <span>Every calculation in this pipeline is deterministic and rule-bound. No dynamic LLM calculations or generative forecasting are applied.</span>
+            </div>
+        </aside>
+
+        <!-- Dynamic Screen Content Area -->
+        <section class="decision-content-panel">
+            @if (screen == 1)
+            {
+                <!-- SCREEN 1: INPUT / SELECT SIGNAL -->
+                <div class="decision-screen-heading">
+                    <span class="decision-screen-number">01</span>
+                    <div>
+                        <p class="decision-panel-kicker mb-1">Step 1 · Signal Intake</p>
+                        <h2>What signal are you trying to assess?</h2>
+                        <p class="text-muted mb-0">Describe an event in plain English, or pick a question starter below to begin the analysis.</p>
+                    </div>
+                </div>
+
+                <div class="decision-question-card mt-4 mb-3">
+                    <label class="form-label fw-bold mb-1" for="member-question">Describe what just happened or what you heard</label>
+                    <textarea id="member-question"
+                              class="form-control decision-question-input mb-2"
+                              rows="3"
+                              placeholder="e.g. Maybank reported dividend cut rumors, or OPR might rise 25 bps. What should I do?"
+                              @bind="memberQuestion"></textarea>
+
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                        <span class="decision-question-help">
+                            @if (AiEnabled)
+                            {
+                                @if (isAuthenticated)
+                                {
+                                    <span>Analyzed using Gemini Flash intent classification; rate limited to 10 queries/hour.</span>
+                                }
+                                else
+                                {
+                                    <span class="text-warning-emphasis"><i class="ti ti-lock me-1"></i>Sign in required for AI interpretation, or continue below with guided steps.</span>
+                                }
+                            }
+                            else
+                            {
+                                <span>Guided deterministic rules will classify your question without AI.</span>
+                            }
+                        </span>
+                        <div class="d-flex gap-2">
+                            @if (AiEnabled && !isAuthenticated)
+                            {
+                                <a href="Account/Login?returnUrl=@BasePath" class="btn btn-outline-primary btn-sm rounded-3 px-3">
+                                    <i class="ti ti-login me-1"></i>Sign in for AI
+                                </a>
+                            }
+                            <button class="btn btn-dark btn-sm rounded-3 px-3"
+                                    type="button"
+                                    disabled="@(isInterpreting || string.IsNullOrWhiteSpace(memberQuestion))"
+                                    @onclick="InterpretQuestionAsync">
+                                @if (isInterpreting)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                    <span>Interpreting…</span>
+                                }
+                                else if (AiEnabled && isAuthenticated)
+                                {
+                                    <i class="ti ti-sparkles me-1"></i>
+                                    <span>Analyze with AI</span>
+                                }
+                                else
+                                {
+                                    <i class="ti ti-arrow-right me-1"></i>
+                                    <span>Continue</span>
+                                }
+                            </button>
+                        </div>
+                    </div>
+
+                    @if (classificationMessage != null)
+                    {
+                        <div class="alert alert-info mt-3 mb-0" role="status">@classificationMessage</div>
+                    }
+
+                    @if (intentResult != null)
+                    {
+                        var isReady = intentResult.IsAvailable && intentResult.NeedsClarification == false;
+                        var isVague = intentResult.NeedsClarification == true;
+                        var isClassified = isReady || isVague;
+
+                        <div class="decision-ai-result mt-3 @(isReady ? "is-ready" : isVague ? "is-vague" : "is-unavailable")">
+                            <div class="d-flex align-items-start gap-2">
+                                <i class="ti @(isReady ? "ti-circle-check" : isVague ? "ti-help-circle" : "ti-info-circle") fs-5 mt-1 flex-shrink-0"></i>
+                                <div>
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <strong>@(isReady ? "Classification result" : isVague ? "Signal needs clarification" : "Interpreter status")</strong>
+                                        <span class="badge rounded-pill text-bg-light border small">@intentResult.Provider</span>
+                                    </div>
+                                    <p class="mb-0 small">
+                                        @if (intentResult.IsAvailable)
+                                        {
+                                            @intentResult.Summary
+                                        }
+                                        else
+                                        {
+                                            @intentResult.ErrorMessage
+                                        }
+                                    </p>
+                                </div>
+                            </div>
+
+                            @if (isClassified)
+                            {
+                                <div class="decision-ai-tags mt-3">
+                                    <span>Signal: @intentResult.SignalType</span>
+                                    @if (!string.IsNullOrWhiteSpace(intentResult.MentionedSecurity))
+                                    {
+                                        <span>Stock: @intentResult.MentionedSecurity</span>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(intentResult.MentionedSector))
+                                    {
+                                        <span>Sector: @intentResult.MentionedSector</span>
+                                    }
+                                    <span>Intent: @intentResult.Intent</span>
+                                    <span>Confidence: @intentResult.Confidence.ToString("P0")</span>
+                                </div>
+                            }
+
+                            @if (isClassified || isVague)
+                            {
+                                <!-- Quick-concern chips -->
+                                <div class="mt-3 p-3 bg-white rounded-3 border">
+                                    <p class="small mb-1 fw-bold text-dark">
+                                        <i class="ti ti-help-circle me-1 text-primary"></i>
+                                        @(intentResult.MissingQuestions.Count > 0
+                                            ? intentResult.MissingQuestions[0]
+                                            : "What is your main concern with this signal?")
+                                    </p>
+                                    <p class="text-muted small mb-2">Choose a topic to set your concern and continue directly to Step 3: Scope:</p>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" @onclick='() => SelectConcernAndProceed("price_drop")'>
+                                            <i class="ti ti-chart-candle me-1"></i>Price drop / valuation risk
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-warning rounded-pill" @onclick='() => SelectConcernAndProceed("dividend")'>
+                                            <i class="ti ti-building-bank me-1"></i>Dividend safety
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-info rounded-pill" @onclick='() => SelectConcernAndProceed("macro_shock")'>
+                                            <i class="ti ti-world me-1"></i>Interest rate / macro shock
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" @onclick='() => SelectConcernAndProceed("concentration")'>
+                                            <i class="ti ti-chart-pie me-1"></i>Rebalance portfolio weight
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-success rounded-pill" @onclick='() => SelectConcernAndProceed("opportunity")'>
+                                            <i class="ti ti-bulb me-1"></i>Assess buying opportunity
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+
+                            @if (isClassified)
+                            {
+                                <!-- Primary Proceed Action -->
+                                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3 pt-3 border-top">
+                                    <span class="small text-muted">
+                                        <i class="ti ti-arrow-right-circle me-1"></i>Or skip directly to Step 2 with the signal as classified.
+                                    </span>
+                                    <button type="button" class="btn btn-dark rounded-3 px-4 btn-sm" @onclick="() => GoToScreen(2)">
+                                        Proceed to Step 2: Concern <i class="ti ti-arrow-right ms-1"></i>
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <!-- Curated Signals Picker -->
+                <div class="align-items-lg-center justify-content-between gap-3 mb-3 mt-3">
+                    <h3 class="h6 mb-2">Or choose a question starter</h3>
+                    <div class="d-flex flex-wrap gap-1 align-items-center" role="group" aria-label="Filter question starters by category">
+                        <button type="button" class="btn btn-sm rounded-3 fw-medium px-3 py-2 @(activeCategoryFilter == null ? "btn-dark text-white" : "btn-outline-secondary bg-white text-dark border-light-subtle")" aria-pressed="@(activeCategoryFilter == null ? "true" : "false")" @onclick="() => FilterCategory(null)">All</button>
+                        <button type="button" class="btn btn-sm rounded-3 fw-medium px-3 py-2 @(activeCategoryFilter == SignalCategory.IndividualStock ? "btn-dark text-white" : "btn-outline-secondary bg-white text-dark border-light-subtle")" aria-pressed="@(activeCategoryFilter == SignalCategory.IndividualStock ? "true" : "false")" @onclick="() => FilterCategory(SignalCategory.IndividualStock)">Stocks</button>
+                        <button type="button" class="btn btn-sm rounded-3 fw-medium px-3 py-2 @(activeCategoryFilter == SignalCategory.Sector ? "btn-dark text-white" : "btn-outline-secondary bg-white text-dark border-light-subtle")" aria-pressed="@(activeCategoryFilter == SignalCategory.Sector ? "true" : "false")" @onclick="() => FilterCategory(SignalCategory.Sector)">Sectors</button>
+                        <button type="button" class="btn btn-sm rounded-3 fw-medium px-3 py-2 @(activeCategoryFilter == SignalCategory.MalaysianMarket ? "btn-dark text-white" : "btn-outline-secondary bg-white text-dark border-light-subtle")" aria-pressed="@(activeCategoryFilter == SignalCategory.MalaysianMarket ? "true" : "false")" @onclick="() => FilterCategory(SignalCategory.MalaysianMarket)">Malaysia</button>
+                        <button type="button" class="btn btn-sm rounded-3 fw-medium px-3 py-2 @(activeCategoryFilter == SignalCategory.GlobalEconomy ? "btn-dark text-white" : "btn-outline-secondary bg-white text-dark border-light-subtle")" aria-pressed="@(activeCategoryFilter == SignalCategory.GlobalEconomy ? "true" : "false")" @onclick="() => FilterCategory(SignalCategory.GlobalEconomy)">Global</button>
+                        <button type="button" class="btn btn-sm rounded-3 fw-medium px-3 py-2 @(activeCategoryFilter == SignalCategory.PortfolioDecision ? "btn-dark text-white" : "btn-outline-secondary bg-white text-dark border-light-subtle")" aria-pressed="@(activeCategoryFilter == SignalCategory.PortfolioDecision ? "true" : "false")" @onclick="() => FilterCategory(SignalCategory.PortfolioDecision)">Portfolio</button>
+                        <button type="button" class="btn btn-sm rounded-3 fw-medium px-3 py-2 @(activeCategoryFilter == SignalCategory.Opportunity ? "btn-dark text-white" : "btn-outline-secondary bg-white text-dark border-light-subtle")" aria-pressed="@(activeCategoryFilter == SignalCategory.Opportunity ? "true" : "false")" @onclick="() => FilterCategory(SignalCategory.Opportunity)">Opportunity</button>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(signalCatalogError))
+                {
+                    <div class="alert alert-warning" role="status">@signalCatalogError</div>
+                }
+                else if (!FilteredSignals.Any())
+                {
+                    <p class="small text-muted border rounded-3 p-3">No starters in this category. Ask in your own words or choose another category.</p>
+                }
+                else
+                {
+                    <div class="decision-entry-options" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: .8rem;">
+                        @foreach (var sig in FilteredSignals)
+                        {
+                            <button class="decision-option-card @(selectedSignal?.Id == sig.Id ? "is-selected" : "")"
+                                    type="button"
+                                    @onclick="() => UseSignalAsync(sig)">
+                                <span class="decision-option-icon tone-gold"><i class="ti ti-compass"></i></span>
+                                <span class="text-start">
+                                    <strong>@sig.Title</strong>
+                                    <small>@sig.Description</small>
+                                </span>
+                                <i class="ti ti-arrow-up-right decision-option-arrow"></i>
+                            </button>
+                        }
+                    </div>
+                }
+            }
+            else if (screen == 2)
+            {
+                <!-- SCREEN 2: CONCERN -->
+                <div class="decision-screen-heading">
+                    <span class="decision-screen-number">02</span>
+                    <div>
+                        <p class="decision-panel-kicker mb-1">Step 2 · Member Concern</p>
+                        <h2>What is bothering you about this signal?</h2>
+                        <p class="text-muted mb-0">Identifying the emotional and financial concern helps clarify which trade-offs matter most.</p>
+                    </div>
+                </div>
+
+                <div class="decision-option-grid mt-4">
+                    @foreach (var concern in Concerns)
+                    {
+                        <button class="decision-option-card @(selectedConcern == concern.Key ? "is-selected" : "")"
+                                @onclick="() => SelectConcern(concern.Key)">
+                            <span class="decision-option-icon @concern.Tone"><i class="@concern.Icon"></i></span>
+                            <span class="text-start">
+                                <strong>@concern.Title</strong>
+                                <small>@concern.Description</small>
+                            </span>
+                            <i class="ti ti-arrow-up-right decision-option-arrow"></i>
+                        </button>
+                    }
+                </div>
+
+                <div class="d-flex justify-content-between gap-3 mt-4">
+                    <button class="btn btn-outline-dark rounded-3 px-4" @onclick="() => GoToScreen(1)"><i class="ti ti-arrow-left me-1"></i>Back</button>
+                    <button class="btn btn-dark rounded-3 px-4" @onclick="() => GoToScreen(3)">Continue to Scope <i class="ti ti-arrow-right ms-1"></i></button>
+                </div>
+            }
+            else if (screen == 3)
+            {
+                <!-- SCREEN 3: SCOPE & HOLDING CONTEXT -->
+                <div class="decision-screen-heading">
+                    <span class="decision-screen-number">03</span>
+                    <div>
+                        <p class="decision-panel-kicker mb-1">Step 3 · Decision Scope</p>
+                        <h2>At what level does this decision operate?</h2>
+                        <p class="text-muted mb-0">Decide whether this applies to an isolated company, an entire sector, or your whole portfolio.</p>
+                    </div>
+                </div>
+
+                <div class="decision-scope-grid mt-4">
+                    @foreach (var scopeOpt in Scopes)
+                    {
+                        <button class="decision-scope-card @(selectedScope == scopeOpt.Key ? "is-selected" : "")"
+                                @onclick="() => SelectScope(scopeOpt.Key)">
+                            <span class="decision-option-icon tone-blue"><i class="@scopeOpt.Icon"></i></span>
+                            <span class="text-start">
+                                <strong>@scopeOpt.Title</strong>
+                                <small>@scopeOpt.Description</small>
+                            </span>
+                            <i class="ti ti-arrow-up-right decision-option-arrow"></i>
+                        </button>
+                    }
+                </div>
+
+                <!-- Target entity contextual editor -->
+                <div class="decision-context-callout mt-4">
+                    <div class="omm-form-section p-0">
+                        <div class="row g-3">
+                            <div class="col-md-6 omm-form-field">
+                                <label class="omm-form-label" for="target-security">Target Security / Company</label>
+                                <div class="mb-2">
+                                    <StockSearchPicker OnStockSelected="OnStockPicked" Placeholder="Search Bursa stock name or ticker..." InputId="target-security-picker" />
+                                </div>
+                                <input id="target-security" class="form-control omm-input" value="@targetSecurity" @onchange="OnTargetSecurityChanged" placeholder="e.g. Maybank (1155)" />
+                                <p class="omm-form-help">Applies if evaluating a single stock or primary exposure.</p>
+                            </div>
+                            <div class="col-md-6 omm-form-field">
+                                <label class="omm-form-label" for="target-sector">Sector / Industry</label>
+                                <input id="target-sector" class="form-control omm-input" @bind="targetSector" placeholder="e.g. Financial Services" />
+                                <p class="omm-form-help">Industry category for transmission mapping.</p>
+                            </div>
+                        </div>
+
+                        <!-- Matched Portfolio Holding Card (Vertical Stacking Responsive Standard) -->
+                        @if (matchedPosition != null)
+                        {
+                            <div class="card border-0 bg-primary-subtle rounded-3 p-3 mt-3">
+                                <div class="mb-2">
+                                    <span class="badge text-bg-primary rounded-pill me-2"><i class="ti ti-briefcase me-1"></i>Portfolio Holding</span>
+                                    <span class="fw-semibold text-dark">@matchedPosition.StockName (@matchedPosition.StockCode)</span>
+                                </div>
+                                <p class="mb-0 text-dark small">
+                                    You hold <strong>@matchedPosition.Shares.ToString("N0") shares</strong>, representing <strong>@matchedPosition.WeightPct.ToString("N1")%</strong> of your total valued mines (Market Value: RM @matchedPosition.MarketValue.ToString("N2")).
+                                </p>
+                            </div>
+                        }
+
+                        <!-- Concentration Context Alert -->
+                        @if (selectedConcern == "concentration" && matchedPosition != null)
+                        {
+                            @if (matchedPosition.WeightPct < 10m)
+                            {
+                                <div class="alert alert-info border-0 rounded-3 mt-3 mb-0 small">
+                                    <div class="fw-semibold mb-1"><i class="ti ti-info-circle me-1"></i>Concentration Context</div>
+                                    This holding makes up <strong>@matchedPosition.WeightPct.ToString("N1")%</strong> of your mines (&lt; 10%). Concentration risk is generally low at this weight unless you hold correlated assets in the same sector.
+                                </div>
+                            }
+                            else if (matchedPosition.WeightPct >= 15m)
+                            {
+                                <div class="alert alert-warning border-0 rounded-3 mt-3 mb-0 small">
+                                    <div class="fw-semibold mb-1"><i class="ti ti-alert-triangle me-1"></i>High Concentration Context</div>
+                                    This holding makes up <strong>@matchedPosition.WeightPct.ToString("N1")%</strong> of your mines (&ge; 15%). Rebalancing or trimming can meaningfully reduce single-asset vulnerability.
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between gap-3 mt-4">
+                    <button class="btn btn-outline-dark rounded-3 px-4" @onclick="() => GoToScreen(2)"><i class="ti ti-arrow-left me-1"></i>Back</button>
+                    <button class="btn btn-dark rounded-3 px-4" @onclick="() => GoToScreen(4)">Continue to Objective <i class="ti ti-arrow-right ms-1"></i></button>
+                </div>
+            }
+            else if (screen == 4)
+            {
+                <!-- SCREEN 4: OBJECTIVE -->
+                <div class="decision-screen-heading">
+                    <span class="decision-screen-number">04</span>
+                    <div>
+                        <p class="decision-panel-kicker mb-1">Step 4 · Primary Objective</p>
+                        <h2>What is your primary goal right now?</h2>
+                        <p class="text-muted mb-0">Different objectives justify different actions for the very same market signal.</p>
+                    </div>
+                </div>
+
+                <div class="decision-option-grid mt-4">
+                    @foreach (var obj in Objectives)
+                    {
+                        <button class="decision-option-card @(selectedObjective == obj.Key ? "is-selected" : "")"
+                                @onclick="() => SelectObjective(obj.Key)">
+                            <span class="decision-option-icon tone-green"><i class="@obj.Icon"></i></span>
+                            <span class="text-start">
+                                <strong>@obj.Title</strong>
+                                <small>@obj.Description</small>
+                            </span>
+                            <i class="ti ti-arrow-up-right decision-option-arrow"></i>
+                        </button>
+                    }
+                </div>
+
+                <div class="d-flex justify-content-between gap-3 mt-4">
+                    <button class="btn btn-outline-dark rounded-3 px-4" @onclick="() => GoToScreen(3)"><i class="ti ti-arrow-left me-1"></i>Back</button>
+                    <button class="btn btn-dark rounded-3 px-4" @onclick="() => GoToScreen(5)">View Transmission Map <i class="ti ti-arrow-right ms-1"></i></button>
+                </div>
+            }
+            else if (screen == 5)
+            {
+                <!-- SCREEN 5: TRANSMISSION MAP -->
+                <div class="decision-screen-heading">
+                    <span class="decision-screen-number">05</span>
+                    <div>
+                        <p class="decision-panel-kicker mb-1">Step 5 · Transmission Mechanism</p>
+                        <h2>How the signal flows through your balance sheet</h2>
+                        <p class="text-muted mb-0">A disciplined investor separates headline sentiment from operational corporate cash flows.</p>
+                    </div>
+                </div>
+
+                <div class="p-3 border rounded-3 bg-white mt-4">
+                    <h3 class="h6 mb-2">Transmission Mechanism Summary</h3>
+                    <p class="small text-muted mb-3">@impactMap.Summary</p>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <div class="p-2 border rounded bg-light-subtle">
+                                <span class="badge text-bg-secondary mb-1">Direct Operational Channel</span>
+                                <p class="small mb-0">@impactMap.DirectEffect</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-2 border rounded bg-light-subtle">
+                                <span class="badge text-bg-secondary mb-1">Indirect Second-Order Channel</span>
+                                <p class="small mb-0">@impactMap.IndirectEffect</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4 class="h6 mb-2">Transmission Sequence</h4>
+                    <div class="d-flex flex-column gap-2 mb-3">
+                        @foreach (var node in impactMap.Nodes)
+                        {
+                            <div class="p-2 border-start border-3 border-dark bg-light rounded-end d-flex align-items-center justify-content-between gap-2">
+                                <div>
+                                    <strong class="small d-block">@node.Stage: @node.Title</strong>
+                                    <small class="text-muted">@node.Description</small>
+                                </div>
+                                <span class="badge @(node.Severity == "high" ? "text-bg-danger" : node.Severity == "medium" ? "text-bg-warning" : "text-bg-info") text-uppercase small">@node.Severity</span>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="row g-2 pt-2 border-top">
+                        <div class="col-md-6">
+                            <strong class="small text-danger d-block mb-1"><i class="ti ti-alert-triangle me-1"></i>Vulnerabilities:</strong>
+                            <ul class="small ps-3 mb-0 text-muted">
+                                @foreach (var v in impactMap.KeyVulnerabilities)
+                                {
+                                    <li>@v</li>
+                                }
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <strong class="small text-success d-block mb-1"><i class="ti ti-shield-check me-1"></i>Resilience Factors:</strong>
+                            <ul class="small ps-3 mb-0 text-muted">
+                                @foreach (var r in impactMap.KeyResilienceFactors)
+                                {
+                                    <li>@r</li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between gap-3 mt-4">
+                    <button class="btn btn-outline-dark rounded-3 px-4" @onclick="() => GoToScreen(4)"><i class="ti ti-arrow-left me-1"></i>Back</button>
+                    <button class="btn btn-dark rounded-3 px-4" @onclick="() => GoToScreen(6)">Compare Options <i class="ti ti-arrow-right ms-1"></i></button>
+                </div>
+            }
+            else if (screen == 6)
+            {
+                <!-- SCREEN 6: OPTIONS -->
+                <div class="decision-screen-heading">
+                    <span class="decision-screen-number">06</span>
+                    <div>
+                        <p class="decision-panel-kicker mb-1">Step 6 · Action Comparison</p>
+                        <h2>Which action best matches your risk budget?</h2>
+                        <p class="text-muted mb-0">Every choice has trade-offs. Select an action to test against deterministic scenario models.</p>
+                    </div>
+                </div>
+
+                <div class="decision-action-list mt-4">
+                    @foreach (var act in evaluatedOptions)
+                    {
+                        <div class="p-3 border rounded-3 bg-white mb-2 @(selectedAction == act.Key ? "border-dark shadow-sm" : "")"
+                             role="button"
+                             @onclick="() => SelectAction(act.Key)">
+                            <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="radio" name="action-choice" checked="@(selectedAction == act.Key)" class="form-check-input mt-0" />
+                                    <h3 class="h6 mb-0">@act.Title</h3>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge @(act.Fit == "High" ? "bg-success-subtle text-success border border-success-subtle" : act.Fit == "Medium" ? "bg-primary-subtle text-primary border border-primary-subtle" : "bg-secondary-subtle text-secondary border border-secondary-subtle")">@act.Fit Fit</span>
+                                    <span class="decision-action-tag @act.Tone">@act.Tag</span>
+                                </div>
+                            </div>
+                            <p class="small text-muted mb-2">@act.Description</p>
+                            <div class="row g-2 small pt-2 border-top">
+                                <div class="col-md-6">
+                                    <strong class="text-success"><i class="ti ti-check me-1"></i>Advantages:</strong>
+                                    <ul class="ps-3 mb-0 text-muted">
+                                        @foreach (var adv in act.Advantages)
+                                        {
+                                            <li>@adv</li>
+                                        }
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong class="text-secondary"><i class="ti ti-scale me-1"></i>Trade-offs:</strong>
+                                    <ul class="ps-3 mb-0 text-muted">
+                                        @foreach (var trade in act.TradeOffs)
+                                        {
+                                            <li>@trade</li>
+                                        }
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="mt-2 pt-2 border-top small text-muted">
+                                <em>Suitability: @act.SuitabilityRationale</em>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="d-flex justify-content-between gap-3 mt-4">
+                    <button class="btn btn-outline-dark rounded-3 px-4" @onclick="() => GoToScreen(5)"><i class="ti ti-arrow-left me-1"></i>Back</button>
+                    <button class="btn btn-dark rounded-3 px-4" @onclick="() => GoToScreen(7)">Calculate Scenarios <i class="ti ti-arrow-right ms-1"></i></button>
+                </div>
+            }
+            else if (screen == 7)
+            {
+                <!-- SCREEN 7: SCENARIOS -->
+                <div class="decision-screen-heading">
+                    <span class="decision-screen-number">07</span>
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <p class="decision-panel-kicker mb-0">Step 7 · Scenario Branches</p>
+                            <span class="badge rounded-pill text-bg-light border small">Illustrative Scenarios</span>
+                        </div>
+                        <h2>Financial branches for @ActiveTargetLabel</h2>
+                        <p class="text-muted mb-0">Inspect how your selected action performs across recovery, steady, and stress branches. Assumes ±10% recovery / -12% stress as illustrative baselines; adjust below.</p>
+                    </div>
+                </div>
+
+                <!-- Interactive Parameter Inputs -->
+                <div class="p-3 border rounded-3 bg-white mt-4">
+                    <h3 class="h6 mb-3"><i class="ti ti-adjustments me-1"></i>Illustrative Assumptions & Parameters</h3>
+                    <div class="row g-3">
+                        <div class="col-md-3 omm-form-field">
+                            <label class="omm-form-label" for="calc-price">Reference Share Price (RM)</label>
+                            <input id="calc-price" type="number" min="0" step="0.01" class="form-control omm-input" @bind="calcPrice" @bind:after="RecalculateScenarios" />
+                            <p class="omm-form-help">@StockDataStatus</p>
+                        </div>
+                        <div class="col-md-3 omm-form-field">
+                            <label class="omm-form-label" for="calc-dividend">Annual Dividend / Share (RM)</label>
+                            <input id="calc-dividend" type="number" min="0" step="0.01" class="form-control omm-input" @bind="calcDividend" @bind:after="RecalculateScenarios" />
+                            <p class="omm-form-help">Optional stored DPS or your own estimate.</p>
+                        </div>
+                        <div class="col-md-3 omm-form-field">
+                            <label class="omm-form-label" for="calc-shares">Shares Owned (units)</label>
+                            <input id="calc-shares" type="number" min="0" step="1" class="form-control omm-input" @bind="calcShares" @bind:after="RecalculateScenarios" placeholder="e.g. 1000" />
+                            <p class="omm-form-help">Pre-filled from holding; override anytime.</p>
+                        </div>
+                        <div class="col-md-3 omm-form-field">
+                            <label class="omm-form-label" for="calc-cost">Average Cost Basis (RM)</label>
+                            <input id="calc-cost" type="number" min="0" step="0.01" class="form-control omm-input" @bind="calcCostBasis" @bind:after="RecalculateScenarios" placeholder="e.g. 8.50" />
+                            <p class="omm-form-help">Purchase price / share for P&amp;L modelling.</p>
+                        </div>
+                        <div class="col-12 omm-form-field">
+                            <label class="omm-form-label" for="calc-stress">Stress Test Severity</label>
+                            <select id="calc-stress" class="form-select omm-input" @bind="stressAdjustment" @bind:after="RecalculateScenarios">
+                                <option value="0">Standard Baseline (-12% price, 90% dividend)</option>
+                                <option value="5">Moderate Stress (-17% price, 85% dividend)</option>
+                                <option value="10">Severe Stress (-22% price, 80% dividend)</option>
+                                <option value="15">Extreme Stress (-27% price, 75% dividend)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scenario Outcome Cards -->
+                @if (calcPrice is null or <= 0)
+                {
+                    <div class="alert alert-info mt-4 mb-0" role="status">Enter a reference share price to calculate scenarios. No sample market price is substituted.</div>
+                }
+                else
+                {
+                    <div class="decision-outcome-grid mt-4">
+                        @foreach (var branch in scenarios)
+                        {
+                            <article class="decision-outcome-card @branch.Tone">
+                                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                    <span class="decision-outcome-label"><i class="@branch.Icon me-1"></i>@branch.Title</span>
+                                    <span class="decision-probability">@branch.Label</span>
+                                </div>
+                                <div class="d-flex align-items-baseline gap-2 mb-2">
+                                    <h3 class="mb-0">RM@branch.TargetSharePrice.ToString("F2")</h3>
+                                    <span class="fw-bold @(branch.EstimatedTotalReturnPercent >= 0 ? "text-success" : "text-danger")">
+                                        @(branch.EstimatedTotalReturnPercent >= 0 ? "+" : "")@branch.EstimatedTotalReturnPercent.ToString("F1")% total return
+                                    </span>
+                                </div>
+                                <p class="mb-2">@branch.Description</p>
+                                @if (calcDividend is > 0)
+                                {
+                                    <div class="small text-muted mb-2">
+                                        <strong>Dividend assumption:</strong> RM@branch.DividendForecastPerShare.ToString("F2") / share
+                                    </div>
+                                }
+
+                                @if (calcShares is > 0)
+                                {
+                                    var posVal = calcShares.Value * branch.TargetSharePrice;
+                                    var totalDiv = calcShares.Value * branch.DividendForecastPerShare;
+                                    <div class="p-2 rounded bg-light-subtle border small mt-2">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span class="text-muted">Position Value:</span>
+                                            <strong>RM @posVal.ToString("N2")</strong>
+                                        </div>
+                                        @if (calcCostBasis is > 0)
+                                        {
+                                            var totalCost = calcShares.Value * calcCostBasis.Value;
+                                            var pnl = posVal - totalCost;
+                                            <div class="d-flex justify-content-between mb-1">
+                                                <span class="text-muted">Position P&amp;L:</span>
+                                                <strong class="@(pnl >= 0 ? "text-success" : "text-danger")">
+                                                    @(pnl >= 0 ? "+" : "")RM @pnl.ToString("N2")
+                                                </strong>
+                                            </div>
+                                        }
+                                        @if (totalDiv > 0)
+                                        {
+                                            <div class="d-flex justify-content-between">
+                                                <span class="text-muted">Total Dividend:</span>
+                                                <strong>RM @totalDiv.ToString("N2")</strong>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+
+                                <div class="decision-outcome-footer mt-3">
+                                    <span>Monitor:</span>
+                                    <strong>@branch.WhatToMonitor</strong>
+                                </div>
+                            </article>
+                        }
+                    </div>
+                }
+
+                <!-- Fork What-If Scenario -->
+                <div class="decision-fork-card mt-4">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="decision-fork-icon" style="width: 28px; height: 28px; font-size: .85rem; border-radius: .4rem;"><i class="ti ti-git-branch"></i></span>
+                        <h3 class="h6 mb-0">Create a "What If" branch</h3>
+                    </div>
+                    <p class="small text-muted mb-3">Simulate an alternative assumption without losing your base calculation.</p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button class="btn btn-sm btn-outline-dark rounded-3" @onclick="() => ForkWithAdjustment(5)">
+                            What if price drops an extra 5%?
+                        </button>
+                        @if (calcDividend is > 0)
+                        {
+                            <button class="btn btn-sm btn-outline-dark rounded-3" @onclick="() => ForkWithDividend(calcDividend.Value * 0.75m)">
+                                What if dividend falls 25%?
+                            </button>
+                            <button class="btn btn-sm btn-outline-dark rounded-3" @onclick="() => ForkWithDividend(calcDividend.Value * 1.25m)">
+                                What if dividend rises 25%?
+                            </button>
+                        }
+                    </div>
+                    @if (branchCreated)
+                    {
+                        <p class="small text-success mb-0 mt-3"><i class="ti ti-check me-1"></i>Custom branch recalculation updated above.</p>
+                    }
+                </div>
+
+                <div class="d-flex justify-content-between gap-3 mt-4">
+                    <button class="btn btn-outline-dark rounded-3 px-4" @onclick="() => GoToScreen(6)"><i class="ti ti-arrow-left me-1"></i>Back</button>
+                    <button class="btn btn-dark rounded-3 px-4" @onclick="() => GoToScreen(8)">Continue to Plan <i class="ti ti-arrow-right ms-1"></i></button>
+                </div>
+            }
+            else if (screen == 8)
+            {
+                <!-- SCREEN 8: CHECKPOINT & PLAN SUMMARY -->
+                <div class="decision-screen-heading">
+                    <span class="decision-screen-number">08</span>
+                    <div>
+                        <p class="decision-panel-kicker mb-1">Step 8 · Review & Save Plan</p>
+                        <h2>Your Decision Checkpoint Plan</h2>
+                        <p class="text-muted mb-0">A plan is only complete when it specifies when to re-evaluate and what metric triggers a revision.</p>
+                    </div>
+                </div>
+
+                <div class="p-4 border rounded-3 bg-white mt-4">
+                    <div class="d-flex align-items-center justify-content-between gap-2 mb-3 pb-3 border-bottom">
+                        <div>
+                            <span class="badge text-bg-dark rounded-pill mb-1">Execution Framework</span>
+                            <h3 class="h5 mb-0">@checkpoint.Title</h3>
+                        </div>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle">@checkpoint.ReviewHorizon</span>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <span class="small text-muted d-block">Condition for Revision</span>
+                            <strong class="small">@checkpoint.TriggerCondition</strong>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="small text-muted d-block">Metric to Monitor</span>
+                            <strong class="small">@checkpoint.MetricToTrack</strong>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="small text-muted d-block">Pre-committed Action</span>
+                            <strong class="small">@checkpoint.ActionIfTriggered</strong>
+                        </div>
+                    </div>
+
+                    <div class="p-3 rounded bg-light mb-4">
+                        <h4 class="h6 mb-2">Decision Summary</h4>
+                        <ul class="small mb-0 ps-3">
+                            <li><strong>Signal:</strong> @(selectedSignal?.Title ?? memberQuestion)</li>
+                            <li><strong>Scope:</strong> @ScopeShortLabel (@ActiveTargetLabel)</li>
+                            <li><strong>Concern:</strong> @ConcernShortLabel</li>
+                            <li><strong>Objective:</strong> @ObjectiveShortLabel</li>
+                            <li><strong>Selected Action:</strong> @ActionShortLabel</li>
+                            @if (calcShares is > 0)
+                            {
+                                <li><strong>Position Model:</strong> @calcShares.Value.ToString("N0") shares @(calcPrice is > 0 ? $"@ RM {calcPrice.Value:F2}" : "")</li>
+                            }
+                        </ul>
+                    </div>
+
+                    @if (saveError != null)
+                    {
+                        <div class="alert alert-danger" role="status">@saveError</div>
+                    }
+
+                    @if (planSaved)
+                    {
+                        <div class="alert alert-success d-flex align-items-center justify-content-between gap-2">
+                            <span><i class="ti ti-circle-check me-2"></i>Decision pathway successfully saved to your history!</span>
+                            <a href="/decision-history" class="btn btn-sm btn-outline-success">View History</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                            <button class="btn btn-outline-dark rounded-3 px-4" @onclick="() => GoToScreen(7)"><i class="ti ti-arrow-left me-1"></i>Back to Scenarios</button>
+                            <button class="btn btn-dark rounded-3 px-4" disabled="@isSaving" @onclick="SavePlanAsync">
+                                @if (isSaving)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                    <span>Saving…</span>
+                                }
+                                else
+                                {
+                                    <i class="ti ti-device-floppy me-1"></i>
+                                    <span>Save Decision Plan</span>
+                                }
+                            </button>
+                        </div>
+                    }
+                </div>
+            }
+        </section>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string BasePath { get; set; } = "/decision-pathway";
+
+    private int screen = 1;
+    private string memberQuestion = string.Empty;
+    private bool isInterpreting;
+    private InquiryIntentResult? intentResult;
+    private string? classificationMessage;
+    private string? signalCatalogError;
+
+    private SignalTemplate? selectedSignal;
+    private SignalCategory? activeCategoryFilter;
+    private string selectedConcern = "price_drop";
+    private string selectedScope = "individual_stock";
+    private string selectedObjective = "balanced";
+    private string selectedAction = "hold";
+    private string targetSecurity = string.Empty;
+    private string targetSector = string.Empty;
+
+    // Portfolio & Scenario inputs
+    private PositionContext? matchedPosition;
+    private decimal? calcPrice;
+    private decimal? calcDividend;
+    private int? calcShares;
+    private decimal? calcCostBasis;
+    private int stressAdjustment = 0;
+    private bool branchCreated;
+    private bool planSaved;
+    private bool isSaving;
+    private string? saveError;
+    private string stockDataStatus = "Select a stock starter or enter a reference price.";
+    private bool AiEnabled => GoogleAiOptions.Value.Enabled && _aiDbEnabled;
+    private string StockDataStatus => stockDataStatus;
+    private bool _aiDbEnabled = true;
+    private bool isAuthenticated;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
+
+    // Computed domain models
+    private IReadOnlyList<SignalTemplate> allSignals = [];
+    private IReadOnlyList<MemberConcernOption> Concerns = [];
+    private IReadOnlyList<ScopeOption> Scopes = [];
+    private IReadOnlyList<ObjectiveOption> Objectives = [];
+    private ImpactMapResult impactMap = null!;
+    private IReadOnlyList<ActionOption> evaluatedOptions = [];
+    private IReadOnlyList<ScenarioBranch> scenarios = [];
+    private MonitoringCheckpoint checkpoint = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateTask;
+        isAuthenticated = authState.User.Identity?.IsAuthenticated == true;
+
+        Concerns = DecisionEngine.GetConcerns();
+        Scopes = DecisionEngine.GetScopes();
+        Objectives = DecisionEngine.GetObjectives();
+
+        // Load AI toggle from DB (default true when no DB record exists yet)
+        _aiDbEnabled = await SystemSettingsService.IsAiClassificationEnabledAsync();
+
+        try
+        {
+            allSignals = await SignalCatalog.GetActiveSignalsAsync();
+        }
+        catch (Exception exception)
+        {
+            Logger.LogError(exception, "Unable to load the Decision Pathway question-starter catalog.");
+            allSignals = [];
+            signalCatalogError = "Question starters are temporarily unavailable. You can still enter a question and continue with guided steps.";
+        }
+
+        RefreshCalculations();
+    }
+
+    private IEnumerable<SignalTemplate> FilteredSignals =>
+        activeCategoryFilter.HasValue
+            ? allSignals.Where(s => s.Category == activeCategoryFilter.Value)
+            : allSignals;
+
+    private string ActiveTargetLabel =>
+        !string.IsNullOrWhiteSpace(targetSecurity) ? targetSecurity : (!string.IsNullOrWhiteSpace(targetSector) ? targetSector : "Portfolio");
+
+    private int lastScrolledScreen = 0;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (screen != lastScrolledScreen)
+        {
+            lastScrolledScreen = screen;
+            try
+            {
+                await JS.InvokeVoidAsync("scrollActiveDecisionStep");
+            }
+            catch
+            {
+                // Ignore JS interop exceptions before DOM/JS ready
+            }
+        }
+    }
+
+    private string SignalShortLabel => selectedSignal?.Category.ToString() ?? "Input";
+    private string ConcernShortLabel => Concerns.FirstOrDefault(c => c.Key == selectedConcern)?.Title ?? "Concern";
+    private string ScopeShortLabel => Scopes.FirstOrDefault(s => s.Key == selectedScope)?.Title ?? "Scope";
+    private string ObjectiveShortLabel => Objectives.FirstOrDefault(o => o.Key == selectedObjective)?.Title ?? "Objective";
+    private string ActionShortLabel => evaluatedOptions.FirstOrDefault(a => a.Key == selectedAction)?.Title ?? "Hold";
+    private string ScenarioShortLabel => branchCreated ? "Customized" : scenarios.Count == 0 ? "Price needed" : "3 Branches";
+
+    private async Task InterpretQuestionAsync()
+    {
+        if (string.IsNullOrWhiteSpace(memberQuestion)) return;
+
+        var authState = await AuthenticationStateTask;
+        var user = authState.User;
+        var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            classificationMessage = "You need to be signed in to analyze your question with AI. Please sign in below, or continue with the guided decision pathway.";
+            intentResult = null;
+            await UseGeneralQuestionAsync(SignalCategory.PortfolioDecision, null, null);
+            return;
+        }
+
+        const int MaxCalls = 10;
+        var cacheKey = $"AiRateLimit_{userId}";
+        RateInfo? info = null;
+        if (!MemoryCache.TryGetValue(cacheKey, out info) || info == null)
+        {
+            info = new RateInfo { FirstRequestUtc = DateTime.UtcNow, Count = 0 };
+        }
+        if (info.FirstRequestUtc.AddHours(1) <= DateTime.UtcNow)
+        {
+            info.FirstRequestUtc = DateTime.UtcNow;
+            info.Count = 0;
+        }
+        if (info.Count >= MaxCalls)
+        {
+            classificationMessage = "AI rate limit exceeded (10 calls per hour). Please try again later, or continue with guided steps.";
+            intentResult = null;
+            await UseGeneralQuestionAsync(SignalCategory.PortfolioDecision, null, null);
+            return;
+        }
+        info.Count++;
+        MemoryCache.Set(cacheKey, info, TimeSpan.FromHours(1));
+
+        isInterpreting = true;
+        classificationMessage = null;
+        try
+        {
+            if (!AiEnabled)
+            {
+                classificationMessage = "AI interpretation is currently disabled. Continued with deterministic guided pathway.";
+                await UseGeneralQuestionAsync(SignalCategory.PortfolioDecision, null, null);
+                screen = 2;
+                return;
+            }
+
+            intentResult = await IntentInterpreter.InterpretAsync(memberQuestion);
+            if (!intentResult.IsAvailable)
+            {
+                classificationMessage = intentResult.ErrorMessage ?? "Question classification is unavailable. Continued with guided steps.";
+                await UseGeneralQuestionAsync(SignalCategory.PortfolioDecision, null, null);
+                screen = 2;
+                return;
+            }
+
+            var inferredCategory = GetSignalCategory(intentResult.SignalType);
+            await UseGeneralQuestionAsync(
+                inferredCategory,
+                intentResult.MentionedSecurity,
+                intentResult.MentionedSector);
+
+            if (intentResult.NeedsClarification == false)
+            {
+                classificationMessage = "Signal classified. Review the summary and proceed when ready.";
+            }
+            else
+            {
+                classificationMessage = "Please clarify your concern by selecting one of the suggested topics below.";
+            }
+        }
+        catch (Exception exception)
+        {
+            Logger.LogError(exception, "Error interpreting member question in Decision Pathway.");
+            classificationMessage = "An error occurred during interpretation. You can still continue manually below.";
+            await UseGeneralQuestionAsync(SignalCategory.PortfolioDecision, null, null);
+            screen = 2;
+        }
+        finally
+        {
+            isInterpreting = false;
+        }
+    }
+
+    private async Task SelectConcernAndProceed(string concernKey)
+    {
+        selectedConcern = concernKey;
+        RefreshCalculations();
+        GoToScreen(3);
+    }
+
+    private void FilterCategory(SignalCategory? category)
+    {
+        activeCategoryFilter = category;
+    }
+
+    private async Task UseSignalAsync(SignalTemplate signal)
+    {
+        selectedSignal = signal;
+        targetSecurity = signal.DefaultSecurity;
+        targetSector = signal.DefaultSector;
+        selectedConcern = signal.DefaultConcern;
+        selectedScope = signal.DefaultScope;
+        selectedObjective = signal.DefaultObjective;
+        selectedAction = "hold";
+        await LoadStoredStockDataAsync();
+        await LookupUserPositionAsync();
+        RefreshCalculations();
+        screen = 2;
+    }
+
+    private async Task UseGeneralQuestionAsync(SignalCategory category, string? security, string? sector)
+    {
+        selectedSignal = CreateGeneralSignal(category, memberQuestion, security, sector);
+        targetSecurity = security ?? string.Empty;
+        targetSector = sector ?? string.Empty;
+        selectedConcern = category == SignalCategory.PortfolioDecision ? "concentration" : "price_drop";
+        selectedScope = category switch
+        {
+            SignalCategory.IndividualStock => "individual_stock",
+            SignalCategory.Sector => "sector",
+            SignalCategory.MalaysianMarket => "malaysian_market",
+            SignalCategory.GlobalEconomy => "global_economy",
+            _ => "portfolio"
+        };
+        selectedObjective = "balanced";
+        await LoadStoredStockDataAsync();
+        await LookupUserPositionAsync();
+        RefreshCalculations();
+    }
+
+    private SignalTemplate CreateGeneralSignal(SignalCategory category, string question, string? security, string? sector)
+    {
+        var title = question.Trim();
+        if (title.Length > 200)
+        {
+            title = $"{title[..197]}…";
+        }
+
+        return new SignalTemplate(
+            $"member-question-{Guid.NewGuid():N}",
+            category,
+            string.IsNullOrWhiteSpace(title) ? "Guided decision" : title,
+            "Member-entered question classified through guided deterministic steps.",
+            question.Trim(),
+            security ?? string.Empty,
+            sector ?? string.Empty,
+            category == SignalCategory.PortfolioDecision ? "concentration" : "price_drop",
+            selectedScope,
+            "balanced",
+            isActive: false);
+    }
+
+    private async Task OnStockPicked(KlseStock stock)
+    {
+        targetSecurity = $"{stock.CompanyName} ({stock.Code})";
+        await OnTargetSecurityChanged();
+    }
+
+    private async Task OnTargetSecurityChanged(ChangeEventArgs? e = null)
+    {
+        if (e?.Value is string val)
+        {
+            targetSecurity = val;
+        }
+
+        await LoadStoredStockDataAsync();
+        await LookupUserPositionAsync();
+        RefreshCalculations();
+    }
+
+    private async Task LookupUserPositionAsync()
+    {
+        matchedPosition = null;
+        if (string.IsNullOrWhiteSpace(targetSecurity))
+        {
+            return;
+        }
+
+        try
+        {
+            var authState = await AuthenticationStateTask;
+            var userId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+            matchedPosition = await PortfolioContextProvider.GetPositionAsync(userId, targetSecurity);
+
+            if (matchedPosition != null)
+            {
+                if (calcShares == null || calcShares == 0)
+                {
+                    calcShares = (int)matchedPosition.Shares;
+                }
+                if (calcCostBasis == null || calcCostBasis == 0)
+                {
+                    calcCostBasis = matchedPosition.CostBasis;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to retrieve portfolio context for security {Security}", targetSecurity);
+        }
+    }
+
+    private async Task LoadStoredStockDataAsync()
+    {
+        calcPrice = null;
+        calcDividend = null;
+        stockDataStatus = "No stored price data found. Enter a reference price to model scenarios.";
+
+        var target = targetSecurity.Trim();
+        if (target.Length == 0)
+        {
+            return;
+        }
+
+        var name = target.Split('(', '/')[0].Trim();
+        if (name.Length == 0)
+        {
+            return;
+        }
+
+        try
+        {
+            await using var dbContext = await DbContextFactory.CreateDbContextAsync();
+            var stock = await dbContext.Stocks
+                .AsNoTracking()
+                .Where(item => item.IsActive &&
+                    (EF.Functions.ILike(item.ShortName_EN, $"%{name}%") || EF.Functions.ILike(item.StockCode, $"%{name}%")))
+                .OrderBy(item => item.ShortName_EN.Length)
+                .FirstOrDefaultAsync();
+
+            if (stock is null)
+            {
+                return;
+            }
+
+            calcPrice = stock.CurrentPrice is > 0 ? stock.CurrentPrice : null;
+            calcDividend = stock.DPS is > 0 ? stock.DPS : null;
+            stockDataStatus = stock.LastScrapedAt is { } refreshedAt
+                ? $"Stored master data as of {refreshedAt.ToLocalTime():g}; not a live quote."
+                : "Stored master data has no update timestamp; not a live quote.";
+        }
+        catch (Exception exception)
+        {
+            Logger.LogWarning(exception, "Unable to load stored stock data for the Decision Pathway.");
+            stockDataStatus = "Stored stock data is unavailable. Enter a reference price manually.";
+        }
+    }
+
+    private static SignalCategory GetSignalCategory(string signalType) => signalType switch
+    {
+        "stock_event" => SignalCategory.IndividualStock,
+        "sector_event" => SignalCategory.Sector,
+        "market_event" => SignalCategory.MalaysianMarket,
+        "economic_event" => SignalCategory.GlobalEconomy,
+        "opportunity" => SignalCategory.Opportunity,
+        _ => SignalCategory.PortfolioDecision
+    };
+
+    private void SelectConcern(string key)
+    {
+        selectedConcern = key;
+        RefreshCalculations();
+    }
+
+    private void SelectScope(string key)
+    {
+        selectedScope = key;
+        RefreshCalculations();
+    }
+
+    private void SelectObjective(string key)
+    {
+        selectedObjective = key;
+        RefreshCalculations();
+    }
+
+    private void SelectAction(string key)
+    {
+        selectedAction = key;
+        RefreshCalculations();
+    }
+
+    private void GoToScreen(int nextScreen)
+    {
+        screen = Math.Clamp(nextScreen, 1, 8);
+    }
+
+    private void RecalculateScenarios()
+    {
+        RefreshCalculations();
+    }
+
+    private void ForkWithAdjustment(int extraStress)
+    {
+        stressAdjustment = extraStress;
+        branchCreated = true;
+        RefreshCalculations();
+    }
+
+    private void ForkWithDividend(decimal newDividend)
+    {
+        calcDividend = newDividend;
+        branchCreated = true;
+        RefreshCalculations();
+    }
+
+    private async Task SavePlanAsync()
+    {
+        if (planSaved || isSaving)
+        {
+            return;
+        }
+
+        var signal = selectedSignal ?? CreateGeneralSignal(
+            SignalCategory.PortfolioDecision,
+            memberQuestion,
+            targetSecurity,
+            targetSector);
+
+        var user = (await AuthenticationStateTask).User;
+        var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            saveError = "Sign in to save this decision pathway.";
+            return;
+        }
+
+        var trimmedQuestion = string.IsNullOrWhiteSpace(memberQuestion) ? null : memberQuestion.Trim();
+        if (trimmedQuestion != null)
+        {
+            var notesError = PublicInputValidator.GetDisplayTextError("Notes", trimmedQuestion, optional: true);
+            if (notesError != null)
+            {
+                saveError = notesError;
+                return;
+            }
+        }
+
+        isSaving = true;
+        saveError = null;
+        try
+        {
+            var record = new DecisionPathwayRecord
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                SignalType = signal.Category.ToString(),
+                Scope = selectedScope,
+                Concern = selectedConcern,
+                Objective = selectedObjective,
+                ChosenAction = selectedAction,
+                ReferencePrice = calcPrice,
+                ReferenceDividend = calcDividend,
+                CreatedAt = DateTimeOffset.UtcNow,
+                Notes = trimmedQuestion
+            };
+
+            await DecisionPathwayService.SavePathwayAsync(record);
+            planSaved = true;
+        }
+        catch (Exception exception)
+        {
+            Logger.LogError(exception, "Failed to save Decision Pathway plan.");
+            saveError = "Unable to save the plan. Please try again.";
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private void ResetPathway()
+    {
+        screen = 1;
+        memberQuestion = string.Empty;
+        selectedSignal = null;
+        activeCategoryFilter = null;
+        selectedConcern = "price_drop";
+        selectedScope = "individual_stock";
+        selectedObjective = "balanced";
+        selectedAction = "hold";
+        targetSecurity = string.Empty;
+        targetSector = string.Empty;
+        calcPrice = null;
+        calcDividend = null;
+        calcShares = null;
+        calcCostBasis = null;
+        matchedPosition = null;
+        stressAdjustment = 0;
+        branchCreated = false;
+        planSaved = false;
+        saveError = null;
+        intentResult = null;
+        classificationMessage = null;
+        RefreshCalculations();
+    }
+
+    private void RefreshCalculations()
+    {
+        var category = selectedSignal?.Category ?? SignalCategory.PortfolioDecision;
+
+        impactMap = DecisionEngine.BuildImpactMap(
+            category,
+            targetSector,
+            targetSecurity,
+            selectedConcern,
+            selectedScope);
+
+        evaluatedOptions = DecisionEngine.EvaluateActionOptions(
+            selectedObjective,
+            selectedConcern);
+
+        if (!evaluatedOptions.Any(o => o.Key == selectedAction))
+        {
+            selectedAction = evaluatedOptions.FirstOrDefault()?.Key ?? "hold";
+        }
+
+        var input = new ScenarioCalculationInput(
+            calcPrice ?? 0,
+            calcDividend ?? 0,
+            calcShares,
+            "Several months",
+            stressAdjustment);
+
+        scenarios = DecisionEngine.CalculateScenarios(input, selectedAction);
+
+        checkpoint = DecisionEngine.GenerateCheckpoint(
+            selectedAction,
+            ActiveTargetLabel,
+            calcPrice ?? 0);
+    }
+
+    private sealed class RateInfo
+    {
+        public DateTime FirstRequestUtc { get; set; }
+        public int Count { get; set; }
+    }
+}

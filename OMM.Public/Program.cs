@@ -37,6 +37,7 @@ builder.Services.AddScoped<IOnboardingService, OnboardingService>();
 builder.Services.AddScoped<PublicMemberMigrationService>();
 builder.Services.AddScoped<IDecisionPathwayStore, EfDecisionPathwayStore>();
 builder.Services.AddScoped<IDecisionSignalCatalog, EfDecisionSignalCatalog>();
+builder.Services.AddScoped<IPortfolioContextProvider, PortfolioContextProvider>();
 builder.Services.AddMemoryCache();
 builder.Services.AddDatabaseAvailability();
 builder.Services.AddDatabaseAlerting(builder.Configuration);

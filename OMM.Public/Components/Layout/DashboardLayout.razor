@@ -50,6 +50,10 @@
                 <i class="ti ti-compass fs-5 sidebar-icon-pathway"></i>
                 <span class="dashboard-sidebar-label">Decision Pathway</span>
             </NavLink>
+            <NavLink class="sidebar-link" href="decision-history" data-bs-toggle="tooltip" data-bs-placement="right" title="Decision History">
+                <i class="ti ti-history fs-5 sidebar-icon-history"></i>
+                <span class="dashboard-sidebar-label">Decision History</span>
+            </NavLink>
             <NavLink class="sidebar-link" href="learn" data-bs-toggle="tooltip" data-bs-placement="right" title="Learn">
                 <i class="ti ti-book fs-5 sidebar-icon-learn"></i>
                 <span class="dashboard-sidebar-label">Learn</span>
@@ -117,6 +121,10 @@
                     <NavLink class="sidebar-link" href="dashboard/decision-pathway" @onclick="ToggleMobileNav">
                         <i class="ti ti-compass fs-5 sidebar-icon-pathway"></i>
                         <span>Decision Pathway</span>
+                    </NavLink>
+                    <NavLink class="sidebar-link" href="decision-history" @onclick="ToggleMobileNav">
+                        <i class="ti ti-history fs-5 sidebar-icon-history"></i>
+                        <span>Decision History</span>
                     </NavLink>
                     <NavLink class="sidebar-link" href="learn" @onclick="ToggleMobileNav">
                         <i class="ti ti-book fs-5 sidebar-icon-learn"></i>

@@ -44,9 +44,18 @@
                 Examine market events across stocks, sectors, domestic macro, and global policy. Understand the transmission mechanism and compare deterministic scenarios before taking action.
             </p>
         </div>
-        <button class="btn btn-link text-decoration-none text-dark p-0 decision-reset" @onclick="ResetPathway">
-            <i class="ti ti-refresh me-1"></i>Start over
-        </button>
+        <div class="d-flex align-items-center gap-3">
+            <AuthorizeView>
+                <Authorized>
+                    <a href="/decision-history" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1">
+                        <i class="ti ti-history"></i><span>Decision History</span>
+                    </a>
+                </Authorized>
+            </AuthorizeView>
+            <button class="btn btn-link text-decoration-none text-dark p-0 decision-reset" @onclick="ResetPathway">
+                <i class="ti ti-refresh me-1"></i>Start over
+            </button>
+        </div>
     </div>
 
     <!-- 8-STEP WORKSPACE -->

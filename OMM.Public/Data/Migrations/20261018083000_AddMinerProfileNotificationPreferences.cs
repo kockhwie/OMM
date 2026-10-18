@@ -1,10 +1,12 @@
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace OMM.Public.Data.Migrations
 {
-    /// <inheritdoc />
+    [DbContext(typeof(ApplicationDbContext))]
+    [Migration("20261018083000_AddMinerProfileNotificationPreferences")]
     public partial class AddMinerProfileNotificationPreferences : Migration
     {
         /// <inheritdoc />

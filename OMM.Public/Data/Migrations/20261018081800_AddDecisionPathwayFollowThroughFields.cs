@@ -1,11 +1,13 @@
 using System;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace OMM.Public.Data.Migrations
 {
-    /// <inheritdoc />
+    [DbContext(typeof(ApplicationDbContext))]
+    [Migration("20261018081800_AddDecisionPathwayFollowThroughFields")]
     public partial class AddDecisionPathwayFollowThroughFields : Migration
     {
         /// <inheritdoc />

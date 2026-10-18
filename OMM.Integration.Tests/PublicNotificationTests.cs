@@ -41,6 +41,38 @@ public sealed class PublicNotificationTests
         Assert.False(await service.MarkReadAsync(id));
     }
 
+    [Fact]
+    public async Task Generation_creates_decision_notifications_when_due_and_open()
+    {
+        await using var fixture = await Fixture.CreateAsync("user-1");
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        await fixture.AddDecisionPathwayAsync("user-1", today.AddDays(3), OMM.Shared.DecisionSupport.DecisionPathwayStatus.Open, "MAYBANK");
+        var service = fixture.CreateService();
+
+        await service.GenerateAsync();
+
+        var notifs = await service.GetAsync();
+        var decisionNotif = Assert.Single(notifs);
+        Assert.Equal("decision", decisionNotif.Type);
+        Assert.Contains("MAYBANK", decisionNotif.Body);
+        Assert.Contains("Decision review due soon", decisionNotif.Title);
+    }
+
+    [Fact]
+    public async Task Generation_respects_decision_notification_preference_toggle()
+    {
+        await using var fixture = await Fixture.CreateAsync("user-1");
+        await fixture.SetProfileNotificationPreferencesAsync("user-1", notifyDecisionReview: false);
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        await fixture.AddDecisionPathwayAsync("user-1", today.AddDays(3), OMM.Shared.DecisionSupport.DecisionPathwayStatus.Open, "MAYBANK");
+        var service = fixture.CreateService();
+
+        await service.GenerateAsync();
+
+        var notifs = await service.GetAsync();
+        Assert.Empty(notifs);
+    }
+
     private sealed class Fixture : IAsyncDisposable
     {
         private readonly DbContextOptions<ApplicationDbContext> options;
@@ -66,6 +98,46 @@ public sealed class PublicNotificationTests
             db.Mines.Add(mine);
             await db.SaveChangesAsync();
             db.MinePositions.Add(new MinePositionEntity { UserId = userId, MineId = mine.Id, Label = "Fixed deposit", PositionType = PositionType.FixedDeposit, MaturityDate = maturityDate, CreatedAt = DateTimeOffset.UtcNow });
+            await db.SaveChangesAsync();
+        }
+
+        public async Task AddDecisionPathwayAsync(string userId, DateOnly reviewDate, string status, string stockCode)
+        {
+            await using var db = new ApplicationDbContext(options);
+            db.DecisionPathways.Add(new OMM.Shared.DecisionSupport.DecisionPathwayRecord
+            {
+                UserId = userId,
+                SignalId = "sig-1",
+                SignalTitle = $"{stockCode} Price Drop",
+                StockCode = stockCode,
+                ReviewDate = reviewDate,
+                Status = status,
+                CreatedAt = DateTimeOffset.UtcNow
+            });
+            await db.SaveChangesAsync();
+        }
+
+        public async Task SetProfileNotificationPreferencesAsync(string userId, bool notifyDecisionReview = true, bool notifyFdMaturity = true)
+        {
+            await using var db = new ApplicationDbContext(options);
+            var profile = await db.MinerProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
+            if (profile == null)
+            {
+                profile = new MinerProfileEntity
+                {
+                    UserId = userId,
+                    Email = $"{userId}@example.com",
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    NotifyDecisionReview = notifyDecisionReview,
+                    NotifyFdMaturity = notifyFdMaturity
+                };
+                db.MinerProfiles.Add(profile);
+            }
+            else
+            {
+                profile.NotifyDecisionReview = notifyDecisionReview;
+                profile.NotifyFdMaturity = notifyFdMaturity;
+            }
             await db.SaveChangesAsync();
         }
 

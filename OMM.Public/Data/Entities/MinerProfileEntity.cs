@@ -39,4 +39,12 @@ public class MinerProfileEntity
     public DateTimeOffset? OnboardingSkippedAt { get; set; }
 
     public DateTimeOffset? OnboardingCompletedAt { get; set; }
+
+    public bool NotifyFdMaturity { get; set; } = true;
+
+    public bool NotifyGoalMilestones { get; set; } = true;
+
+    public bool NotifyDataFreshness { get; set; } = true;
+
+    public bool NotifyDecisionReview { get; set; } = true;
 }

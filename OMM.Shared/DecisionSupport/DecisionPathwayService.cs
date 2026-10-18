@@ -20,6 +20,9 @@ public sealed class DecisionPathwayService(IDecisionPathwayStore store) : IDecis
         return record.Id;
     }
 
-    public Task<DecisionPathwayPage> GetPathwaysAsync(string userId, int page, CancellationToken ct = default) =>
-        store.GetPageAsync(userId, Math.Max(1, page), PageSize, ct);
+    public Task<DecisionPathwayPage> GetPathwaysAsync(string userId, int page, string? statusFilter = null, CancellationToken ct = default) =>
+        store.GetPageAsync(userId, Math.Max(1, page), PageSize, statusFilter, ct);
+
+    public Task<bool> UpdateStatusAsync(Guid id, string userId, string newStatus, CancellationToken ct = default) =>
+        store.UpdateStatusAsync(id, userId, newStatus, ct);
 }

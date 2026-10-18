@@ -135,4 +135,42 @@ public class DeterministicDecisionEngineTests
         var stressedBear = stressedBranches.First(b => b.Key == "bear");
         Assert.True(stressedBear.TargetSharePrice < normalBear.TargetSharePrice);
     }
+
+    [Fact]
+    public void GenerateCheckpoint_CalculatesConcreteReviewDate_FromHorizon()
+    {
+        // Act
+        var checkpoint = _engine.GenerateCheckpoint("MAYBANK", "trim", "3 months");
+
+        // Assert
+        Assert.NotNull(checkpoint.ReviewDate);
+        var expectedApprox = DateOnly.FromDateTime(DateTime.UtcNow.AddMonths(3));
+        Assert.Equal(expectedApprox.Year, checkpoint.ReviewDate.Value.Year);
+        Assert.Equal(expectedApprox.Month, checkpoint.ReviewDate.Value.Month);
+    }
+
+    [Theory]
+    [InlineData("trim", 10.00, 9.20, 11.00)]
+    [InlineData("accumulate", 10.00, 9.00, 10.50)]
+    [InlineData("hold", 10.00, 9.20, 11.50)]
+    public void GenerateCheckpoint_CalculatesTriggerPrices_AccordingToAction(string action, decimal price, decimal expectedBelow, decimal expectedAbove)
+    {
+        // Act
+        var checkpoint = _engine.GenerateCheckpoint("MAYBANK", action, "Several months", price);
+
+        // Assert
+        Assert.Equal(expectedBelow, checkpoint.SuggestedTriggerBelow);
+        Assert.Equal(expectedAbove, checkpoint.SuggestedTriggerAbove);
+    }
+
+    [Fact]
+    public void GenerateCheckpoint_SellAction_YieldsNullTriggerPrices()
+    {
+        // Act
+        var checkpoint = _engine.GenerateCheckpoint("MAYBANK", "sell", "Several months", 10.00m);
+
+        // Assert
+        Assert.Null(checkpoint.SuggestedTriggerBelow);
+        Assert.Null(checkpoint.SuggestedTriggerAbove);
+    }
 }

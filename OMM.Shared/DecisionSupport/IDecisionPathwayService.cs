@@ -4,7 +4,9 @@ public interface IDecisionPathwayService
 {
     Task<Guid> SavePathwayAsync(DecisionPathwayRecord record, CancellationToken ct = default);
 
-    Task<DecisionPathwayPage> GetPathwaysAsync(string userId, int page, CancellationToken ct = default);
+    Task<DecisionPathwayPage> GetPathwaysAsync(string userId, int page, string? statusFilter = null, CancellationToken ct = default);
+
+    Task<bool> UpdateStatusAsync(Guid id, string userId, string newStatus, CancellationToken ct = default);
 }
 
 public sealed record DecisionPathwayPage(

@@ -14,9 +14,17 @@
         <h1 class="h3 fw-bold text-dark mb-1">Decision History</h1>
         <p class="text-muted small mb-0">Review your saved market decisions and monitoring checkpoints.</p>
     </div>
-    <a class="btn btn-outline-primary d-inline-flex align-items-center gap-2" href="/dashboard/decision-pathway">
-        <i class="ti ti-plus"></i>New decision pathway
-    </a>
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        <div class="btn-group btn-group-sm" role="group" aria-label="Status filter">
+            <button type="button" class="btn @(selectedStatus == "All" ? "btn-primary" : "btn-outline-secondary")" @onclick='() => ChangeFilterAsync("All")'>All</button>
+            <button type="button" class="btn @(selectedStatus == DecisionPathwayStatus.Open ? "btn-primary" : "btn-outline-secondary")" @onclick='() => ChangeFilterAsync(DecisionPathwayStatus.Open)'>Open</button>
+            <button type="button" class="btn @(selectedStatus == DecisionPathwayStatus.Reviewed ? "btn-primary" : "btn-outline-secondary")" @onclick='() => ChangeFilterAsync(DecisionPathwayStatus.Reviewed)'>Reviewed</button>
+            <button type="button" class="btn @(selectedStatus == DecisionPathwayStatus.Dismissed ? "btn-primary" : "btn-outline-secondary")" @onclick='() => ChangeFilterAsync(DecisionPathwayStatus.Dismissed)'>Dismissed</button>
+        </div>
+        <a class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-2" href="/dashboard/decision-pathway">
+            <i class="ti ti-plus"></i>New decision pathway
+        </a>
+    </div>
 </div>
 
 @if (isLoading)
@@ -34,9 +42,18 @@ else if (pathwayPage is { Items.Count: 0 })
 {
     <div class="border rounded-3 bg-white text-center py-5 px-4">
         <i class="ti ti-notes fs-2 text-muted mb-2" aria-hidden="true"></i>
-        <h2 class="h5 mb-2">No saved decisions yet</h2>
-        <p class="text-muted mb-3">Your completed checkpoints will appear here.</p>
-        <a class="btn btn-primary" href="/decision-pathway">Start a decision pathway</a>
+        @if (selectedStatus != "All")
+        {
+            <h2 class="h5 mb-2">No @selectedStatus.ToLowerInvariant() decisions found</h2>
+            <p class="text-muted mb-3">You don't have any saved decisions matching this filter.</p>
+            <button class="btn btn-outline-primary btn-sm" @onclick='() => ChangeFilterAsync("All")'>Show all decisions</button>
+        }
+        else
+        {
+            <h2 class="h5 mb-2">No saved decisions yet</h2>
+            <p class="text-muted mb-3">Your completed checkpoints will appear here.</p>
+            <a class="btn btn-primary" href="/dashboard/decision-pathway">Start a decision pathway</a>
+        }
     </div>
 }
 else if (pathwayPage is not null)
@@ -45,20 +62,65 @@ else if (pathwayPage is not null)
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
                 <tr>
+                    <th scope="col">Status</th>
                     <th scope="col">Saved</th>
                     <th scope="col">Signal</th>
                     <th scope="col">Decision</th>
-                    <th scope="col">Checkpoint</th>
+                    <th scope="col">Checkpoint &amp; Triggers</th>
                     <th scope="col">Snapshot</th>
+                    <th scope="col" class="text-end">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var pathway in pathwayPage.Items)
                 {
                     <tr>
-                        <td class="text-nowrap">@pathway.CreatedAt.ToLocalTime().ToString("MMM d, yyyy")</td>
                         <td>
-                            <strong>@pathway.SignalTitle</strong>
+                            @if (pathway.Status == DecisionPathwayStatus.Reviewed)
+                            {
+                                <span class="badge bg-success-subtle text-success border border-success-subtle d-inline-flex align-items-center gap-1">
+                                    <i class="ti ti-check"></i>Reviewed
+                                </span>
+                            }
+                            else if (pathway.Status == DecisionPathwayStatus.Dismissed)
+                            {
+                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">
+                                    Dismissed
+                                </span>
+                            }
+                            else
+                            {
+                                var isOverdue = pathway.ReviewDate < today;
+                                var isDueSoon = pathway.ReviewDate <= today.AddDays(7);
+                                if (isOverdue)
+                                {
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle d-inline-flex align-items-center gap-1">
+                                        <i class="ti ti-alert-triangle"></i>Overdue
+                                    </span>
+                                }
+                                else if (isDueSoon)
+                                {
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle d-inline-flex align-items-center gap-1">
+                                        <i class="ti ti-clock"></i>Due Soon
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                                        Open
+                                    </span>
+                                }
+                            }
+                        </td>
+                        <td class="text-nowrap small text-muted">@pathway.CreatedAt.ToLocalTime().ToString("MMM d, yyyy")</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-1 flex-wrap">
+                                @if (!string.IsNullOrWhiteSpace(pathway.StockCode))
+                                {
+                                    <span class="badge bg-dark text-warning font-monospace">@pathway.StockCode</span>
+                                }
+                                <strong>@pathway.SignalTitle</strong>
+                            </div>
                             <div class="small text-muted">@pathway.SignalId</div>
                             @if (!string.IsNullOrWhiteSpace(pathway.Notes))
                             {
@@ -72,11 +134,69 @@ else if (pathwayPage is not null)
                         <td>
                             <strong>@pathway.CheckpointTitle</strong>
                             <div class="small text-muted">@pathway.CheckpointTriggerCondition</div>
-                            <div class="small text-muted mt-1">Review: @pathway.HorizonLabel</div>
+                            <div class="small mt-1">
+                                <i class="ti ti-calendar-event me-1"></i>
+                                <span>Target: <strong>@pathway.ReviewDate.ToString("MMM d, yyyy")</strong></span>
+                                <span class="text-muted">(@pathway.HorizonLabel)</span>
+                            </div>
+                            @if (pathway.TriggerPriceBelow.HasValue || pathway.TriggerPriceAbove.HasValue)
+                            {
+                                <div class="small mt-1 font-monospace">
+                                    <span class="text-muted">Triggers: </span>
+                                    @if (pathway.TriggerPriceBelow.HasValue)
+                                    {
+                                        <span class="text-danger">&lt; RM @pathway.TriggerPriceBelow.Value.ToString("N2")</span>
+                                    }
+                                    @if (pathway.TriggerPriceBelow.HasValue && pathway.TriggerPriceAbove.HasValue)
+                                    {
+                                        <span class="text-muted"> · </span>
+                                    }
+                                    @if (pathway.TriggerPriceAbove.HasValue)
+                                    {
+                                        <span class="text-success">&gt; RM @pathway.TriggerPriceAbove.Value.ToString("N2")</span>
+                                    }
+                                </div>
+                            }
                         </td>
-                        <td class="text-nowrap">
+                        <td class="text-nowrap small">
                             <div>@(pathway.CurrentSharePrice is { } sharePrice ? $"RM {sharePrice:N2} / share" : "No reference price recorded")</div>
-                            <div class="small text-muted">@(pathway.AnnualDividendPerShare is { } dividend ? $"RM {dividend:N4} dividend / share" : "No dividend assumption recorded")</div>
+                            <div class="text-muted">@(pathway.AnnualDividendPerShare is { } dividend ? $"RM {dividend:N4} dividend / share" : "No dividend assumption recorded")</div>
+                        </td>
+                        <td class="text-end text-nowrap">
+                            @if (pathway.Status == DecisionPathwayStatus.Open)
+                            {
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-success d-inline-flex align-items-center gap-1"
+                                            title="Mark as reviewed"
+                                            @onclick="() => UpdateStatusAsync(pathway.Id, DecisionPathwayStatus.Reviewed)"
+                                            disabled="@isUpdating">
+                                        <i class="ti ti-check"></i><span>Review</span>
+                                    </button>
+                                    <button class="btn btn-outline-secondary d-inline-flex align-items-center gap-1"
+                                            title="Dismiss checkpoint"
+                                            @onclick="() => UpdateStatusAsync(pathway.Id, DecisionPathwayStatus.Dismissed)"
+                                            disabled="@isUpdating">
+                                        <i class="ti ti-x"></i><span>Dismiss</span>
+                                    </button>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="d-flex align-items-center justify-content-end gap-2">
+                                    @if (pathway.Status == DecisionPathwayStatus.Reviewed && pathway.ReviewedAt.HasValue)
+                                    {
+                                        <span class="small text-muted" title="@pathway.ReviewedAt.Value.ToLocalTime().ToString("g")">
+                                            @pathway.ReviewedAt.Value.ToLocalTime().ToString("MMM d")
+                                        </span>
+                                    }
+                                    <button class="btn btn-link btn-sm text-decoration-none p-0 text-secondary"
+                                            title="Reopen checkpoint"
+                                            @onclick="() => UpdateStatusAsync(pathway.Id, DecisionPathwayStatus.Open)"
+                                            disabled="@isUpdating">
+                                        Reopen
+                                    </button>
+                                </div>
+                            }
                         </td>
                     </tr>
                 }
@@ -103,10 +223,13 @@ else if (pathwayPage is not null)
 
     private string? userId;
     private bool isLoading = true;
+    private bool isUpdating = false;
     private string? loadError;
+    private string selectedStatus = "All";
     private DecisionPathwayPage? pathwayPage;
     private IReadOnlyList<MemberConcernOption> concerns = [];
     private IReadOnlyList<ObjectiveOption> objectives = [];
+    private DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
 
     protected override async Task OnInitializedAsync()
     {
@@ -126,6 +249,12 @@ else if (pathwayPage is not null)
         await LoadPageAsync(1);
     }
 
+    private async Task ChangeFilterAsync(string status)
+    {
+        selectedStatus = status;
+        await LoadPageAsync(1);
+    }
+
     private async Task LoadPageAsync(int page)
     {
         if (string.IsNullOrWhiteSpace(userId))
@@ -137,7 +266,8 @@ else if (pathwayPage is not null)
         loadError = null;
         try
         {
-            pathwayPage = await DecisionPathwayService.GetPathwaysAsync(userId, page);
+            var filter = selectedStatus == "All" ? null : selectedStatus;
+            pathwayPage = await DecisionPathwayService.GetPathwaysAsync(userId, page, filter);
         }
         catch (Exception exception)
         {
@@ -147,6 +277,33 @@ else if (pathwayPage is not null)
         finally
         {
             isLoading = false;
+        }
+    }
+
+    private async Task UpdateStatusAsync(Guid id, string newStatus)
+    {
+        if (string.IsNullOrWhiteSpace(userId) || isUpdating)
+        {
+            return;
+        }
+
+        isUpdating = true;
+        try
+        {
+            var success = await DecisionPathwayService.UpdateStatusAsync(id, userId, newStatus);
+            if (success)
+            {
+                await LoadPageAsync(pathwayPage?.Page ?? 1);
+            }
+        }
+        catch (Exception exception)
+        {
+            Logger.LogError(exception, "Failed to update decision pathway {Id} status to {Status}", id, newStatus);
+            loadError = "Unable to update decision status. Please try again.";
+        }
+        finally
+        {
+            isUpdating = false;
         }
     }
 

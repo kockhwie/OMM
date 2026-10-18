@@ -116,7 +116,10 @@ public sealed record MonitoringCheckpoint(
     string TriggerCondition,
     string ReviewHorizon,
     string MetricToTrack,
-    string ActionIfTriggered);
+    string ActionIfTriggered,
+    DateOnly? ReviewDate = null,
+    decimal? SuggestedTriggerBelow = null,
+    decimal? SuggestedTriggerAbove = null);
 
 public sealed record FullDecisionPathwayResult(
     SignalTemplate SelectedSignal,

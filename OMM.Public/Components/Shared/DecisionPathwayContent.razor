@@ -225,8 +225,8 @@
 
                     @if (intentResult != null)
                     {
-                        var isReady = intentResult.IsAvailable && intentResult.NeedsClarification == false;
-                        var isVague = intentResult.NeedsClarification == true;
+                        var isReady = intentResult.IsAvailable && intentResult.MissingQuestions.Count == 0;
+                        var isVague = intentResult.IsAvailable && intentResult.MissingQuestions.Count > 0;
                         var isClassified = isReady || isVague;
 
                         <div class="decision-ai-result mt-3 @(isReady ? "is-ready" : isVague ? "is-vague" : "is-unavailable")">
@@ -235,7 +235,7 @@
                                 <div>
                                     <div class="d-flex align-items-center gap-2 mb-1">
                                         <strong>@(isReady ? "Classification result" : isVague ? "Signal needs clarification" : "Interpreter status")</strong>
-                                        <span class="badge rounded-pill text-bg-light border small">@intentResult.Provider</span>
+                                        <span class="badge rounded-pill text-bg-light border small">AI Assistant</span>
                                     </div>
                                     <p class="mb-0 small">
                                         @if (intentResult.IsAvailable)
@@ -807,8 +807,37 @@
                             <span class="badge text-bg-dark rounded-pill mb-1">Execution Framework</span>
                             <h3 class="h5 mb-0">@checkpoint.Title</h3>
                         </div>
-                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle">@checkpoint.ReviewHorizon</span>
+                        <div class="d-flex flex-column align-items-end">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                                <i class="ti ti-calendar me-1"></i>@(checkpoint.ReviewDate.HasValue ? checkpoint.ReviewDate.Value.ToString("dd MMM yyyy") : checkpoint.ReviewHorizon)
+                            </span>
+                            <small class="text-muted mt-1" style="font-size: .7rem;">Target Review Horizon</small>
+                        </div>
                     </div>
+
+                    @if (checkpoint.SuggestedTriggerBelow.HasValue || checkpoint.SuggestedTriggerAbove.HasValue)
+                    {
+                        <div class="p-3 mb-3 rounded-3 bg-light-subtle border d-flex flex-wrap align-items-center justify-content-between gap-2">
+                            <div>
+                                <strong class="small d-block text-dark"><i class="ti ti-bell-ringing me-1 text-primary"></i>Suggested Price Triggers</strong>
+                                <span class="small text-muted">Automated triggers based on your reference price (@(calcPrice is > 0 ? $"RM {calcPrice.Value:F2}" : "")) and chosen action</span>
+                            </div>
+                            <div class="d-flex gap-2">
+                                @if (checkpoint.SuggestedTriggerBelow.HasValue)
+                                {
+                                    <span class="badge text-bg-danger-subtle text-danger border border-danger-subtle">
+                                        Below: RM @checkpoint.SuggestedTriggerBelow.Value.ToString("F2")
+                                    </span>
+                                }
+                                @if (checkpoint.SuggestedTriggerAbove.HasValue)
+                                {
+                                    <span class="badge text-bg-success-subtle text-success border border-success-subtle">
+                                        Above: RM @checkpoint.SuggestedTriggerAbove.Value.ToString("F2")
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    }
 
                     <div class="row g-3 mb-4">
                         <div class="col-md-4">
@@ -1048,7 +1077,7 @@
                 intentResult.MentionedSecurity,
                 intentResult.MentionedSector);
 
-            if (intentResult.NeedsClarification == false)
+            if (intentResult.MissingQuestions.Count == 0)
             {
                 classificationMessage = "Signal classified. Review the summary and proceed when ready.";
             }
@@ -1333,13 +1362,22 @@
             {
                 Id = Guid.NewGuid(),
                 UserId = userId,
-                SignalType = signal.Category.ToString(),
-                Scope = selectedScope,
-                Concern = selectedConcern,
-                Objective = selectedObjective,
-                ChosenAction = selectedAction,
-                ReferencePrice = calcPrice,
-                ReferenceDividend = calcDividend,
+                SignalId = signal.Id,
+                SignalTitle = signal.Title,
+                ScopeKey = selectedScope,
+                ConcernKey = selectedConcern,
+                ObjectiveKey = selectedObjective,
+                SelectedActionKey = selectedAction,
+                CurrentSharePrice = calcPrice,
+                AnnualDividendPerShare = calcDividend,
+                HorizonLabel = checkpoint.ReviewHorizon,
+                CheckpointTitle = checkpoint.Title,
+                CheckpointTriggerCondition = checkpoint.TriggerCondition,
+                StockCode = matchedPosition?.StockCode ?? (!string.IsNullOrWhiteSpace(targetSecurity) ? targetSecurity : null),
+                ReviewDate = checkpoint.ReviewDate ?? DateOnly.FromDateTime(DateTime.UtcNow.AddMonths(1)),
+                TriggerPriceBelow = checkpoint.SuggestedTriggerBelow,
+                TriggerPriceAbove = checkpoint.SuggestedTriggerAbove,
+                Status = DecisionPathwayStatus.Open,
                 CreatedAt = DateTimeOffset.UtcNow,
                 Notes = trimmedQuestion
             };
@@ -1414,8 +1452,9 @@
         scenarios = DecisionEngine.CalculateScenarios(input, selectedAction);
 
         checkpoint = DecisionEngine.GenerateCheckpoint(
-            selectedAction,
             ActiveTargetLabel,
+            selectedAction,
+            "Several months",
             calcPrice ?? 0);
     }
 

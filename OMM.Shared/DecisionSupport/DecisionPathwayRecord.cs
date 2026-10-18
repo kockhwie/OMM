@@ -1,5 +1,12 @@
 namespace OMM.Shared.DecisionSupport;
 
+public static class DecisionPathwayStatus
+{
+    public const string Open = "Open";
+    public const string Reviewed = "Reviewed";
+    public const string Dismissed = "Dismissed";
+}
+
 public sealed class DecisionPathwayRecord
 {
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -17,4 +24,12 @@ public sealed class DecisionPathwayRecord
     public string CheckpointTitle { get; set; } = string.Empty;
     public string CheckpointTriggerCondition { get; set; } = string.Empty;
     public string? Notes { get; set; }
+
+    // Phase 3 Follow-Through Properties
+    public DateOnly ReviewDate { get; set; }
+    public decimal? TriggerPriceBelow { get; set; }
+    public decimal? TriggerPriceAbove { get; set; }
+    public string Status { get; set; } = DecisionPathwayStatus.Open;
+    public DateTimeOffset? ReviewedAt { get; set; }
+    public string? StockCode { get; set; }
 }

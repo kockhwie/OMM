@@ -32,7 +32,12 @@ public partial class ApplicationDbContext(DbContextOptions<ApplicationDbContext>
             entity.Property(e => e.UserId).HasColumnType("text");
             entity.Property(e => e.CurrentSharePrice).HasPrecision(18, 4);
             entity.Property(e => e.AnnualDividendPerShare).HasPrecision(18, 4);
+            entity.Property(e => e.TriggerPriceBelow).HasPrecision(18, 4);
+            entity.Property(e => e.TriggerPriceAbove).HasPrecision(18, 4);
+            entity.Property(e => e.Status).HasMaxLength(20).HasDefaultValue("Open");
+            entity.Property(e => e.StockCode).HasMaxLength(50);
             entity.HasIndex(e => new { e.UserId, e.CreatedAt });
+            entity.HasIndex(e => new { e.UserId, e.Status, e.ReviewDate });
         });
 
         modelBuilder.Entity<SignalTemplate>(entity =>

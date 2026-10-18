@@ -95,6 +95,10 @@ public sealed class MinerProfileService(
         profile.CountryId = await ValidateCountryAsync(db, update.CountryId, cancellationToken);
         profile.CurrencyId = await ValidateCurrencyAsync(db, update.CurrencyId, cancellationToken);
         profile.Language = string.IsNullOrWhiteSpace(update.Language) ? null : update.Language.Trim();
+        profile.NotifyFdMaturity = update.NotifyFdMaturity;
+        profile.NotifyGoalMilestones = update.NotifyGoalMilestones;
+        profile.NotifyDataFreshness = update.NotifyDataFreshness;
+        profile.NotifyDecisionReview = update.NotifyDecisionReview;
         profile.ModifiedAt = DateTimeOffset.UtcNow;
 
         await db.SaveChangesAsync(cancellationToken);
@@ -237,5 +241,9 @@ public sealed class MinerProfileService(
         profile.CreatedAt,
         profile.CurrencyId.HasValue,
         profile.OnboardingStatus,
-        profile.OnboardingStep);
+        profile.OnboardingStep,
+        profile.NotifyFdMaturity,
+        profile.NotifyGoalMilestones,
+        profile.NotifyDataFreshness,
+        profile.NotifyDecisionReview);
 }

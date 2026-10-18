@@ -9,7 +9,12 @@ public interface IDeterministicDecisionEngine
     ImpactMapResult BuildImpactMap(SignalCategory category, string concernKey, string scopeKey, string? security, string? sector);
     IReadOnlyList<ActionOption> EvaluateActionOptions(string objectiveKey, string concernKey);
     IReadOnlyList<ScenarioBranch> CalculateScenarios(ScenarioCalculationInput input, string actionKey);
-    MonitoringCheckpoint GenerateCheckpoint(string securityOrSector, string actionKey, string horizon);
+    MonitoringCheckpoint GenerateCheckpoint(
+        string securityOrSector,
+        string actionKey,
+        string horizon,
+        decimal referencePrice = 0,
+        DateOnly? fromDate = null);
 }
 
 public sealed class DeterministicDecisionEngine : IDeterministicDecisionEngine
@@ -533,9 +538,14 @@ public sealed class DeterministicDecisionEngine : IDeterministicDecisionEngine
     public MonitoringCheckpoint GenerateCheckpoint(
         string securityOrSector,
         string actionKey,
-        string horizon)
+        string horizon,
+        decimal referencePrice = 0,
+        DateOnly? fromDate = null)
     {
         var target = !string.IsNullOrWhiteSpace(securityOrSector) ? securityOrSector : "Selected position";
+        var baseDate = fromDate ?? DateOnly.FromDateTime(DateTime.UtcNow);
+        var reviewDate = CalculateReviewDate(horizon, baseDate);
+        var (triggerBelow, triggerAbove) = CalculateTriggerPrices(actionKey, referencePrice);
 
         return actionKey switch
         {
@@ -544,28 +554,70 @@ public sealed class DeterministicDecisionEngine : IDeterministicDecisionEngine
                 "Review available fixed income yields vs potential market re-entry opportunities.",
                 horizon,
                 "Risk-free yield rate & KLCI index valuation multiple",
-                "Deploy into conservative dividend stalwarts if market discount widens by >10%."),
+                "Deploy into conservative dividend stalwarts if market discount widens by >10%.",
+                reviewDate,
+                triggerBelow,
+                triggerAbove),
 
             "trim" => new(
                 $"Partial Trim Evaluation Checkpoint for {target}",
-                "Assess whether retained 70% exposure feels comfortable after price volatility settles.",
+                triggerBelow is > 0 && triggerAbove is > 0
+                    ? $"Assess retained 70% exposure. Trigger below RM {triggerBelow.Value:F2} (-8%) or above RM {triggerAbove.Value:F2} (+10%)."
+                    : "Assess whether retained 70% exposure feels comfortable after price volatility settles.",
                 horizon,
                 "Share price stability above support & dividend confirmation",
-                "If price rebounds past target, retain remaining stake; if it drops below support, pause further sales."),
+                "If price rebounds past target, retain remaining stake; if it drops below support, pause further sales.",
+                reviewDate,
+                triggerBelow,
+                triggerAbove),
 
             "accumulate" => new(
                 $"Tranche Execution Checkpoint for {target}",
-                "Verify that first accumulation tranche was completed and evaluate second tranche trigger.",
+                triggerBelow is > 0
+                    ? $"Verify first tranche. Trigger next tranche at or below RM {triggerBelow.Value:F2} (-10%)."
+                    : "Verify that first accumulation tranche was completed and evaluate second tranche trigger.",
                 horizon,
                 "Price holding support level & confirmed dividend yield >6.0%",
-                "Execute tranche 2 only if fundamental cash flow remains intact."),
+                "Execute tranche 2 only if fundamental cash flow remains intact.",
+                reviewDate,
+                triggerBelow,
+                triggerAbove),
 
             _ => new(
                 $"Hold & Dividend Review Checkpoint for {target}",
-                "Check post-dividend share price performance and ex-date price recovery duration.",
+                triggerBelow is > 0
+                    ? $"Check dividend confirmation. Stop/re-evaluate if price slips below RM {triggerBelow.Value:F2} (-8%)."
+                    : "Check post-dividend share price performance and ex-date price recovery duration.",
                 horizon,
                 "Ex-dividend price recovery & next quarterly earnings announcement",
-                "If share price recovers within 14 days, maintain holding; if price slips >8%, revisit trim scenario.")
+                "If share price recovers within 14 days, maintain holding; if price slips >8%, revisit trim scenario.",
+                reviewDate,
+                triggerBelow,
+                triggerAbove)
+        };
+    }
+
+    private static DateOnly CalculateReviewDate(string horizon, DateOnly fromDate)
+    {
+        var h = horizon.ToLowerInvariant();
+        if (h.Contains("week")) return fromDate.AddDays(14);
+        if (h.Contains("quarter") || h.Contains("3 month") || h.Contains("several month")) return fromDate.AddMonths(3);
+        if (h.Contains("6 month")) return fromDate.AddMonths(6);
+        if (h.Contains("year") || h.Contains("12 month")) return fromDate.AddYears(1);
+        return fromDate.AddMonths(1);
+    }
+
+    private static (decimal? Below, decimal? Above) CalculateTriggerPrices(string actionKey, decimal referencePrice)
+    {
+        if (referencePrice <= 0) return (null, null);
+
+        return actionKey switch
+        {
+            "trim" => (Math.Round(referencePrice * 0.92m, 2), Math.Round(referencePrice * 1.10m, 2)),
+            "accumulate" => (Math.Round(referencePrice * 0.90m, 2), Math.Round(referencePrice * 1.05m, 2)),
+            "hold" => (Math.Round(referencePrice * 0.92m, 2), Math.Round(referencePrice * 1.15m, 2)),
+            "sell" => (null, null),
+            _ => (Math.Round(referencePrice * 0.92m, 2), Math.Round(referencePrice * 1.10m, 2))
         };
     }
 }

@@ -66,6 +66,10 @@ public partial class ApplicationDbContext
             entity.Property(e => e.Language).HasMaxLength(50);
             entity.Property(e => e.OnboardingStatus).HasConversion<string>().HasMaxLength(32).IsRequired();
             entity.Property(e => e.OnboardingStep).HasConversion<string>().HasMaxLength(32).IsRequired();
+            entity.Property(e => e.NotifyFdMaturity).HasDefaultValue(true);
+            entity.Property(e => e.NotifyGoalMilestones).HasDefaultValue(true);
+            entity.Property(e => e.NotifyDataFreshness).HasDefaultValue(true);
+            entity.Property(e => e.NotifyDecisionReview).HasDefaultValue(true);
             entity.HasQueryFilter(e => !e.IsDeleted);
             entity.HasOne(e => e.User).WithOne().HasForeignKey<MinerProfileEntity>(e => e.UserId).OnDelete(DeleteBehavior.Cascade);
             entity.HasOne(e => e.Country).WithMany().HasForeignKey(e => e.CountryId).OnDelete(DeleteBehavior.SetNull);

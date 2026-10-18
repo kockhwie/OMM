@@ -133,7 +133,7 @@ else if (savedNotification)
                         <div class="text-muted" style="font-size: 0.75rem;">Receive notice prior to fixed deposit maturity dates</div>
                     </div>
                     <div class="form-check form-switch mb-0">
-                        <input class="form-check-input" type="checkbox" role="switch" checked />
+                        <input class="form-check-input" type="checkbox" role="switch" @bind="notifyFdMaturity" />
                     </div>
                 </div>
 
@@ -143,17 +143,27 @@ else if (savedNotification)
                         <div class="text-muted" style="font-size: 0.75rem;">Alert when crossing 25%, 50%, 75%, and 100% of goals</div>
                     </div>
                     <div class="form-check form-switch mb-0">
-                        <input class="form-check-input" type="checkbox" role="switch" checked />
+                        <input class="form-check-input" type="checkbox" role="switch" @bind="notifyGoalMilestones" />
                     </div>
                 </div>
 
-                <div class="d-flex align-items-center justify-content-between py-2">
+                <div class="d-flex align-items-center justify-content-between py-2 border-bottom border-light-subtle">
                     <div>
                         <div class="fw-semibold text-dark small">Data Freshness Reminders</div>
                         <div class="text-muted" style="font-size: 0.75rem;">Nudge if stock and gold values are older than 30 days</div>
                     </div>
                     <div class="form-check form-switch mb-0">
-                        <input class="form-check-input" type="checkbox" role="switch" checked />
+                        <input class="form-check-input" type="checkbox" role="switch" @bind="notifyDataFreshness" />
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between py-2">
+                    <div>
+                        <div class="fw-semibold text-dark small">Decision Review Reminders</div>
+                        <div class="text-muted" style="font-size: 0.75rem;">Receive notice when saved decision checkpoints are due for review</div>
+                    </div>
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" role="switch" @bind="notifyDecisionReview" />
                     </div>
                 </div>
             </div>
@@ -226,6 +236,10 @@ else if (savedNotification)
     private int? countryId;
     private int? currencyId;
     private string? language;
+    private bool notifyFdMaturity = true;
+    private bool notifyGoalMilestones = true;
+    private bool notifyDataFreshness = true;
+    private bool notifyDecisionReview = true;
     private bool loading = true;
     private bool savedNotification = false;
     private string? inputError;
@@ -272,7 +286,15 @@ else if (savedNotification)
         try
         {
             profile = await ProfileService.UpdateCurrentAsync(
-                new MinerProfileUpdate(displayName, countryId, currencyId, language));
+                new MinerProfileUpdate(
+                    displayName,
+                    countryId,
+                    currencyId,
+                    language,
+                    notifyFdMaturity,
+                    notifyGoalMilestones,
+                    notifyDataFreshness,
+                    notifyDecisionReview));
             LoadForm();
         }
         catch (ArgumentException exception)
@@ -291,6 +313,10 @@ else if (savedNotification)
         countryId = profile?.CountryId;
         currencyId = profile?.CurrencyId;
         language = profile?.Language;
+        notifyFdMaturity = profile?.NotifyFdMaturity ?? true;
+        notifyGoalMilestones = profile?.NotifyGoalMilestones ?? true;
+        notifyDataFreshness = profile?.NotifyDataFreshness ?? true;
+        notifyDecisionReview = profile?.NotifyDecisionReview ?? true;
     }
 
     private void ExportData()

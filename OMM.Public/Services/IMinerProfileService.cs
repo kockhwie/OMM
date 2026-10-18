@@ -25,7 +25,11 @@ public sealed record MinerProfileUpdate(
     string? DisplayName,
     int? CountryId,
     int? CurrencyId,
-    string? Language);
+    string? Language,
+    bool NotifyFdMaturity = true,
+    bool NotifyGoalMilestones = true,
+    bool NotifyDataFreshness = true,
+    bool NotifyDecisionReview = true);
 
 public sealed record MinerProfileView(
     string UserId,
@@ -40,7 +44,11 @@ public sealed record MinerProfileView(
     DateTimeOffset CreatedAt,
     bool IsComplete,
     OMM.Public.Data.Entities.OnboardingStatus OnboardingStatus,
-    OMM.Public.Data.Entities.OnboardingStep OnboardingStep);
+    OMM.Public.Data.Entities.OnboardingStep OnboardingStep,
+    bool NotifyFdMaturity = true,
+    bool NotifyGoalMilestones = true,
+    bool NotifyDataFreshness = true,
+    bool NotifyDecisionReview = true);
 
 public sealed record ProfileCurrencyOption(int Id, string Code, string Name);
 

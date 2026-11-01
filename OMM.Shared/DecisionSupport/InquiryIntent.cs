@@ -17,4 +17,7 @@ public sealed record InquiryIntentResult(
     string Intent,
     IReadOnlyList<string> MissingQuestions,
     decimal Confidence,
-    string? ErrorMessage = null);
+    string? ErrorMessage = null,
+    int? PromptVersionId = null,
+    bool UsedEmergencyPrompt = false,
+    int AiCallAttemptCount = 0);

@@ -19,6 +19,7 @@
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<ExternalLogin> Logger
 @inject IMinerProfileService MinerProfileService
+@inject OMM.Shared.Subscription.ISubscriptionProvisioningService SubscriptionProvisioningService
 @inject ISystemSettingsService SystemSettingsService
 
 <PageTitle>Register</PageTitle>
@@ -173,6 +174,9 @@
             if (result.Succeeded)
             {
                 await MinerProfileService.CreateForUserAsync(user);
+
+                // Phase 5 DB-2: Provision initial Standard lifetime subscription for new external login member.
+                await SubscriptionProvisioningService.ProvisionStandardSubscriptionAsync(user.Id);
                 Logger.LogInformation("User created an account using {Name} provider.", externalLoginInfo.LoginProvider);
 
                 var userId = await UserManager.GetUserIdAsync(user);

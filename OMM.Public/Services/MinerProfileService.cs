@@ -70,16 +70,6 @@ public sealed class MinerProfileService(
             throw new ArgumentException("Display name cannot exceed 200 characters.", nameof(update));
         }
 
-        if (!update.CurrencyId.HasValue)
-        {
-            throw new ArgumentException("Choose a base currency before saving your profile.", nameof(update));
-        }
-
-        if (!update.CountryId.HasValue)
-        {
-            throw new ArgumentException("Choose a country before saving your profile.", nameof(update));
-        }
-
         await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
         var profile = await db.MinerProfiles
             .SingleOrDefaultAsync(item => item.UserId == userId, cancellationToken);

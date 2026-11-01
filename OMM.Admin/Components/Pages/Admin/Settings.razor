@@ -125,6 +125,49 @@
             </div>
         </div>
 
+        <div class="col-12 col-xl-8">
+            <div class="card border-0 bg-white shadow-sm rounded-4 p-4 mb-4">
+                <h2 class="h5 fw-bold text-dark mb-1">Inquiry Data Retention</h2>
+                <p class="text-muted small">Inquiry sessions and raw messages expire after this many calendar years. Existing records retain their stored expiry date.</p>
+                <div class="row g-3 align-items-end">
+                    <div class="col-12 col-sm-5">
+                        <label class="form-label" for="inquiryRetentionYears">Retention period in years</label>
+                        <input id="inquiryRetentionYears" class="form-control" type="number" min="1" max="10" @bind="_inquiryRetentionYears" disabled="@_isRetentionSaving" />
+                    </div>
+                    <div class="col-12 col-sm-auto">
+                        <button class="btn btn-outline-primary" @onclick="SaveInquiryRetentionAsync" disabled="@_isRetentionSaving">Save retention</button>
+                    </div>
+                    <div class="col-12 small text-muted">Allowed range: 1–10 years. New records default to 3 years.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-xl-8">
+            <div class="card border-0 bg-white shadow-sm rounded-4 p-4 mb-4">
+                <div class="mb-3">
+                    <h2 class="h5 fw-bold text-dark mb-1">Public Pro Availability</h2>
+                    <p class="text-muted small mb-0">Controls whether eligible Public members can use Pro analysis. Turning this off preserves their subscriptions and serves the Standard fallback.</p>
+                </div>
+                <div class="p-3 border rounded-3 bg-light-subtle">
+                    <div class="d-flex align-items-center justify-content-between gap-3">
+                        <div>
+                            <div class="fw-semibold">Public Pro mode</div>
+                            <div class="small text-muted">Default: enabled. This setting does not change subscription records.</div>
+                        </div>
+                        <div class="form-check form-switch fs-4 mb-0">
+                            <input class="form-check-input"
+                                   type="checkbox"
+                                   role="switch"
+                                   id="publicProSwitch"
+                                   checked="@_publicProEnabled"
+                                   disabled="@(_isProLoading || _isProSaving)"
+                                   @onchange="OnPublicProToggleChanged" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- AI Classification Section -->
         <div class="col-12 col-xl-8">
             <div class="card border-0 bg-white shadow-sm rounded-4 p-4 mb-4">
@@ -267,6 +310,13 @@
     private bool _isAiSaving;
     private bool _isAiConfiguredInEnvironment;
 
+    private bool _publicProEnabled;
+    private bool _isProLoading = true;
+    private bool _isProSaving;
+
+    private int _inquiryRetentionYears = 3;
+    private bool _isRetentionSaving;
+
     private string? _statusMessage;
     private string _statusClass = "success";
     private string _currentUserId = string.Empty;
@@ -302,11 +352,17 @@
     {
         _isLoading = true;
         _isAiLoading = true;
+        _isProLoading = true;
         try
         {
             // Default is false if not found in database
             _googleAuthEnabled = await SystemSettingsService.IsGoogleAuthEnabledAsync();
             _aiClassificationEnabled = await SystemSettingsService.IsAiClassificationEnabledAsync();
+            _publicProEnabled = await SystemSettingsService.IsPublicProEnabledAsync();
+            var retention = await SystemSettingsService.GetSettingAsync(SystemSettingKeys.InquiryRetentionYears);
+            _inquiryRetentionYears = int.TryParse(retention, out var configuredRetention) && configuredRetention is >= 1 and <= 10
+                ? configuredRetention
+                : 3;
         }
         catch (Exception ex)
         {
@@ -317,6 +373,83 @@
         {
             _isLoading = false;
             _isAiLoading = false;
+            _isProLoading = false;
+        }
+    }
+
+    private async Task OnPublicProToggleChanged(ChangeEventArgs e)
+    {
+        bool newEnabled;
+        if (e.Value is bool value)
+        {
+            newEnabled = value;
+        }
+        else if (!bool.TryParse(e.Value?.ToString(), out newEnabled))
+        {
+            return;
+        }
+
+        _isProSaving = true;
+        _statusMessage = null;
+        try
+        {
+            await SystemSettingsService.SetPublicProEnabledAsync(newEnabled, _currentUserId);
+            _publicProEnabled = newEnabled;
+            await AuditLogger.LogAsync(
+                _currentUserId,
+                _currentUserName,
+                newEnabled ? "EnablePublicPro" : "DisablePublicPro",
+                targetUserId: null,
+                detail: $"Public Pro availability was toggled to {(newEnabled ? "ENABLED" : "DISABLED")}; subscription records were not changed.");
+            _statusClass = "success";
+            _statusMessage = $"Public Pro availability has been {(newEnabled ? "enabled" : "disabled")}.";
+        }
+        catch (Exception ex)
+        {
+            _statusClass = "danger";
+            _statusMessage = $"Failed to update Public Pro availability: {ex.Message}";
+        }
+        finally
+        {
+            _isProSaving = false;
+        }
+    }
+
+    private async Task SaveInquiryRetentionAsync()
+    {
+        if (_inquiryRetentionYears is < 1 or > 10)
+        {
+            _statusClass = "danger";
+            _statusMessage = "Retention must be between 1 and 10 calendar years.";
+            return;
+        }
+
+        _isRetentionSaving = true;
+        _statusMessage = null;
+        try
+        {
+            await SystemSettingsService.SetSettingAsync(
+                SystemSettingKeys.InquiryRetentionYears,
+                _inquiryRetentionYears.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                _currentUserId,
+                "Retention period for inquiry sessions and raw messages, in calendar years.");
+            await AuditLogger.LogAsync(
+                _currentUserId,
+                _currentUserName,
+                "UpdateInquiryRetention",
+                targetUserId: null,
+                detail: $"Inquiry retention period was set to {_inquiryRetentionYears} calendar years.");
+            _statusClass = "success";
+            _statusMessage = $"Inquiry retention was updated to {_inquiryRetentionYears} years for new records.";
+        }
+        catch (Exception ex)
+        {
+            _statusClass = "danger";
+            _statusMessage = $"Failed to update inquiry retention: {ex.Message}";
+        }
+        finally
+        {
+            _isRetentionSaving = false;
         }
     }
 

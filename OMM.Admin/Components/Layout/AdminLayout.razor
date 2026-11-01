@@ -36,6 +36,22 @@
                 <i class="ti ti-list-check"></i>
                 <span class="sidebar-label">Question Starters</span>
             </NavLink>
+            <NavLink class="sidebar-link" href="admin/ai-prompts" data-bs-toggle="tooltip" data-bs-placement="right" title="AI Prompts">
+                <i class="ti ti-sparkles"></i>
+                <span class="sidebar-label">AI Prompts</span>
+            </NavLink>
+            <NavLink class="sidebar-link" href="admin/simulator" data-bs-toggle="tooltip" data-bs-placement="right" title="CrystalBall Simulator">
+                <i class="ti ti-flask"></i>
+                <span class="sidebar-label">Simulator</span>
+            </NavLink>
+            <NavLink class="sidebar-link" href="admin/phase5-rules" data-bs-toggle="tooltip" data-bs-placement="right" title="Phase 5 Rules">
+                <i class="ti ti-route"></i>
+                <span class="sidebar-label">Phase 5 Rules</span>
+            </NavLink>
+            <NavLink class="sidebar-link" href="admin/inquiries" data-bs-toggle="tooltip" data-bs-placement="right" title="Inquiry Records">
+                <i class="ti ti-message-search"></i>
+                <span class="sidebar-label">Inquiry Records</span>
+            </NavLink>
             <NavLink class="sidebar-link" href="admin/users" data-bs-toggle="tooltip" data-bs-placement="right" title="Users">
                 <i class="ti ti-users"></i>
                 <span class="sidebar-label">Users</span>
@@ -43,6 +59,10 @@
             <NavLink class="sidebar-link" href="admin/members" data-bs-toggle="tooltip" data-bs-placement="right" title="Members">
                 <i class="ti ti-user-check"></i>
                 <span class="sidebar-label">Members</span>
+            </NavLink>
+            <NavLink class="sidebar-link" href="admin/subscriptions" data-bs-toggle="tooltip" data-bs-placement="right" title="Subscriptions">
+                <i class="ti ti-credit-card"></i>
+                <span class="sidebar-label">Subscriptions</span>
             </NavLink>
             <NavLink class="sidebar-link" href="admin/audit-log" data-bs-toggle="tooltip" data-bs-placement="right" title="Audit Log">
                 <i class="ti ti-history"></i>
@@ -117,9 +137,29 @@
                         <i class="ti ti-users"></i>
                         <span>Users</span>
                     </NavLink>
+                    <NavLink class="sidebar-link" href="admin/ai-prompts" @onclick="ToggleMobileNav">
+                        <i class="ti ti-sparkles"></i>
+                        <span>AI Prompts</span>
+                    </NavLink>
+                    <NavLink class="sidebar-link" href="admin/simulator" @onclick="ToggleMobileNav">
+                        <i class="ti ti-flask"></i>
+                        <span>Simulator</span>
+                    </NavLink>
+                    <NavLink class="sidebar-link" href="admin/phase5-rules" @onclick="ToggleMobileNav">
+                        <i class="ti ti-route"></i>
+                        <span>Phase 5 Rules</span>
+                    </NavLink>
+                    <NavLink class="sidebar-link" href="admin/inquiries" @onclick="ToggleMobileNav">
+                        <i class="ti ti-message-search"></i>
+                        <span>Inquiry Records</span>
+                    </NavLink>
                     <NavLink class="sidebar-link" href="admin/members" @onclick="ToggleMobileNav">
                         <i class="ti ti-user-check"></i>
                         <span>Members</span>
+                    </NavLink>
+                    <NavLink class="sidebar-link" href="admin/subscriptions" @onclick="ToggleMobileNav">
+                        <i class="ti ti-credit-card"></i>
+                        <span>Subscriptions</span>
                     </NavLink>
                     <NavLink class="sidebar-link" href="admin/audit-log" @onclick="ToggleMobileNav">
                         <i class="ti ti-history"></i>

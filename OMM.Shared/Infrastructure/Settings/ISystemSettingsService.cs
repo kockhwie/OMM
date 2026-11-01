@@ -4,6 +4,8 @@ public static class SystemSettingKeys
 {
     public const string GoogleAuthEnabled = "Authentication:GoogleEnabled";
     public const string AiClassificationEnabled = "DecisionSupport:AiClassificationEnabled";
+    public const string PublicProEnabled = "PublicProEnabled";
+    public const string InquiryRetentionYears = "InquiryRetentionYears";
 }
 
 public interface ISystemSettingsService
@@ -15,4 +17,6 @@ public interface ISystemSettingsService
     Task SetGoogleAuthEnabledAsync(bool enabled, string? userId = null, CancellationToken ct = default);
     Task<bool> IsAiClassificationEnabledAsync(CancellationToken ct = default);
     Task SetAiClassificationEnabledAsync(bool enabled, string? userId = null, CancellationToken ct = default);
+    Task<bool> IsPublicProEnabledAsync(CancellationToken ct = default);
+    Task SetPublicProEnabledAsync(bool enabled, string? userId = null, CancellationToken ct = default);
 }

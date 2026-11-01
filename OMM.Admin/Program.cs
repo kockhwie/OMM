@@ -11,6 +11,9 @@ using OMM.Shared.Infrastructure;
 using OMM.Shared.Infrastructure.Email;
 using OMM.Shared.Infrastructure.Settings;
 using OMM.Shared.DecisionSupport;
+using OMM.Shared.Inquiry;
+using OMM.Shared.Prompts;
+using OMM.Shared.Subscription;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -87,6 +90,14 @@ builder.Services.AddScoped<IAuditLogger, AuditLogger>();
 // User management service (invite, resend, lockout, deactivate)
 builder.Services.AddScoped<IUserManagementService, UserManagementService>();
 builder.Services.AddScoped<IPublicMemberManagementService, PublicMemberManagementService>();
+builder.Services.AddScoped<IInquiryAdminService, InquiryAdminService>();
+builder.Services.AddScoped<Phase5RuleAdministrationService>();
+builder.Services.AddSharedInquiryServices(builder.Configuration, builder.Environment);
+builder.Services.AddScoped<ISubscriptionDbContextFactory, AdminSubscriptionDbContextFactory>();
+builder.Services.AddSharedSubscriptionServices();
+builder.Services.AddSharedPromptServices();
+builder.Services.AddHostedService<SubscriptionLifecycleBackgroundService>();
+builder.Services.AddHostedService<InquiryRetentionBackgroundService>();
 
 // Override Identity cookie defaults so unauthorized requests redirect to our
 // custom /login page instead of the scaffolded /Account/Login endpoint.
@@ -125,6 +136,8 @@ app.UseAntiforgery();
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+app.MapPhase5InquiryEndpoints();
 
 app.MapDatabaseHealthCheck();
 

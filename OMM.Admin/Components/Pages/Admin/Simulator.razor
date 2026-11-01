@@ -1,0 +1,193 @@
+@page "/admin/simulator"
+@layout AdminLayout
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = "RequireAdminRole")]
+@using OMM.Shared.DecisionSupport
+@using OMM.Shared.Prompts
+@using OMM.Shared.Subscription
+@inject IPhase5InquiryClassifier InquiryClassifier
+@inject IPromptAdministrationService PromptAdministration
+
+<PageTitle>CrystalBall Simulator - OMM Admin</PageTitle>
+
+<div class="container-fluid p-0">
+    <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
+        <div>
+            <h1 class="h3 fw-bold text-dark mb-1">CrystalBall Simulator</h1>
+            <p class="text-muted mb-0">Exercise Public inquiry responses with isolated personas and prompt versions.</p>
+        </div>
+        <span class="badge bg-warning-subtle text-warning">Simulator data is never persisted</span>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(statusMessage))
+    {
+        <div class="alert alert-@statusClass rounded-3" role="status">@statusMessage</div>
+    }
+
+    <div class="row g-4">
+        <div class="col-12 col-xl-5">
+            <section class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                <h2 class="h5 fw-bold mb-3">Persona</h2>
+                <div class="btn-group w-100 mb-3" role="group" aria-label="Simulator persona">
+                    @foreach (var persona in personas)
+                    {
+                        <button class="btn @(selectedPersona == persona.Key ? "btn-primary" : "btn-outline-primary")" type="button" @onclick="() => SelectPersona(persona.Key)">@persona.Label</button>
+                    }
+                </div>
+                <p class="small text-muted mb-0">@PersonaDescription</p>
+            </section>
+
+            <section class="card border-0 shadow-sm rounded-4 p-4">
+                <h2 class="h5 fw-bold mb-1">Prompt version</h2>
+                <p class="small text-muted">Public feature settings do not affect this simulator. Overrides are scoped to this session.</p>
+                <label class="form-label" for="simulator-prompt">Use active prompt or select a version</label>
+                <select id="simulator-prompt" class="form-select" @bind="selectedPromptId">
+                    <option value="0">Active @selectedMode prompt</option>
+                    @foreach (var version in promptVersions)
+                    {
+                        <option value="@version.Id">#@version.Id · @version.VersionLabel (@version.Status)</option>
+                    }
+                </select>
+                <button class="btn btn-outline-secondary mt-3" type="button" @onclick="ResetSimulator">Reset simulator</button>
+            </section>
+        </div>
+
+        <div class="col-12 col-xl-7">
+            <section class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                    <div>
+                        <h2 class="h5 fw-bold mb-1">Classify an inquiry</h2>
+                        <p class="small text-muted mb-0">The member message is sent as untrusted content and is not saved.</p>
+                    </div>
+                    <span class="badge bg-primary-subtle text-primary">@ModeLabel</span>
+                </div>
+                <label class="form-label fw-semibold" for="simulator-question">Member message</label>
+                <textarea id="simulator-question" class="form-control" rows="6" maxlength="20000" @bind="memberText" placeholder="Example: How might a US rate increase affect Malaysian banks?"></textarea>
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
+                    <span class="small text-muted">Execution context: @selectedPersona · @(selectedPromptId == 0 ? "active prompt" : $"version #{selectedPromptId}")</span>
+                    <button class="btn btn-primary" type="button" @onclick="RunSimulationAsync" disabled="@busy || string.IsNullOrWhiteSpace(memberText)">@(busy ? "Running…" : "Run simulation")</button>
+                </div>
+            </section>
+
+            @if (result is not null)
+            {
+                <section class="card border-0 shadow-sm rounded-4 p-4" aria-live="polite">
+                    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                        <h2 class="h5 fw-bold mb-0">Inspector result</h2>
+                        <span class="badge @(result.IsAvailable ? "bg-success-subtle text-success" : "bg-warning-subtle text-warning")">@(result.IsAvailable ? "Validated" : "Guided fallback")</span>
+                    </div>
+                    @if (!result.IsAvailable)
+                    {
+                        <p class="text-muted">@result.ErrorMessage</p>
+                    }
+                    else
+                    {
+                        <dl class="row mb-0">
+                            <dt class="col-sm-4">Signal type</dt><dd class="col-sm-8">@result.SignalType</dd>
+                            <dt class="col-sm-4">Intent</dt><dd class="col-sm-8">@result.Intent</dd>
+                            <dt class="col-sm-4">Confidence</dt><dd class="col-sm-8">@result.Confidence.ToString("P0")</dd>
+                            <dt class="col-sm-4">Event</dt><dd class="col-sm-8">@(result.EventName ?? "Not identified")</dd>
+                            <dt class="col-sm-4">Security</dt><dd class="col-sm-8">@(result.MentionedSecurity ?? "Not identified")</dd>
+                            <dt class="col-sm-4">Prompt</dt><dd class="col-sm-8">@(result.UsedEmergencyPrompt ? "Emergency baseline" : $"Version #{result.PromptVersionId}")</dd>
+                            <dt class="col-sm-4">Attempts</dt><dd class="col-sm-8">@result.AiCallAttemptCount</dd>
+                        </dl>
+                        @if (result.MissingQuestions.Count > 0)
+                        {
+                            <div class="alert alert-info mt-3 mb-0"><span class="fw-semibold">Clarification:</span> @result.MissingQuestions[0]</div>
+                        }
+                    }
+                </section>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private static readonly IReadOnlyList<(string Key, string Label)> personas =
+    [
+        ("NonMember", "Non-member"),
+        ("Standard", "Standard"),
+        ("Pro", "Pro")
+    ];
+
+    private string selectedPersona = "NonMember";
+    private string selectedMode = SubscriptionConstants.PromptModes.Standard;
+    private int selectedPromptId;
+    private string memberText = string.Empty;
+    private bool busy;
+    private string? statusMessage;
+    private string statusClass = "success";
+    private InquiryIntentResult? result;
+    private IReadOnlyList<PromptVersionDto> promptVersions = [];
+
+    private string PersonaDescription => selectedPersona switch
+    {
+        "Pro" => "Uses a server-created Pro advisory context. This does not grant or alter a real member entitlement.",
+        "Standard" => "Uses a Standard educational context and cannot render advisory fields.",
+        _ => "Uses a guided non-member context. Public subscription records and feature settings are ignored."
+    };
+
+    private string ModeLabel => selectedMode == SubscriptionConstants.PromptModes.Pro
+        ? SubscriptionConstants.DisplayLabels.Pro
+        : SubscriptionConstants.DisplayLabels.Standard;
+
+    protected override async Task OnInitializedAsync() => await LoadPromptVersionsAsync();
+
+    private async Task SelectPersona(string persona)
+    {
+        selectedPersona = persona;
+        selectedMode = persona == "Pro" ? SubscriptionConstants.PromptModes.Pro : SubscriptionConstants.PromptModes.Standard;
+        selectedPromptId = 0;
+        result = null;
+        await LoadPromptVersionsAsync();
+    }
+
+    private async Task LoadPromptVersionsAsync()
+    {
+        promptVersions = await PromptAdministration.GetVersionsAsync(selectedMode);
+    }
+
+    private async Task RunSimulationAsync()
+    {
+        if (busy || string.IsNullOrWhiteSpace(memberText)) return;
+        busy = true;
+        statusMessage = null;
+        try
+        {
+            var isPro = selectedPersona == "Pro";
+            result = await InquiryClassifier.ClassifyAsync(memberText.Trim(), new AiExecutionContext
+            {
+                RequestedMode = selectedMode,
+                EffectiveMode = selectedMode,
+                DisplayLabel = isPro ? SubscriptionConstants.DisplayLabels.Pro : SubscriptionConstants.DisplayLabels.Standard,
+                DisclosureMode = isPro ? SubscriptionConstants.DisplayLabels.Pro : SubscriptionConstants.DisplayLabels.Standard,
+                IsAdvisoryPermitted = isPro,
+                Origin = AiExecutionOrigin.AdminSimulator,
+                PersistencePermitted = false,
+                PromptVersionOverrideId = selectedPromptId == 0 ? null : selectedPromptId,
+                AnonymizedSessionId = $"sim-{Guid.NewGuid():N}"[..20],
+                AiCallAttemptsRemaining = 2
+            });
+        }
+        catch (Exception exception)
+        {
+            statusClass = "danger";
+            statusMessage = exception.Message;
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+
+    private void ResetSimulator()
+    {
+        selectedPersona = "NonMember";
+        selectedMode = SubscriptionConstants.PromptModes.Standard;
+        selectedPromptId = 0;
+        memberText = string.Empty;
+        result = null;
+        statusMessage = null;
+        _ = LoadPromptVersionsAsync();
+    }
+}

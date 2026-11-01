@@ -1,4 +1,4 @@
-﻿@page "/Account/Manage/DeletePersonalData"
+@page "/Account/Manage/DeletePersonalData"
 
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Identity
@@ -8,6 +8,7 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<DeletePersonalData> Logger
+@inject OMM.Shared.Subscription.IAccountRetentionService AccountRetentionService
 
 <PageTitle>Delete Personal Data</PageTitle>
 
@@ -74,6 +75,11 @@
             message = "Error: Incorrect password.";
             return;
         }
+
+        // Phase 5 DB-2: Ensure subscription and inquiry history are retained, active entitlements
+        // are cleanly terminated, scheduled renewals cancelled, and open upgrade requests withdrawn
+        // before deleting Identity credentials.
+        await AccountRetentionService.PrepareForAccountDeletionAsync(user.Id);
 
         var result = await UserManager.DeleteAsync(user);
         if (!result.Succeeded)

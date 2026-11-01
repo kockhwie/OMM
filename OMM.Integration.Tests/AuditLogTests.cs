@@ -52,6 +52,12 @@ public class AuditLogTests
             return Task.CompletedTask;
         }
 
+        public Task LogInquiryDataActionAsync(string actorUserId, string actorUserName, string action, IReadOnlyCollection<long> sessionIds, IReadOnlyCollection<long> turnIds, int recordCount)
+        {
+            Logs.Add((actorUserId, actorUserName, action, null, $"SessionCount={sessionIds.Count}; TurnCount={turnIds.Count}; Count={recordCount}"));
+            return Task.CompletedTask;
+        }
+
         public Task<IReadOnlyList<AdminAuditLog>> ListRecentAsync(string? searchTerm = null, int limit = 100)
         {
             return Task.FromResult<IReadOnlyList<AdminAuditLog>>([]);

@@ -1,4 +1,4 @@
-﻿@page "/Account/Register"
+@page "/Account/Register"
 
 @using System.ComponentModel.DataAnnotations
 @using System.Text
@@ -17,6 +17,7 @@
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 @inject IMinerProfileService MinerProfileService
+@inject OMM.Shared.Subscription.ISubscriptionProvisioningService SubscriptionProvisioningService
 
 <PageTitle>Register</PageTitle>
 
@@ -106,6 +107,9 @@
         }
 
         await MinerProfileService.CreateForUserAsync(user);
+
+        // Phase 5 DB-2: Provision initial Standard lifetime subscription for new member.
+        await SubscriptionProvisioningService.ProvisionStandardSubscriptionAsync(user.Id);
 
         Logger.LogInformation("User created a new account with password.");
 

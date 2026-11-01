@@ -1,0 +1,405 @@
+@page "/crystalball"
+@using System.Security.Claims
+@using Microsoft.EntityFrameworkCore
+@using OMM.Public.Data
+@using OMM.Shared.Infrastructure.Settings
+@using OMM.Shared.Models.Phase5
+@using OMM.Shared.Subscription
+@using OMM.Shared.Inquiry
+@using OMM.Shared.DecisionSupport
+@inject IDbContextFactory<ApplicationDbContext> DbContextFactory
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ISubscriptionEntitlementService EntitlementService
+@inject ISystemSettingsService SystemSettings
+@inject IInquiryCaptureService InquiryCapture
+@inject IInquiryAnalyticsService InquiryAnalytics
+@inject IPhase5InquiryClassifier InquiryClassifier
+@inject IPortfolioContextProvider PortfolioContextProvider
+@attribute [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+
+<PageTitle>CrystalBall | OMM</PageTitle>
+
+<main class="container py-4 py-lg-5" style="max-width: 920px;">
+    <header class="mb-4">
+        <span class="badge text-bg-primary mb-2">CrystalBall</span>
+        <h1 class="h2 fw-bold">Understand a market event</h1>
+        <p class="text-muted">Start with what happened. OMM will help you choose what to examine next.</p>
+    </header>
+
+    @if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <div class="alert alert-warning" role="alert">@errorMessage</div>
+    }
+
+    <section class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+            <div class="d-flex flex-wrap gap-2 mb-4" aria-label="CrystalBall stages">
+                <span class="badge rounded-pill @(currentStage == 1 ? "text-bg-primary" : "text-bg-light")">1 Understand</span>
+                <span class="badge rounded-pill @(currentStage == 2 ? "text-bg-primary" : "text-bg-light")">2 Analyze</span>
+                <span class="badge rounded-pill @(currentStage == 3 ? "text-bg-primary" : "text-bg-light")">3 Relate to me</span>
+                <span class="badge rounded-pill @(currentStage == 4 ? "text-bg-primary" : "text-bg-light")">4 Follow through</span>
+            </div>
+
+            @if (currentStage == 1)
+            {
+            <label class="form-label fw-semibold" for="inquiry-question">What happened, or what would you like to understand?</label>
+            <textarea id="inquiry-question" class="form-control mb-2" rows="4" maxlength="20000"
+                      @bind="question" disabled="isBusy"
+                      placeholder="For example: How could a change in US interest rates affect Malaysian banks?"></textarea>
+            <div class="form-text mb-4">Avoid including your name, email, or account details. Your message is encrypted when saved.</div>
+
+            <fieldset class="mb-4">
+                <legend class="form-label fw-semibold">Analysis mode</legend>
+                @if (isProEntitled)
+                {
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" id="mode-standard" name="mode" checked="@(requestedMode == SubscriptionConstants.PromptModes.Standard)" @onchange="() => requestedMode = SubscriptionConstants.PromptModes.Standard" disabled="isBusy" />
+                        <label class="form-check-label" for="mode-standard">@SubscriptionConstants.DisplayLabels.Standard</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" id="mode-pro" name="mode" checked="@(requestedMode == SubscriptionConstants.PromptModes.Pro)" @onchange="() => requestedMode = SubscriptionConstants.PromptModes.Pro" disabled="isBusy" />
+                        <label class="form-check-label" for="mode-pro">@SubscriptionConstants.DisplayLabels.Pro</label>
+                    </div>
+                    @if (!publicProEnabled)
+                    {
+                        <p class="form-text mb-0">@SubscriptionConstants.DisplayLabels.ProUnavailableFallback</p>
+                    }
+                }
+                else
+                {
+                    <span class="badge text-bg-light">@SubscriptionConstants.DisplayLabels.Standard</span>
+                }
+            </fieldset>
+
+            <button class="btn btn-primary" type="button" @onclick="CaptureInquiryAsync" disabled="isBusy || string.IsNullOrWhiteSpace(question)">
+                @(isBusy ? "Saving…" : "Continue")
+            </button>
+            }
+        </div>
+    </section>
+
+    @if (sessionId.HasValue && currentStage == 2)
+    {
+        <section class="card border-0 shadow-sm rounded-4 mb-4" aria-live="polite">
+            <div class="card-body p-4">
+                <span class="badge text-bg-light mb-2">@effectiveLabel</span>
+                @if (fallbackReason is not null)
+                {
+                    <span class="badge text-bg-light mb-2">@SubscriptionConstants.DisplayLabels.Standard</span>
+                    <p class="text-muted">@fallbackReason</p>
+                }
+                <h2 class="h4 fw-bold">What would you like to focus on?</h2>
+                <p class="text-muted">Choose up to three purposes. These options are managed by OMM.</p>
+                @if (purposes.Count == 0)
+                {
+                    <p class="text-muted">Purpose choices are temporarily unavailable. You can continue with the guided flow.</p>
+                }
+                else
+                {
+                    <div class="d-grid gap-2">
+                        @foreach (var purpose in purposes)
+                        {
+                            var selected = selectedPurposes.Contains(purpose.Code);
+                            <button type="button" class="btn text-start @(selected ? "btn-outline-primary active" : "btn-outline-secondary")"
+                                    aria-pressed="@selected" @onclick="() => TogglePurposeAsync(purpose.Code)">
+                                <span class="fw-semibold d-block">@purpose.DisplayNameEn</span>
+                                @if (!string.IsNullOrWhiteSpace(purpose.DescriptionEn))
+                                {
+                                    <span class="small text-muted">@purpose.DescriptionEn</span>
+                                }
+                            </button>
+                        }
+                    </div>
+                    @if (selectedPurposes.Count > 0)
+                    {
+                        <p class="form-text mt-2">@selectedPurposes.Count of 3 selected</p>
+                    }
+                }
+                <div class="mt-4">
+                    <span class="badge text-bg-light">Stage 2 · Analyze</span>
+                    @if (classification is { IsAvailable: true })
+                    {
+                        <p class="mb-1 mt-2">Detected topic: <strong>@classification.SignalType.Replace('_', ' ')</strong></p>
+                        @if (!string.IsNullOrWhiteSpace(classification.EventName))
+                        {
+                            <p class="mb-1">Event: @classification.EventName</p>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(classification.MentionedCountry) || !string.IsNullOrWhiteSpace(classification.MentionedSector) || !string.IsNullOrWhiteSpace(classification.MentionedSecurity))
+                        {
+                            <p class="mb-1">Entities: @string.Join(", ", new[] { classification.MentionedCountry, classification.MentionedSector, classification.MentionedSecurity }.Where(value => !string.IsNullOrWhiteSpace(value)))</p>
+                        }
+                        @if (classification.MissingQuestions.Count > 0)
+                        {
+                            <div class="alert alert-info mt-3"><span class="fw-semibold">One clarification:</span> @classification.MissingQuestions[0]</div>
+                            <label class="form-label fw-semibold" for="clarification-answer">Your answer</label>
+                            <textarea id="clarification-answer" class="form-control" rows="2" maxlength="20000" @bind="question" disabled="isBusy"></textarea>
+                            <button class="btn btn-outline-primary mt-2" type="button" @onclick="CaptureInquiryAsync" disabled="isBusy || string.IsNullOrWhiteSpace(question)">Answer and refine</button>
+                        }
+                    }
+                    else if (classification is not null)
+                    {
+                        <p class="text-muted mt-2 mb-1">@classification.ErrorMessage</p>
+                    }
+                    <p class="mb-0 mt-2">Classification identifies a topic for review. It does not verify the underlying event or determine an investment action.</p>
+                </div>
+                <button class="btn btn-primary mt-4" type="button" @onclick="ContinueToPortfolioAsync" disabled="isBusy || (purposes.Count > 0 && selectedPurposes.Count == 0)">Continue</button>
+            </div>
+        </section>
+    }
+
+    @if (sessionId.HasValue && currentStage == 3)
+    {
+        <section class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-body p-4">
+                <span class="badge text-bg-light mb-2">Stage 3 · Relate to me</span>
+                <h2 class="h4 fw-bold">Your recorded context</h2>
+                @if (selectedPurposes.Contains("PORTFOLIO_IMPACT") && !string.IsNullOrWhiteSpace(userId))
+                {
+                    @if (portfolioSnapshot is null)
+                    {
+                        <p class="text-muted">Portfolio information is not available right now. The analysis will not assume holdings or values.</p>
+                    }
+                    else if (portfolioSnapshot.StockPositionsCount == 0)
+                    {
+                        <p class="text-muted">No recorded stock positions were found. No holdings have been assumed.</p>
+                    }
+                    else
+                    {
+                        <p>Your recorded portfolio contains <strong>@portfolioSnapshot.StockPositionsCount</strong> stock positions with a total recorded value of <strong>@portfolioSnapshot.TotalMinesValue.ToString("N2")</strong>.</p>
+                        <ul>
+                            @foreach (var position in portfolioSnapshot.Positions.Take(5))
+                            {
+                                <li>@position.StockName (@position.StockCode) · @position.WeightPct.ToString("N2")% of recorded holdings</li>
+                            }
+                        </ul>
+                        <p class="small text-muted">This is a snapshot of OMM records; prices and values may be incomplete or stale.</p>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted">No portfolio facts were requested for this inquiry. OMM has not added personal holdings to the analysis.</p>
+                }
+                <button class="btn btn-primary" type="button" @onclick="() => currentStage = 4">Continue</button>
+            </div>
+        </section>
+    }
+
+    @if (sessionId.HasValue && currentStage == 4)
+    {
+        <section class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-body p-4">
+                <span class="badge text-bg-light mb-2">Stage 4 · Follow through</span>
+                <h2 class="h4 fw-bold">Choose a next step</h2>
+                <p class="text-muted">This inquiry has not generated a recommendation. Continue with a structured pathway or finish here.</p>
+                <div class="d-flex flex-column gap-2 align-items-start">
+                    <a class="btn btn-outline-primary" href="/decision-pathway">Open Decision Pathway</a>
+                    <button class="btn btn-primary" type="button" @onclick="CompleteInquiryAsync" disabled="isBusy || isCompleted">@(isCompleted ? "Inquiry saved" : "Finish inquiry")</button>
+                </div>
+            </div>
+        </section>
+    }
+</main>
+
+@code {
+    private const string FlowVersion = "phase5a-v1";
+    private const int MaximumMessageLength = 20_000;
+    private List<InquiryPurpose> purposes = [];
+    private readonly HashSet<string> selectedPurposes = new(StringComparer.Ordinal);
+    private string? userId;
+    private string question = string.Empty;
+    private string requestedMode = SubscriptionConstants.PromptModes.Standard;
+    private string effectiveLabel = SubscriptionConstants.DisplayLabels.Standard;
+    private string? fallbackReason;
+    private string? errorMessage;
+    private long? sessionId;
+    private bool isProEntitled;
+    private bool publicProEnabled;
+    private bool isBusy;
+    private int turnNumber = 1;
+    private int totalAiAttempts;
+    private InquiryIntentResult? classification;
+    private int currentStage = 1;
+    private bool isCompleted;
+    private PortfolioSnapshot? portfolioSnapshot;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            userId = state.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrWhiteSpace(userId))
+            {
+                var entitlement = await EntitlementService.GetEntitlementAsync(userId);
+                isProEntitled = entitlement.Tier == EntitlementTier.Pro && !entitlement.IsUnavailable;
+                publicProEnabled = await SystemSettings.IsPublicProEnabledAsync();
+            }
+
+            await using var db = await DbContextFactory.CreateDbContextAsync();
+            purposes = await db.InquiryPurposes.AsNoTracking()
+                .Where(purpose => purpose.IsActive)
+                .OrderBy(purpose => purpose.SortOrder)
+                .ToListAsync();
+        }
+        catch (Exception)
+        {
+            purposes = [];
+        }
+    }
+
+    private async Task CaptureInquiryAsync()
+    {
+        if (isBusy || string.IsNullOrWhiteSpace(question)) return;
+        if (question.Length > MaximumMessageLength)
+        {
+            errorMessage = $"Keep your message under {MaximumMessageLength:N0} characters.";
+            return;
+        }
+
+        isBusy = true;
+        errorMessage = null;
+        try
+        {
+            var requested = isProEntitled ? requestedMode : SubscriptionConstants.PromptModes.Standard;
+            var evaluation = string.IsNullOrWhiteSpace(userId)
+                ? new RuntimeModeEvaluation { RequestedMode = requested, EffectiveMode = SubscriptionConstants.PromptModes.Standard, DisplayLabel = string.Empty }
+                : await EntitlementService.EvaluateRuntimeModeAsync(userId, requested);
+
+            sessionId ??= await InquiryCapture.StartSessionAsync(new InquirySessionStartRequest(
+                userId,
+                "CrystalBall",
+                evaluation.RequestedMode,
+                string.IsNullOrWhiteSpace(userId),
+                FlowVersion));
+
+            classification = null;
+            if (!string.IsNullOrWhiteSpace(userId) && totalAiAttempts < 6 && await SystemSettings.IsAiClassificationEnabledAsync())
+            {
+                try
+                {
+                    classification = await InquiryClassifier.ClassifyAsync(question.Trim(), new AiExecutionContext
+                    {
+                        RequestedMode = evaluation.RequestedMode,
+                        EffectiveMode = evaluation.EffectiveMode,
+                        DisplayLabel = evaluation.DisplayLabel,
+                        IsAdvisoryPermitted = evaluation.IsAdvisoryPermitted,
+                        PersistencePermitted = true,
+                        AiCallAttemptsRemaining = Math.Min(2, 6 - totalAiAttempts),
+                        DisclosureMode = evaluation.DisplayLabel,
+                        AnonymizedSessionId = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(sessionId.Value.ToString())))[..16]
+                    });
+                    totalAiAttempts = Math.Min(6, totalAiAttempts + classification.AiCallAttemptCount);
+                }
+                catch (Exception)
+                {
+                    classification = new InquiryIntentResult(false, string.Empty, "unknown", null, null, null, null,
+                        [], "unknown", [], 0m, "AI classification is unavailable. Continue with guided questions.");
+                }
+            }
+
+            await InquiryCapture.PersistTurnAsync(
+                sessionId.Value,
+                userId,
+                turnNumber,
+                new InquiryTurnCapture(
+                    DetectedIntent: classification?.Intent,
+                    EventType: classification?.SignalType,
+                    VerificationStatus: classification is { IsAvailable: true } ? "Unverified" : "NotClassified",
+                    Confidence: classification?.Confidence,
+                    PromptVersionId: classification?.PromptVersionId,
+                    UsedEmergencyPrompt: classification?.UsedEmergencyPrompt ?? false,
+                    RequestedMode: evaluation.RequestedMode,
+                    EffectiveMode: evaluation.EffectiveMode,
+                    FallbackReason: evaluation.FallbackReason,
+                    AiCallAttemptCount: classification?.AiCallAttemptCount ?? 0),
+                question.Trim());
+
+            if (classification is { IsAvailable: true } classified)
+            {
+                var links = new List<InquiryEntityLinkCapture>();
+                AddLink(links, sessionId.Value, "Stock", classified.MentionedSecurity, classified.Confidence);
+                AddLink(links, sessionId.Value, "Sector", classified.MentionedSector, classified.Confidence);
+                AddLink(links, sessionId.Value, "Country", classified.MentionedCountry, classified.Confidence);
+                await InquiryAnalytics.RecordEntityLinksAsync(links);
+            }
+
+            turnNumber++;
+            effectiveLabel = evaluation.ProUnavailableFallback
+                ? SubscriptionConstants.DisplayLabels.ProUnavailableFallback
+                : string.IsNullOrWhiteSpace(evaluation.DisplayLabel)
+                    ? SubscriptionConstants.DisplayLabels.Standard
+                    : evaluation.DisplayLabel;
+            fallbackReason = evaluation.FallbackReason;
+            question = string.Empty;
+            currentStage = 2;
+        }
+        catch (Exception)
+        {
+            errorMessage = "The inquiry could not be saved. Please try again.";
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+
+    private async Task TogglePurposeAsync(string code)
+    {
+        if (!selectedPurposes.Remove(code) && selectedPurposes.Count < 3)
+        {
+            selectedPurposes.Add(code);
+        }
+        if (sessionId.HasValue)
+        {
+            await InquiryAnalytics.RecordSelectionAsync(new InquirySelectionCapture(
+                sessionId.Value, null, "PurposeSelected", code, code, "{}"));
+        }
+    }
+
+    private async Task ContinueToPortfolioAsync()
+    {
+        if (selectedPurposes.Contains("PORTFOLIO_IMPACT") && !string.IsNullOrWhiteSpace(userId))
+        {
+            try
+            {
+                portfolioSnapshot = await PortfolioContextProvider.GetSnapshotAsync(userId);
+            }
+            catch (Exception)
+            {
+                portfolioSnapshot = null;
+            }
+        }
+
+        currentStage = 3;
+    }
+
+    private async Task CompleteInquiryAsync()
+    {
+        if (!sessionId.HasValue || isCompleted) return;
+        isBusy = true;
+        try
+        {
+            await InquiryCapture.CompleteSessionAsync(sessionId.Value, userId);
+            await InquiryAnalytics.RecordOutcomeAsync(new InquiryOutcomeCapture(
+                sessionId.Value, "CrystalBallFollowThrough", classification?.MissingQuestions.Count ?? 0,
+                null, "Completed", false, false, false));
+            isCompleted = true;
+        }
+        catch (Exception)
+        {
+            errorMessage = "The inquiry could not be marked complete. You can retry.";
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+
+    private static void AddLink(ICollection<InquiryEntityLinkCapture> links, long sessionId, string entityType, string? key, decimal confidence)
+    {
+        if (!string.IsNullOrWhiteSpace(key))
+        {
+            links.Add(new InquiryEntityLinkCapture(sessionId, null, entityType, key.Trim(), key.Trim(), "AiSuggested", confidence, false, false));
+        }
+    }
+}

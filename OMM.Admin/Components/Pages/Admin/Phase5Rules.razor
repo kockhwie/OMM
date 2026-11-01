@@ -1,0 +1,169 @@
+@page "/admin/phase5-rules"
+@layout AdminLayout
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = "RequireAdminRole")]
+@using Microsoft.EntityFrameworkCore
+@using System.Security.Claims
+@using OMM.Admin.Data
+@using OMM.Admin.Services.Admin
+@using OMM.Shared.Models.Phase5
+@inject IDbContextFactory<MasterDataDbContext> DbContextFactory
+@inject Phase5RuleAdministrationService RuleAdministration
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Phase 5 Rules - OMM Admin</PageTitle>
+
+<div class="container-fluid p-0">
+    <div class="mb-4">
+        <h1 class="h3 fw-bold text-dark mb-1">Phase 5 impact rules</h1>
+        <p class="text-muted mb-0">Versioned deterministic relationships used to build event-to-Malaysia impact maps.</p>
+    </div>
+
+    <div class="alert alert-info rounded-3 mb-4">
+        Rules are server data. Prompt editing cannot change these relationships, and AI suggestions cannot create new rules.
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(statusMessage))
+    {
+        <div class="alert alert-@statusClass rounded-3" role="status">@statusMessage</div>
+    }
+
+    <section class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+        <h2 class="h5 fw-bold mb-3">Add a versioned rule</h2>
+        <div class="row g-3">
+            <div class="col-12 col-lg-4"><label class="form-label" for="event-code">Event code</label><input id="event-code" class="form-control" maxlength="80" @bind="eventCode" placeholder="EXPORT_RESTRICTION" /></div>
+            <div class="col-12 col-lg-5"><label class="form-label" for="event-name">Display name</label><input id="event-name" class="form-control" maxlength="160" @bind="eventName" placeholder="Regulatory export restriction" /></div>
+            <div class="col-12 col-lg-3 d-flex align-items-end"><button class="btn btn-outline-primary w-100" type="button" @onclick="CreateEventTypeAsync" disabled="@busy">Add event type</button></div>
+            <div class="col-12"><hr /></div>
+            <div class="col-12 col-lg-4"><label class="form-label" for="rule-event">Event type</label><select id="rule-event" class="form-select" @bind="impactEventTypeId"><option value="0">Select event type</option>@foreach (var item in eventTypes) { <option value="@item.Id">@item.Code · @item.DisplayName</option> }</select></div>
+            <div class="col-6 col-lg-4"><label class="form-label" for="source-type">Source type</label><input id="source-type" class="form-control" maxlength="40" @bind="sourceType" placeholder="Commodity" /></div>
+            <div class="col-6 col-lg-4"><label class="form-label" for="source-key">Source key</label><input id="source-key" class="form-control" maxlength="160" @bind="sourceKey" placeholder="CRUDE_PALM_OIL" /></div>
+            <div class="col-6 col-lg-4"><label class="form-label" for="target-type">Target type</label><input id="target-type" class="form-control" maxlength="40" @bind="targetType" placeholder="Sector" /></div>
+            <div class="col-6 col-lg-4"><label class="form-label" for="target-key">Target key</label><input id="target-key" class="form-control" maxlength="160" @bind="targetKey" placeholder="PLANTATION" /></div>
+            <div class="col-12 col-lg-4"><label class="form-label" for="transmission">Transmission mechanism</label><input id="transmission" class="form-control" maxlength="100" @bind="transmission" placeholder="Margin and export revenue" /></div>
+            <div class="col-4"><label class="form-label" for="direction">Direction</label><select id="direction" class="form-select" @bind="direction"><option>Positive</option><option>Negative</option><option>Mixed</option><option>Neutral</option></select></div>
+            <div class="col-4"><label class="form-label" for="strength">Strength</label><select id="strength" class="form-select" @bind="strength"><option>Low</option><option>Moderate</option><option>Material</option></select></div>
+            <div class="col-4"><label class="form-label" for="horizon">Time horizon</label><select id="horizon" class="form-select" @bind="timeHorizon"><option>ShortTerm</option><option>MediumTerm</option><option>LongTerm</option></select></div>
+            <div class="col-12"><label class="form-label" for="assumptions">Assumptions</label><textarea id="assumptions" class="form-control" rows="2" maxlength="1000" @bind="assumptions"></textarea></div>
+            <div class="col-12 d-flex justify-content-between align-items-center"><div class="form-check"><input id="malaysia-relevant" class="form-check-input" type="checkbox" @bind="malaysiaRelevant" /><label class="form-check-label" for="malaysia-relevant">Malaysia relevant</label></div><button class="btn btn-primary" type="button" @onclick="CreateImpactRuleAsync" disabled="@(busy || impactEventTypeId == 0)">Add impact rule version</button></div>
+        </div>
+    </section>
+
+    @if (eventTypes.Count == 0)
+    {
+        <div class="card border-0 shadow-sm rounded-4 p-4 text-muted">No Phase 5 rules are available.</div>
+    }
+    else
+    {
+        @foreach (var eventType in eventTypes)
+        {
+            <section class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                <div class="d-flex flex-wrap justify-content-between gap-2 mb-3">
+                    <div>
+                        <h2 class="h5 fw-bold mb-1">@eventType.DisplayName</h2>
+                        <div class="small text-muted">@eventType.Code · version @eventType.Version · effective @eventType.EffectiveFrom.ToString("yyyy-MM-dd")</div>
+                    </div>
+                    <span class="badge @(eventType.IsSensitive ? "bg-warning-subtle text-warning" : "bg-success-subtle text-success")">@(eventType.IsSensitive ? "Sensitive event" : "Standard event")</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead><tr><th>Source</th><th>Target</th><th>Transmission</th><th>Direction</th><th>Strength</th><th>Malaysia</th></tr></thead>
+                        <tbody>
+                            @foreach (var rule in impactRules.Where(rule => rule.EventTypeRuleId == eventType.Id))
+                            {
+                                <tr>
+                                    <td>@rule.SourceEntityType: @rule.SourceEntityKey</td>
+                                    <td>@rule.TargetEntityType: @rule.TargetEntityKey</td>
+                                    <td>@rule.TransmissionMechanism</td>
+                                    <td>@rule.Direction</td>
+                                    <td>@rule.Strength</td>
+                                    <td>@(rule.MalaysiaRelevant ? "Yes" : "No")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        }
+    }
+</div>
+
+@code {
+    private List<Phase5EventTypeRule> eventTypes = [];
+    private List<Phase5ImpactRule> impactRules = [];
+    private string eventCode = string.Empty;
+    private string eventName = string.Empty;
+    private int impactEventTypeId;
+    private string sourceType = string.Empty;
+    private string sourceKey = string.Empty;
+    private string targetType = string.Empty;
+    private string targetKey = string.Empty;
+    private string transmission = string.Empty;
+    private string direction = "Positive";
+    private string strength = "Moderate";
+    private string timeHorizon = "MediumTerm";
+    private string assumptions = string.Empty;
+    private bool malaysiaRelevant = true;
+    private bool busy;
+    private string? statusMessage;
+    private string statusClass = "success";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var db = await DbContextFactory.CreateDbContextAsync();
+        eventTypes = await db.Phase5EventTypeRules.AsNoTracking()
+            .Where(rule => rule.IsActive)
+            .OrderBy(rule => rule.Code)
+            .ToListAsync();
+        impactRules = await db.Phase5ImpactRules.AsNoTracking()
+            .Where(rule => rule.IsActive)
+            .OrderBy(rule => rule.SourceEntityType)
+            .ToListAsync();
+    }
+
+    private async Task CreateEventTypeAsync() => await RunAdminActionAsync(async (actorId, actorName) =>
+    {
+        await RuleAdministration.CreateEventTypeAsync(eventCode, eventName, false, actorId, actorName);
+        eventCode = string.Empty;
+        eventName = string.Empty;
+        statusMessage = "Event type version created.";
+        await LoadAsync();
+    });
+
+    private async Task CreateImpactRuleAsync() => await RunAdminActionAsync(async (actorId, actorName) =>
+    {
+        await RuleAdministration.CreateImpactRuleAsync(impactEventTypeId, sourceType, sourceKey, targetType, targetKey, transmission, direction, strength, timeHorizon, malaysiaRelevant, assumptions, actorId, actorName);
+        statusMessage = "Impact rule version created.";
+        await LoadAsync();
+    });
+
+    private async Task LoadAsync()
+    {
+        await using var db = await DbContextFactory.CreateDbContextAsync();
+        eventTypes = await db.Phase5EventTypeRules.AsNoTracking().Where(rule => rule.IsActive).OrderBy(rule => rule.Code).ToListAsync();
+        impactRules = await db.Phase5ImpactRules.AsNoTracking().Where(rule => rule.IsActive).OrderBy(rule => rule.SourceEntityType).ToListAsync();
+    }
+
+    private async Task RunAdminActionAsync(Func<string, string, Task> action)
+    {
+        busy = true;
+        statusMessage = null;
+        try
+        {
+            var state = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var actorId = state.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "unknown-admin";
+            var actorName = state.User.Identity?.Name ?? actorId;
+            await action(actorId, actorName);
+            statusClass = "success";
+        }
+        catch (Exception exception)
+        {
+            statusClass = "danger";
+            statusMessage = exception.Message;
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+}

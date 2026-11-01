@@ -48,6 +48,40 @@ public class AuditLogger : IAuditLogger
         }
     }
 
+    public async Task LogInquiryDataActionAsync(
+        string actorUserId,
+        string actorUserName,
+        string action,
+        IReadOnlyCollection<long> sessionIds,
+        IReadOnlyCollection<long> turnIds,
+        int recordCount)
+    {
+        var rowReferences = sessionIds.Select(id => $"S:{id}")
+            .Concat(turnIds.Select(id => $"T:{id}"))
+            .ToArray();
+        var chunks = rowReferences.Chunk(12).ToArray();
+        if (chunks.Length == 0)
+        {
+            chunks = [Array.Empty<string>()];
+        }
+
+        await using var scope = _scopeFactory.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        foreach (var chunk in chunks)
+        {
+            db.AdminAuditLogs.Add(new AdminAuditLog
+            {
+                ActorUserId = string.IsNullOrWhiteSpace(actorUserId) ? "System" : actorUserId,
+                ActorUserName = string.IsNullOrWhiteSpace(actorUserName) ? "System" : actorUserName,
+                Action = action,
+                Detail = $"Rows={string.Join(',', chunk)}; Count={recordCount}; raw message text omitted.",
+                OccurredAt = DateTimeOffset.UtcNow
+            });
+        }
+
+        await db.SaveChangesAsync();
+    }
+
     public async Task<IReadOnlyList<AdminAuditLog>> ListRecentAsync(string? searchTerm = null, int limit = 100)
     {
         await using var scope = _scopeFactory.CreateAsyncScope();

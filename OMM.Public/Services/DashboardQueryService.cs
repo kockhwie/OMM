@@ -66,9 +66,9 @@ public sealed class DashboardQueryService(
         var recurringExpenses = expenses.Sum(item => MemberRecordService.MonthlyEquivalent(item.Amount, ParseFrequency(item.Frequency)));
         var growth = valuedMines.Sum(item => item.Growth);
         var purchaseCost = valuedMines.Sum(item => item.PurchaseCost);
-        var freedomRatio = recurringExpenses > 0
-            ? Math.Clamp(passiveIncome / recurringExpenses * 100m, 0m, 100m)
-            : 0m;
+        var freedomRatio = recurringExpenses <= 0
+            ? passiveIncome > 0 ? 100m : 0m
+            : Math.Clamp(passiveIncome / recurringExpenses * 100m, 0m, 100m);
 
         return new DashboardSummary
         {

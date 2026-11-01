@@ -13,6 +13,9 @@ using OMM.Shared.Infrastructure;
 using OMM.Shared.Infrastructure.Email;
 using OMM.Shared.Infrastructure.Settings;
 using OMM.Shared.DecisionSupport;
+using OMM.Shared.Inquiry;
+using OMM.Shared.Prompts;
+using OMM.Shared.Subscription;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +38,13 @@ builder.Services.AddScoped<DashboardQueryService>();
 builder.Services.AddScoped<IMinerProfileService, MinerProfileService>();
 builder.Services.AddScoped<IOnboardingService, OnboardingService>();
 builder.Services.AddScoped<PublicMemberMigrationService>();
+builder.Services.AddScoped<ISubscriptionDbContextFactory, PublicSubscriptionDbContextFactory>();
+builder.Services.AddScoped<IInquiryCaptureService, InquiryCaptureService>();
+builder.Services.AddScoped<IInquiryAnalyticsService, InquiryAnalyticsService>();
+builder.Services.AddSharedInquiryServices(builder.Configuration, builder.Environment);
+builder.Services.AddSharedSubscriptionServices();
+builder.Services.AddSharedPromptServices();
+builder.Services.AddScoped<ISubscriptionNotificationDispatcher, PublicSubscriptionNotificationDispatcher>();
 builder.Services.AddScoped<IDecisionPathwayStore, EfDecisionPathwayStore>();
 builder.Services.AddScoped<IDecisionSignalCatalog, EfDecisionSignalCatalog>();
 builder.Services.AddScoped<IPortfolioContextProvider, PortfolioContextProvider>();
@@ -144,6 +154,7 @@ await using (var scope = app.Services.CreateAsyncScope())
     try
     {
         await profileMigration.EnsureMinerProfilesAsync();
+        await profileMigration.EnsureStandardSubscriptionsAsync();
     }
     catch (Exception exception)
     {

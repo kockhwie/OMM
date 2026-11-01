@@ -61,11 +61,11 @@ else if (onboarding is not null)
             <div class="omm-form-section">
                 <div>
                     <h2 id="setup-step-heading" class="h4 fw-bold text-dark mb-1">Which country do you live in?</h2>
-                    <p class="text-muted mb-0">Your country will not change the currency you selected.</p>
+                    <p class="text-muted mb-0">Optional. Your country will not change the currency you selected.</p>
                 </div>
                 <div class="omm-form-field">
-                    <label class="omm-form-label" for="onboarding-country">Country <span class="text-danger">*</span></label>
-                    <select id="onboarding-country" class="form-select" @bind="countryId" required aria-required="true">
+                    <label class="omm-form-label" for="onboarding-country">Country</label>
+                    <select id="onboarding-country" class="form-select" @bind="countryId">
                         @foreach (var country in countries)
                         {
                             <option value="@country.Id">@country.Name</option>
@@ -74,7 +74,10 @@ else if (onboarding is not null)
                 </div>
                 <div class="d-flex flex-wrap justify-content-between gap-2">
                     <button class="btn btn-outline-secondary" @onclick="GoToCurrency" disabled="@saving">Back</button>
-                    <button class="btn btn-primary" @onclick="SaveCountry" disabled="@saving">Continue</button>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-secondary" @onclick="SkipCountry" disabled="@saving">Skip</button>
+                        <button class="btn btn-primary" @onclick="SaveCountry" disabled="@saving">Continue</button>
+                    </div>
                 </div>
             </div>
         }
@@ -83,15 +86,18 @@ else if (onboarding is not null)
             <div class="omm-form-section">
                 <div>
                     <h2 id="setup-step-heading" class="h4 fw-bold text-dark mb-1">What should we call you?</h2>
-                    <p class="text-muted mb-0">This name appears in your account and dashboard.</p>
+                    <p class="text-muted mb-0">Optional. This name appears in your account and dashboard.</p>
                 </div>
                 <div class="omm-form-field">
-                    <label class="omm-form-label" for="onboarding-display-name">Display name <span class="text-danger">*</span></label>
-                    <input id="onboarding-display-name" class="form-control" type="text" maxlength="200" @bind="displayName" required aria-required="true" />
+                    <label class="omm-form-label" for="onboarding-display-name">Display name</label>
+                    <input id="onboarding-display-name" class="form-control" type="text" maxlength="200" @bind="displayName" />
                 </div>
                 <div class="d-flex flex-wrap justify-content-between gap-2">
                     <button class="btn btn-outline-secondary" @onclick="GoToCountry" disabled="@saving">Back</button>
-                    <button class="btn btn-primary" @onclick="SaveDisplayName" disabled="@saving">Finish setup</button>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-secondary" @onclick="SkipDisplayName" disabled="@saving">Skip</button>
+                        <button class="btn btn-primary" @onclick="SaveDisplayName" disabled="@saving">Finish setup</button>
+                    </div>
                 </div>
             </div>
         }
@@ -141,9 +147,7 @@ else if (onboarding is not null)
         loading = false;
 
         if (onboarding.Status == OnboardingStatus.Completed
-            && onboarding.CurrencyId.HasValue
-            && onboarding.CountryId.HasValue
-            && !string.IsNullOrWhiteSpace(onboarding.DisplayName))
+            && onboarding.CurrencyId.HasValue)
         {
             Navigation.NavigateTo("/dashboard", replace: true);
         }
@@ -183,7 +187,19 @@ else if (onboarding is not null)
         onboarding = await OnboardingService.SaveCountryAsync(countryId);
     });
 
+    private Task SkipCountry() => RunAsync(async () =>
+    {
+        countryId = null;
+        onboarding = await OnboardingService.SaveCountryAsync(null);
+    });
+
     private Task SaveDisplayName() => FinishAsync(displayName);
+
+    private Task SkipDisplayName() => RunAsync(async () =>
+    {
+        onboarding = await OnboardingService.SaveDisplayNameAsync(null);
+        Navigation.NavigateTo("/dashboard", forceLoad: true, replace: true);
+    });
 
     private Task FinishAsync(string? value) => RunAsync(async () =>
     {

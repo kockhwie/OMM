@@ -1,0 +1,302 @@
+@page "/admin/inquiries"
+@rendermode InteractiveServer
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using OMM.Admin.Services.Admin
+@using OMM.Shared.Inquiry
+@attribute [Authorize(Policy = "RequireAdminRole")]
+
+@inject IInquiryAdminService InquiryAdmin
+@inject IInquiryMessageProtector MessageProtector
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Inquiry Records - OMM Admin</PageTitle>
+
+<div class="container-fluid p-0">
+    <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
+        <div>
+            <h1 class="h3 fw-bold text-dark mb-1">Inquiry Records</h1>
+            <p class="text-muted mb-0">Review and export inquiry history. Raw message reads, exports, and deletion are audited without recording message text.</p>
+        </div>
+        <button class="btn btn-outline-secondary" @onclick="LoadSessionsAsync" disabled="@_busy">
+            <i class="ti ti-refresh me-1"></i>Refresh
+        </button>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(_statusMessage))
+    {
+        <div class="alert alert-@_statusClass rounded-3" role="status">@_statusMessage</div>
+    }
+
+    @if (!MessageProtector.IsConfigured)
+    {
+        <div class="alert alert-warning rounded-3" role="status">Raw inquiry messages are unavailable until shared Data Protection keys are configured for Public and Admin.</div>
+    }
+
+    <div class="row g-4">
+        <div class="col-12 @( _selectedSession is null ? "" : "col-xxl-5")">
+            <section class="card border-0 shadow-sm rounded-4 p-3 p-lg-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="h5 fw-bold mb-0">Recent Sessions</h2>
+                    <span class="badge bg-secondary-subtle text-secondary">@_sessions.Count records</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead><tr><th>Session</th><th>Member</th><th>Mode</th><th>Started</th><th>Turns</th><th>Actions</th></tr></thead>
+                        <tbody>
+                            @foreach (var session in _sessions)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold">#@session.Id</div>
+                                        <div class="small text-muted">@session.EntryPoint · @session.FlowVersion</div>
+                                    </td>
+                                    <td class="small">@(session.IsAnonymous ? "Anonymous" : session.UserId ?? "Unlinked")</td>
+                                    <td><span class="badge bg-info-subtle text-info">@session.RequestedMode</span></td>
+                                    <td class="small text-muted">@session.StartedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                                    <td>@session.TurnCount <span class="small text-muted">(@session.RawMessageCount messages)</span></td>
+                                    <td>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            <button class="btn btn-sm btn-outline-primary" disabled="@_busy" @onclick="() => ViewSessionAsync(session.Id)">View</button>
+                                            <a class="btn btn-sm btn-outline-secondary" href="/admin/inquiries/@session.Id/export">Export JSON</a>
+                                            <button class="btn btn-sm btn-outline-danger" disabled="@_busy" @onclick="() => RequestSessionDelete(session.Id)">Delete session</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                            @if (_sessions.Count == 0)
+                            {
+                                <tr><td colspan="6" class="text-muted py-4">No inquiry sessions have been recorded.</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="small text-muted">Showing up to 50 newest sessions. List access is recorded in the Admin audit log.</div>
+            </section>
+        </div>
+
+        @if (_selectedSession is not null)
+        {
+            <div class="col-12 col-xxl-7">
+                <section class="card border-0 shadow-sm rounded-4 p-3 p-lg-4">
+                    <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
+                        <div>
+                            <h2 class="h5 fw-bold mb-1">Session #@_selectedSession.Id</h2>
+                            <div class="small text-muted">User ID: @(_selectedSession.UserId ?? "Unlinked / anonymous") · Expires @(_selectedSession.ExpiresAt.ToLocalTime().ToString("yyyy-MM-dd"))</div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-secondary" @onclick="ClearSelectedSession">Close details</button>
+                    </div>
+
+                    @if (_showSessionDeleteConfirmation)
+                    {
+                        <div class="alert alert-danger">
+                            <div class="fw-semibold mb-2">Delete this session and its stored turns and raw messages?</div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-danger" disabled="@_busy" @onclick="ConfirmSessionDeleteAsync">Delete session records</button>
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="CancelDelete">Cancel</button>
+                            </div>
+                        </div>
+                    }
+
+                    @if (_selectedRawMessageIds.Count > 0)
+                    {
+                        @if (_showRawDeleteConfirmation)
+                        {
+                            <div class="alert alert-warning">
+                                <div class="fw-semibold mb-2">Delete @_selectedRawMessageIds.Count selected raw messages and retain turn analytics?</div>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-danger" disabled="@_busy" @onclick="ConfirmRawDeleteAsync">Delete selected message text</button>
+                                    <button class="btn btn-sm btn-outline-secondary" @onclick="CancelDelete">Cancel</button>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="d-flex justify-content-end mb-3">
+                                <button class="btn btn-sm btn-outline-danger" @onclick="() => _showRawDeleteConfirmation = true">Delete selected raw messages (@_selectedRawMessageIds.Count)</button>
+                            </div>
+                        }
+                    }
+
+                    @foreach (var turn in _selectedSession.Turns)
+                    {
+                        <article class="border rounded-3 p-3 mb-3">
+                            <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-2">
+                                <div>
+                                    <div class="fw-semibold">Turn @turn.TurnNumber <span class="text-muted fw-normal">(#@turn.Id)</span></div>
+                                    <div class="small text-muted">@turn.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") · @turn.RequestedMode → @turn.EffectiveMode</div>
+                                </div>
+                                @if (turn.MessageText is not null)
+                                {
+                                    <label class="form-check small mb-0">
+                                        <input class="form-check-input" type="checkbox" checked="@_selectedRawMessageIds.Contains(turn.Id)" @onchange="e => ToggleRawMessage(turn.Id, e)" />
+                                        <span class="form-check-label">Select raw text for deletion</span>
+                                    </label>
+                                }
+                            </div>
+                            <dl class="row small mb-2">
+                                <dt class="col-sm-3">Intent / event</dt><dd class="col-sm-9">@(turn.DetectedIntent ?? "—") / @(turn.EventType ?? "—")</dd>
+                                <dt class="col-sm-3">Verification</dt><dd class="col-sm-9">@(turn.VerificationStatus ?? "—") · Confidence @(turn.Confidence?.ToString("0.00000") ?? "—")</dd>
+                                <dt class="col-sm-3">Prompt</dt><dd class="col-sm-9">@(turn.PromptVersionId?.ToString() ?? (turn.UsedEmergencyPrompt ? "Emergency baseline" : "Unavailable")) · @turn.AiCallAttemptCount attempt(s)</dd>
+                                @if (!string.IsNullOrWhiteSpace(turn.FallbackReason))
+                                {
+                                    <dt class="col-sm-3">Fallback</dt><dd class="col-sm-9">@turn.FallbackReason</dd>
+                                }
+                            </dl>
+                            @if (turn.MessageText is not null)
+                            {
+                                <div class="small text-muted mb-1">Original member message</div>
+                                <div class="bg-body-tertiary rounded-3 p-3 text-break" style="white-space: pre-wrap;">@turn.MessageText</div>
+                            }
+                            else
+                            {
+                                <div class="small text-muted">Raw message was deleted or is unavailable.</div>
+                            }
+                        </article>
+                    }
+                    @if (_selectedSession.Turns.Count == 0)
+                    {
+                        <div class="text-muted py-3">This session has no turns.</div>
+                    }
+                </section>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private string _actorId = "Admin";
+    private string _actorName = "Admin";
+    private string? _statusMessage;
+    private string _statusClass = "success";
+    private bool _busy;
+    private bool _showRawDeleteConfirmation;
+    private bool _showSessionDeleteConfirmation;
+    private long? _pendingSessionDeleteId;
+    private IReadOnlyList<InquirySessionListItem> _sessions = Array.Empty<InquirySessionListItem>();
+    private InquirySessionAdminDetail? _selectedSession;
+    private HashSet<long> _selectedRawMessageIds = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _actorId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "Admin";
+        _actorName = authState.User.Identity?.Name ?? "Admin";
+        await LoadSessionsAsync();
+    }
+
+    private async Task LoadSessionsAsync()
+    {
+        await RunAsync(async () =>
+        {
+            _sessions = await InquiryAdmin.GetSessionsAsync(_actorId, _actorName, 50);
+            _statusMessage = null;
+        });
+    }
+
+    private async Task ViewSessionAsync(long sessionId)
+    {
+        await RunAsync(async () =>
+        {
+            _selectedSession = await InquiryAdmin.GetSessionAsync(sessionId, _actorId, _actorName);
+            _selectedRawMessageIds.Clear();
+            if (_selectedSession is null)
+            {
+                _statusClass = "warning";
+                _statusMessage = "The selected inquiry session was not found.";
+            }
+        });
+    }
+
+    private void ToggleRawMessage(long turnId, ChangeEventArgs args)
+    {
+        var selected = args.Value is bool value
+            ? value
+            : bool.TryParse(args.Value?.ToString(), out var parsed) && parsed;
+        if (selected)
+        {
+            _selectedRawMessageIds.Add(turnId);
+        }
+        else
+        {
+            _selectedRawMessageIds.Remove(turnId);
+        }
+    }
+
+    private void RequestSessionDelete(long sessionId)
+    {
+        _pendingSessionDeleteId = sessionId;
+        _showSessionDeleteConfirmation = true;
+    }
+
+    private async Task ConfirmSessionDeleteAsync()
+    {
+        if (_pendingSessionDeleteId is not long sessionId)
+        {
+            return;
+        }
+        await RunAsync(async () =>
+        {
+            var deleted = await InquiryAdmin.DeleteSessionAsync(sessionId, _actorId, _actorName);
+            _selectedSession = null;
+            _selectedRawMessageIds.Clear();
+            _showSessionDeleteConfirmation = false;
+            _pendingSessionDeleteId = null;
+            _statusMessage = deleted ? $"Session #{sessionId} and its inquiry records were deleted." : "The selected session no longer exists.";
+            await LoadSessionsAsync();
+        });
+    }
+
+    private async Task ConfirmRawDeleteAsync()
+    {
+        var ids = _selectedRawMessageIds.ToArray();
+        await RunAsync(async () =>
+        {
+            var deleted = await InquiryAdmin.DeleteRawMessagesAsync(ids, _actorId, _actorName);
+            _selectedRawMessageIds.Clear();
+            _showRawDeleteConfirmation = false;
+            _statusMessage = $"Deleted {deleted} raw message(s); inquiry turn analytics were retained.";
+            if (_selectedSession is not null)
+            {
+                _selectedSession = await InquiryAdmin.GetSessionAsync(_selectedSession.Id, _actorId, _actorName);
+            }
+            _sessions = await InquiryAdmin.GetSessionsAsync(_actorId, _actorName, 50);
+        });
+    }
+
+    private void CancelDelete()
+    {
+        _showRawDeleteConfirmation = false;
+        _showSessionDeleteConfirmation = false;
+        _pendingSessionDeleteId = null;
+    }
+
+    private void ClearSelectedSession()
+    {
+        _selectedSession = null;
+        _selectedRawMessageIds.Clear();
+    }
+
+    private async Task RunAsync(Func<Task> operation)
+    {
+        _busy = true;
+        _statusMessage = null;
+        try
+        {
+            await operation();
+            if (_statusClass != "warning")
+            {
+                _statusClass = "success";
+            }
+        }
+        catch (Exception ex)
+        {
+            _statusClass = "danger";
+            _statusMessage = $"Inquiry operation failed: {ex.Message}";
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

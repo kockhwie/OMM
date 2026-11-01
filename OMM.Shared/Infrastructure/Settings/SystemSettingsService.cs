@@ -13,7 +13,7 @@ public sealed class SystemSettingsService(
     IMemoryCache cache,
     ILogger<SystemSettingsService> logger) : ISystemSettingsService
 {
-    private static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(60);
+    private static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(30);
     private static string GetCacheKey(string key) => $"sys_setting_{key}";
 
     public async Task<string?> GetSettingAsync(string key, CancellationToken ct = default)
@@ -72,7 +72,9 @@ public sealed class SystemSettingsService(
         try
         {
             await using var connection = await dataSource.OpenConnectionAsync(ct);
+            await using var transaction = await connection.BeginTransactionAsync(ct);
             await using var command = connection.CreateCommand();
+            command.Transaction = transaction;
             command.CommandText = """
                 INSERT INTO public."SystemSetting" ("Key", "Value", "Description", "ModifiedAt", "ModifiedByUserId")
                 VALUES (@key, @value, @description, CURRENT_TIMESTAMP, @userId)
@@ -89,8 +91,27 @@ public sealed class SystemSettingsService(
 
             await command.ExecuteNonQueryAsync(ct);
 
+            await using var revisionCommand = connection.CreateCommand();
+            revisionCommand.Transaction = transaction;
+            revisionCommand.CommandText = """
+                INSERT INTO public."SystemSetting" ("Key", "Value", "Description", "ModifiedAt", "ModifiedByUserId")
+                VALUES ('Phase5:SettingsRevision', '1', 'Monotonic Phase 5 prompt and settings revision.', CURRENT_TIMESTAMP, @userId)
+                ON CONFLICT ("Key") DO UPDATE
+                SET "Value" = CASE
+                        WHEN public."SystemSetting"."Value" ~ '^[0-9]+$'
+                            THEN (public."SystemSetting"."Value"::bigint + 1)::text
+                        ELSE '1'
+                    END,
+                    "ModifiedAt" = CURRENT_TIMESTAMP,
+                    "ModifiedByUserId" = EXCLUDED."ModifiedByUserId";
+                """;
+            revisionCommand.Parameters.AddWithValue("userId", (object?)userId ?? DBNull.Value);
+            await revisionCommand.ExecuteNonQueryAsync(ct);
+            await transaction.CommitAsync(ct);
+
             // Update cache immediately
             cache.Set(GetCacheKey(key), value, CacheDuration);
+            cache.Remove("phase5:settings-revision");
             logger.LogInformation("System setting '{Key}' updated to '{Value}' by user '{UserId}'.", key, value, userId ?? "System");
         }
         catch (Exception ex)
@@ -127,6 +148,21 @@ public sealed class SystemSettingsService(
             enabled ? "true" : "false",
             userId,
             "Controls whether the AI classification feature is available on the Decision Pathway page.",
+            ct);
+    }
+
+    public Task<bool> IsPublicProEnabledAsync(CancellationToken ct = default)
+    {
+        return GetBoolSettingAsync(SystemSettingKeys.PublicProEnabled, defaultValue: true, ct);
+    }
+
+    public Task SetPublicProEnabledAsync(bool enabled, string? userId = null, CancellationToken ct = default)
+    {
+        return SetSettingAsync(
+            SystemSettingKeys.PublicProEnabled,
+            enabled ? "true" : "false",
+            userId,
+            "Enables Pro mode for Public members. Default is enabled; Admin may change this setting.",
             ct);
     }
 }

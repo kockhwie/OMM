@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using OMM.Shared.Prompts;
 
 namespace OMM.Shared.DecisionSupport;
 
@@ -11,6 +12,13 @@ public static class DecisionSupportServiceCollectionExtensions
     {
         services.AddOptions<GoogleAiOptions>()
             .Bind(configuration.GetSection("GoogleAi"));
+
+        services.AddHttpClient<IAiProvider, GoogleAiProvider>((serviceProvider, client) =>
+        {
+            var options = serviceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<GoogleAiOptions>>().Value;
+            client.Timeout = TimeSpan.FromSeconds(Math.Clamp(options.TimeoutSeconds, 5, 60));
+        });
+        services.AddScoped<IPhase5InquiryClassifier, Phase5InquiryClassifier>();
 
         services.AddHttpClient<IInquiryIntentInterpreter, GoogleAiIntentInterpreter>((serviceProvider, client) =>
         {

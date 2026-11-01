@@ -10,6 +10,7 @@ namespace OMM.Public.Data;
 public partial class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser>(options)
 {
     partial void ConfigureMemberData(ModelBuilder modelBuilder);
+    static partial void ConfigurePhase5Data(ModelBuilder modelBuilder);
     public DbSet<Country> Countries => Set<Country>();
     public DbSet<Exchange> Exchanges => Set<Exchange>();
     public DbSet<Market> Markets => Set<Market>();
@@ -71,6 +72,24 @@ public partial class ApplicationDbContext(DbContextOptions<ApplicationDbContext>
             entity.Property(e => e.Description).HasColumnType("text");
             entity.Property(e => e.ModifiedByUserId).HasColumnType("text");
         });
+
+        modelBuilder.Entity<SystemSetting>().HasData(
+            new SystemSetting
+            {
+                Key = "PublicProEnabled",
+                Value = "true",
+                Description = "Enables Pro mode for Public members. Default is enabled; Admin may change this setting.",
+                ModifiedAt = null,
+                ModifiedByUserId = null
+            },
+            new SystemSetting
+            {
+                Key = "InquiryRetentionYears",
+                Value = "3",
+                Description = "Retention period for inquiry records and raw messages, in calendar years.",
+                ModifiedAt = null,
+                ModifiedByUserId = null
+            });
 
         modelBuilder.Entity<Country>(entity =>
         {
@@ -199,6 +218,7 @@ public partial class ApplicationDbContext(DbContextOptions<ApplicationDbContext>
             new Institution { Id = 5, CountryId = 1, InstitutionCode = "BURSA", InstitutionName_EN = "Bursa Malaysia", InstitutionName_ZH_TW = "Bursa Malaysia", InstitutionName_ZH_CN = "Bursa Malaysia", InstitutionCategory = InstitutionCategory.Other, IsActive = true, CreatedAt = SeedDate });
 
         ConfigureMemberData(modelBuilder);
+        ConfigurePhase5Data(modelBuilder);
     }
 
     private static readonly DateTimeOffset SeedDate = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);

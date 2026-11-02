@@ -17,10 +17,29 @@ namespace OMM.Public.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.11")
+                .HasAnnotation("ProductVersion", "10.0.14")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("FriendlyName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Xml")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DataProtectionKeys");
+                });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
@@ -2741,6 +2760,113 @@ namespace OMM.Public.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("OMM.Shared.Models.Phase5.InquiryEntityLink", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<decimal?>("Confidence")
+                        .HasPrecision(6, 5)
+                        .HasColumnType("numeric(6,5)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DisplayName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("EntityKey")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<long>("InquirySessionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("InquiryTurnId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsResolved")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("ResolutionMethod")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<bool>("UserConfirmed")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InquiryTurnId");
+
+                    b.HasIndex("InquirySessionId", "EntityType", "EntityKey");
+
+                    b.ToTable("InquiryEntityLink", "public");
+                });
+
+            modelBuilder.Entity("OMM.Shared.Models.Phase5.InquiryOutcome", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("AbandonmentPoint")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<bool>("AlertCreated")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("ClarificationCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("CompletionStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FinalRoute")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<long>("InquirySessionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("PathwayCompleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("SavedAnalysis")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InquirySessionId")
+                        .IsUnique();
+
+                    b.HasIndex("UpdatedAt");
+
+                    b.ToTable("InquiryOutcome", "public");
+                });
+
             modelBuilder.Entity("OMM.Shared.Models.Phase5.InquiryPurpose", b =>
                 {
                     b.Property<string>("Code")
@@ -2873,6 +2999,48 @@ namespace OMM.Public.Data.Migrations
                     b.ToTable("InquiryRawMessage", "public");
                 });
 
+            modelBuilder.Entity("OMM.Shared.Models.Phase5.InquirySelectionEvent", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<long>("InquirySessionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("InquiryTurnId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("MetadataJson")
+                        .HasColumnType("jsonb");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PurposeCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("SelectionKey")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InquiryTurnId");
+
+                    b.HasIndex("InquirySessionId", "OccurredAt");
+
+                    b.ToTable("InquirySelectionEvent", "public");
+                });
+
             modelBuilder.Entity("OMM.Shared.Models.Phase5.InquirySession", b =>
                 {
                     b.Property<long>("Id")
@@ -2918,6 +3086,50 @@ namespace OMM.Public.Data.Migrations
                     b.HasIndex("UserId", "StartedAt");
 
                     b.ToTable("InquirySession", "public");
+                });
+
+            modelBuilder.Entity("OMM.Shared.Models.Phase5.InquiryTelemetryEvent", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long?>("InquirySessionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PayloadJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("Stage")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpiresAt");
+
+                    b.HasIndex("InquirySessionId");
+
+                    b.HasIndex("EventType", "OccurredAt");
+
+                    b.ToTable("InquiryTelemetryEvent", "public");
                 });
 
             modelBuilder.Entity("OMM.Shared.Models.Phase5.InquiryTurn", b =>
@@ -3072,6 +3284,232 @@ namespace OMM.Public.Data.Migrations
                             t.HasCheckConstraint("CK_MemberSubscription_Slot", "(\"Status\" = 'Active' AND \"EntitlementSlot\" = 'Current') OR (\"Status\" = 'Scheduled' AND \"EntitlementSlot\" = 'Scheduled') OR (\"Status\" = 'Suspended' AND \"EntitlementSlot\" IN ('Current','Scheduled')) OR (\"Status\" IN ('Expired','Cancelled','Terminated') AND \"EntitlementSlot\" IS NULL)");
 
                             t.HasCheckConstraint("CK_MemberSubscription_Status", "\"Status\" IN ('Scheduled','Active','Suspended','Expired','Cancelled','Terminated')");
+                        });
+                });
+
+            modelBuilder.Entity("OMM.Shared.Models.Phase5.Phase5EventTypeRule", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
+
+                    b.Property<DateTimeOffset>("EffectiveFrom")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("EffectiveTo")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsSensitive")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code", "Version")
+                        .IsUnique();
+
+                    b.HasIndex("IsActive", "EffectiveFrom", "EffectiveTo");
+
+                    b.ToTable("Phase5EventTypeRule", "public");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Code = "RATE_CHANGE",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 10, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            DisplayName = "Interest-rate change",
+                            EffectiveFrom = new DateTimeOffset(new DateTime(2026, 10, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            IsActive = true,
+                            IsSensitive = false,
+                            Version = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Code = "COMMODITY_MOVE",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 10, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            DisplayName = "Commodity price movement",
+                            EffectiveFrom = new DateTimeOffset(new DateTime(2026, 10, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            IsActive = true,
+                            IsSensitive = false,
+                            Version = 1
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Code = "GOVERNANCE_EVENT",
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 10, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            DisplayName = "Governance or regulatory event",
+                            EffectiveFrom = new DateTimeOffset(new DateTime(2026, 10, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            IsActive = true,
+                            IsSensitive = true,
+                            Version = 1
+                        });
+                });
+
+            modelBuilder.Entity("OMM.Shared.Models.Phase5.Phase5ImpactRule", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Assumptions")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedByUserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Direction")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTimeOffset>("EffectiveFrom")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("EffectiveTo")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("EventTypeRuleId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("MalaysiaRelevant")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("SourceEntityKey")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
+
+                    b.Property<string>("SourceEntityType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<string>("Strength")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("TargetEntityKey")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
+
+                    b.Property<string>("TargetEntityType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<string>("TimeHorizon")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("TransmissionMechanism")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsActive", "EffectiveFrom", "EffectiveTo");
+
+                    b.HasIndex("EventTypeRuleId", "SourceEntityType", "SourceEntityKey", "TargetEntityType", "TargetEntityKey", "Version")
+                        .IsUnique();
+
+                    b.ToTable("Phase5ImpactRule", "public");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1L,
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 10, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedByUserId = "system",
+                            Direction = "Mixed",
+                            EffectiveFrom = new DateTimeOffset(new DateTime(2026, 10, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            EventTypeRuleId = 1,
+                            IsActive = true,
+                            MalaysiaRelevant = true,
+                            SourceEntityKey = "POLICY_RATE",
+                            SourceEntityType = "Rate",
+                            Strength = "Moderate",
+                            TargetEntityKey = "BANKING",
+                            TargetEntityType = "Sector",
+                            TimeHorizon = "MediumTerm",
+                            TransmissionMechanism = "Funding cost and credit demand",
+                            Version = 1
+                        },
+                        new
+                        {
+                            Id = 2L,
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 10, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedByUserId = "system",
+                            Direction = "Positive",
+                            EffectiveFrom = new DateTimeOffset(new DateTime(2026, 10, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            EventTypeRuleId = 2,
+                            IsActive = true,
+                            MalaysiaRelevant = true,
+                            SourceEntityKey = "CRUDE_PALM_OIL",
+                            SourceEntityType = "Commodity",
+                            Strength = "Moderate",
+                            TargetEntityKey = "PLANTATION",
+                            TargetEntityType = "Sector",
+                            TimeHorizon = "ShortTerm",
+                            TransmissionMechanism = "Export revenue and margin",
+                            Version = 1
+                        },
+                        new
+                        {
+                            Id = 3L,
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 10, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedByUserId = "system",
+                            Direction = "Negative",
+                            EffectiveFrom = new DateTimeOffset(new DateTime(2026, 10, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            EventTypeRuleId = 3,
+                            IsActive = true,
+                            MalaysiaRelevant = true,
+                            SourceEntityKey = "REGULATORY_ACTION",
+                            SourceEntityType = "Event",
+                            Strength = "Material",
+                            TargetEntityKey = "EXPOSURE_REVIEW",
+                            TargetEntityType = "Portfolio",
+                            TimeHorizon = "ShortTerm",
+                            TransmissionMechanism = "Uncertainty and valuation sensitivity",
+                            Version = 1
                         });
                 });
 
@@ -3910,6 +4348,29 @@ namespace OMM.Public.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("OMM.Shared.Models.Phase5.InquiryEntityLink", b =>
+                {
+                    b.HasOne("OMM.Shared.Models.Phase5.InquirySession", null)
+                        .WithMany()
+                        .HasForeignKey("InquirySessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("OMM.Shared.Models.Phase5.InquiryTurn", null)
+                        .WithMany()
+                        .HasForeignKey("InquiryTurnId")
+                        .OnDelete(DeleteBehavior.SetNull);
+                });
+
+            modelBuilder.Entity("OMM.Shared.Models.Phase5.InquiryOutcome", b =>
+                {
+                    b.HasOne("OMM.Shared.Models.Phase5.InquirySession", null)
+                        .WithMany()
+                        .HasForeignKey("InquirySessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("OMM.Shared.Models.Phase5.InquiryRawMessage", b =>
                 {
                     b.HasOne("OMM.Shared.Models.Phase5.InquiryTurn", null)
@@ -3919,11 +4380,33 @@ namespace OMM.Public.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("OMM.Shared.Models.Phase5.InquirySelectionEvent", b =>
+                {
+                    b.HasOne("OMM.Shared.Models.Phase5.InquirySession", null)
+                        .WithMany()
+                        .HasForeignKey("InquirySessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("OMM.Shared.Models.Phase5.InquiryTurn", null)
+                        .WithMany()
+                        .HasForeignKey("InquiryTurnId")
+                        .OnDelete(DeleteBehavior.SetNull);
+                });
+
             modelBuilder.Entity("OMM.Shared.Models.Phase5.InquirySession", b =>
                 {
                     b.HasOne("OMM.Public.Data.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+                });
+
+            modelBuilder.Entity("OMM.Shared.Models.Phase5.InquiryTelemetryEvent", b =>
+                {
+                    b.HasOne("OMM.Shared.Models.Phase5.InquirySession", null)
+                        .WithMany()
+                        .HasForeignKey("InquirySessionId")
                         .OnDelete(DeleteBehavior.SetNull);
                 });
 
@@ -3953,6 +4436,15 @@ namespace OMM.Public.Data.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.SetNull);
+                });
+
+            modelBuilder.Entity("OMM.Shared.Models.Phase5.Phase5ImpactRule", b =>
+                {
+                    b.HasOne("OMM.Shared.Models.Phase5.Phase5EventTypeRule", null)
+                        .WithMany()
+                        .HasForeignKey("EventTypeRuleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("OMM.Shared.Models.Phase5.SubscriptionChangeEvent", b =>

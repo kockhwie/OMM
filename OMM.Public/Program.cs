@@ -1,5 +1,7 @@
+﻿using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
@@ -41,7 +43,8 @@ builder.Services.AddScoped<PublicMemberMigrationService>();
 builder.Services.AddScoped<ISubscriptionDbContextFactory, PublicSubscriptionDbContextFactory>();
 builder.Services.AddScoped<IInquiryCaptureService, InquiryCaptureService>();
 builder.Services.AddScoped<IInquiryAnalyticsService, InquiryAnalyticsService>();
-builder.Services.AddSharedInquiryServices(builder.Configuration, builder.Environment);
+// NOTE: AddSharedInquiryServices is called after AddDbContextFactory<ApplicationDbContext>
+// (below) so that PersistKeysToDbContext<ApplicationDbContext> can resolve the context.
 builder.Services.AddSharedSubscriptionServices();
 builder.Services.AddSharedPromptServices();
 builder.Services.AddScoped<ISubscriptionNotificationDispatcher, PublicSubscriptionNotificationDispatcher>();
@@ -98,6 +101,17 @@ builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
             errorCodesToAdd: null)));
 builder.Services.AddSafeNpgsqlDataSource(connectionString);
 builder.Services.AddDatabaseAvailabilityMonitor();
+
+// Register inquiry services after ApplicationDbContext is registered so that
+// PersistKeysToDbContext<ApplicationDbContext> can locate the context in DI.
+// On Render Docker (free tier), the container filesystem is ephemeral � keys survive
+// restarts/redeploys because they are stored in the shared PostgreSQL "DataProtectionKeys" table.
+// Both OMM.Public (writes encrypted inquiry messages) and OMM.Admin (decrypts them) share
+// the same key ring via DB, with no mounted disk required.
+builder.Services.AddSharedInquiryServices(
+    builder.Configuration,
+    builder.Environment,
+    configureKeyPersistence: dp => dp.PersistKeysToDbContext<ApplicationDbContext>());
 builder.Services.AddOptions<StockLookupOptions>()
     .Bind(builder.Configuration.GetSection("StockLookup"))
     .Validate(options => options.CacheDays > 0, "StockLookup:CacheDays must be greater than zero.")

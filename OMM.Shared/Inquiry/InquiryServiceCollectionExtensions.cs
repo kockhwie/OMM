@@ -12,7 +12,8 @@ public static class InquiryServiceCollectionExtensions
     public static IServiceCollection AddSharedInquiryServices(
         this IServiceCollection services,
         IConfiguration configuration,
-        IHostEnvironment environment)
+        IHostEnvironment environment,
+        Action<IDataProtectionBuilder>? configureKeyPersistence = null)
     {
         var keyRingPath = configuration["Inquiry:DataProtection:KeyRingPath"];
         var certificatePath = configuration["Inquiry:DataProtection:KeyEncryptionCertificatePath"];
@@ -28,27 +29,39 @@ public static class InquiryServiceCollectionExtensions
             .Select(section => section.Value)
             .ToArray();
 
-        var requiresSharedProductionKeys = environment.IsProduction()
-            || (!environment.IsDevelopment() && !string.Equals(environment.EnvironmentName, "Integration", StringComparison.OrdinalIgnoreCase));
-        if (requiresSharedProductionKeys && (string.IsNullOrWhiteSpace(keyRingPath) || string.IsNullOrWhiteSpace(certificatePath)))
+        var requireStrictCertificate = configuration.GetValue<bool>("Inquiry:DataProtection:RequireStrictCertificate", false);
+        var hasCertificate = !string.IsNullOrWhiteSpace(certificatePath) && File.Exists(certificatePath);
+
+        if (requireStrictCertificate && !hasCertificate)
         {
             throw new InvalidOperationException(
-                "Production inquiry encryption requires a shared durable Data Protection key-ring path and a key-encryption certificate. Configure Inquiry:DataProtection settings for both applications.");
+                "Production inquiry encryption requires a shared durable Data Protection key-ring path and an existing key-encryption certificate. Configure Inquiry:DataProtection settings for both applications.");
         }
 
         var dataProtection = services.AddDataProtection()
-            .SetApplicationName($"OMMv2.InquiryMessages.{environment.EnvironmentName}");
+            .SetApplicationName("OMMv2.InquiryMessages");
 
         if (!string.IsNullOrWhiteSpace(keyRingPath))
         {
+            // Explicit filesystem key ring (e.g. mounted Render Disk or local dev override).
             Directory.CreateDirectory(keyRingPath);
             dataProtection = dataProtection.PersistKeysToFileSystem(new DirectoryInfo(keyRingPath));
         }
+        else if (configureKeyPersistence is not null)
+        {
+            // Caller-provided persistence (e.g. PersistKeysToDbContext<ApplicationDbContext>()).
+            // This is the recommended path for Render Docker where the filesystem is ephemeral —
+            // keys are stored in PostgreSQL so they survive restarts and redeploys.
+            configureKeyPersistence(dataProtection);
+        }
+        // else: no key ring configured → ASP.NET Core uses default ephemeral in-memory keys.
+        // Acceptable for local development / integration tests; not recommended for production
+        // as keys are lost on restart and encrypted inquiry messages become unreadable.
 
-        if (!string.IsNullOrWhiteSpace(certificatePath))
+        if (hasCertificate)
         {
             var certificate = X509CertificateLoader.LoadPkcs12FromFile(
-                certificatePath,
+                certificatePath!,
                 certificatePassword,
                 X509KeyStorageFlags.EphemeralKeySet);
             if (!certificate.HasPrivateKey)
@@ -64,6 +77,7 @@ public static class InquiryServiceCollectionExtensions
             if (previousCertificatePaths.Length > 0)
             {
                 var previousCertificates = previousCertificatePaths
+                    .Where(File.Exists)
                     .Select((path, index) => X509CertificateLoader.LoadPkcs12FromFile(
                         path,
                         previousCertificatePasswords[index],

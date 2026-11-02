@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using OMM.Shared.DecisionSupport;
 using OMM.Shared.Models;
@@ -7,8 +8,15 @@ using OMM.Shared.Subscription;
 
 namespace OMM.Admin.Data;
 
-public class MasterDataDbContext(DbContextOptions<MasterDataDbContext> options) : DbContext(options), ISubscriptionDbContext
+// MasterDataDbContext implements IDataProtectionKeyContext so that OMM.Admin can read
+// the same DataProtectionKeys table that OMM.Public writes to. Both apps must share the
+// same key ring to encrypt (Public) and decrypt (Admin) inquiry raw messages.
+// The table lives in the public PostgreSQL schema alongside all other Phase 5 tables.
+public class MasterDataDbContext(DbContextOptions<MasterDataDbContext> options) : DbContext(options), ISubscriptionDbContext, IDataProtectionKeyContext
 {
+    // Data Protection key ring — shared with OMM.Public via the public schema DataProtectionKeys table.
+    public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
+
     public DbSet<Country> Countries => Set<Country>();
     public DbSet<Exchange> Exchanges => Set<Exchange>();
     public DbSet<Market> Markets => Set<Market>();

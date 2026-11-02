@@ -1,6 +1,8 @@
+﻿using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using OMM.Admin.Components;
 using OMM.Admin.Components.Account;
@@ -92,7 +94,13 @@ builder.Services.AddScoped<IUserManagementService, UserManagementService>();
 builder.Services.AddScoped<IPublicMemberManagementService, PublicMemberManagementService>();
 builder.Services.AddScoped<IInquiryAdminService, InquiryAdminService>();
 builder.Services.AddScoped<Phase5RuleAdministrationService>();
-builder.Services.AddSharedInquiryServices(builder.Configuration, builder.Environment);
+// Register after MasterDataDbContext so PersistKeysToDbContext<MasterDataDbContext> can resolve it.
+// Both OMM.Admin and OMM.Public point to the same "DataProtectionKeys" table in PostgreSQL,
+// ensuring Admin can decrypt inquiry messages that Public encrypted — even after Render restarts.
+builder.Services.AddSharedInquiryServices(
+    builder.Configuration,
+    builder.Environment,
+    configureKeyPersistence: dp => dp.PersistKeysToDbContext<MasterDataDbContext>());
 builder.Services.AddScoped<ISubscriptionDbContextFactory, AdminSubscriptionDbContextFactory>();
 builder.Services.AddSharedSubscriptionServices();
 builder.Services.AddSharedPromptServices();

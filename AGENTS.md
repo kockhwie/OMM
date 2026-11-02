@@ -98,3 +98,24 @@ For new or refactored Public forms, follow `docs/ui-form-standards.md` and reuse
   2. **Middle**: Full-width description text (spanning 100% of card width, no horizontal gutters)
   3. **Bottom**: Action buttons (e.g., `[Sign in]`, `[Upgrade]`, or action links)
 
+
+---
+
+## Dual Environment Standard: Staging (Local Laptop) vs. Production (Render Hosting)
+
+All future approaches, architectural patterns, services, and code MUST seamlessly support both:
+
+1. **Staging / Local Development (Laptop)**:
+   - Lightweight, local, and zero-friction.
+   - Must run without requiring enterprise certificates, cloud key vaults, or shared network disk mounts.
+   - Use safe local/ephemeral fallbacks (e.g., local storage, default data protection).
+2. **Production (Render Hosting Server)**:
+   - Containerized web service environment where shell/terminal access may not be available.
+   - Filesystem may be container-ephemeral unless a Render persistent disk is explicitly attached.
+   - **Never throw a fatal startup exception** if optional external files (e.g., encryption `.pfx` certificates or physical disk paths) are absent, unless explicitly opted in via a strict configuration flag (e.g., `RequireStrictCertificate = true`).
+   - Must configure gracefully from standard environment variables (Render Dashboard UI friendly — double underscore `__` for nested keys).
+
+**Pattern to follow for optional production-only infrastructure** (e.g., data protection, key rings, certificates):
+- Default behaviour: safe ephemeral/local fallback that works on both environments.
+- Optional strict mode: throw only when administrator explicitly sets `RequireStrict* = true`.
+- Always check if a file/path exists before attempting to load it (do not crash on missing optional files).

@@ -28,3 +28,13 @@ agent:
     - run: curl https://data.jsdelivr.com/v1/packages/npm/@tabler/icons-webfont
 ```
 *Feel free to delete or expand any of the sections above. The file exists only to give you a clean starting point for future customizations.*
+
+
+## Rule-007 — Dual Environment Standard (Staging & Production)
+
+All code, services, security features, and infrastructure helpers MUST work seamlessly in both:
+1. **Staging (local laptop)**: zero-friction, no certificates or cloud mounts required, safe ephemeral fallbacks.
+2. **Production (Render hosting)**: container environment — no shell access, possibly ephemeral filesystem.
+   - Never crash startup on missing optional files (e.g., `.pfx` certificates).
+   - Only throw when `RequireStrict* = true` is explicitly configured.
+   - Use double-underscore `__` env var naming for nested configuration keys (Render Dashboard friendly).

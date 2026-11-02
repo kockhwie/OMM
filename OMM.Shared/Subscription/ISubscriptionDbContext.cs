@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using OMM.Shared.Models;
+using OMM.Shared.Models.MasterData;
 using OMM.Shared.Models.Phase5;
 
 namespace OMM.Shared.Subscription;
@@ -19,6 +20,11 @@ public interface ISubscriptionDbContext : IAsyncDisposable, IDisposable
     DbSet<SystemSetting> SystemSettings { get; }
     DbSet<InquirySession> InquirySessions { get; }
     DbSet<InquiryTelemetryEvent> InquiryTelemetryEvents { get; }
+    DbSet<Country> Countries { get; }
+    DbSet<Sector> Sectors { get; }
+    DbSet<Stock> Stocks { get; }
+    DbSet<Phase5EventTypeRule> Phase5EventTypeRules { get; }
+    DbSet<Phase5ImpactRule> Phase5ImpactRules { get; }
     DatabaseFacade Database { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

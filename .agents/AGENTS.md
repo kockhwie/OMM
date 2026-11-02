@@ -38,3 +38,10 @@ All code, services, security features, and infrastructure helpers MUST work seam
    - Never crash startup on missing optional files (e.g., `.pfx` certificates).
    - Only throw when `RequireStrict* = true` is explicitly configured.
    - Use double-underscore `__` env var naming for nested configuration keys (Render Dashboard friendly).
+
+
+## Rule-008 — EF Core Migration Standard & Desync Prevention
+
+- **Never create or hand-craft EF migration files manually**: Always use `dotnet ef migrations add <Name> --project OMM.Public --startup-project OMM.Public` so that `.cs`, `.Designer.cs`, and `ApplicationDbContextModelSnapshot.cs` remain 100% in sync.
+- **Never modify an already-scaffolded or applied migration file**: If new tables or columns are needed, always generate a new additive migration (`dotnet ef migrations add ...`). Modifying an existing migration file causes production to skip table creation because its ID is already logged in `__EFMigrationsHistory`.
+- **Always commit the migration trio together**: `<Migration>.cs`, `<Migration>.Designer.cs`, and `ApplicationDbContextModelSnapshot.cs`.

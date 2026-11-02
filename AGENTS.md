@@ -119,3 +119,25 @@ All future approaches, architectural patterns, services, and code MUST seamlessl
 - Default behaviour: safe ephemeral/local fallback that works on both environments.
 - Optional strict mode: throw only when administrator explicitly sets `RequireStrict* = true`.
 - Always check if a file/path exists before attempting to load it (do not crash on missing optional files).
+
+---
+
+## EF Core Schema Migration Standard & Desync Prevention Rule
+
+To prevent database schema desynchronization between staging, production, and EF migration history:
+
+1. **Always generate migrations via CLI tooling — never create or hand-craft migration files manually**:
+   - Run `dotnet ef migrations add <Name> --project OMM.Public --startup-project OMM.Public`.
+   - This automatically creates the matching `<Migration>.Designer.cs` and updates `ApplicationDbContextModelSnapshot.cs`. Without the Designer file and snapshot, EF Core's runtime runner (`MigrateAsync()`) and migration history table (`__EFMigrationsHistory`) will silently skip or desynchronize.
+2. **Never modify or delete statements from an already-scaffolded or applied migration**:
+   - If a schema needs changes or additions after a migration has been generated or applied to any environment, **always add a new additive migration** (`dotnet ef migrations add <NextStep>`).
+   - Editing a migration file after its ID is already registered in `__EFMigrationsHistory` causes production to mark the migration as complete while skipping the edited changes, resulting in fatal `relation does not exist` errors.
+3. **Rollback protocol when a migration must be discarded before deployment**:
+   - If a migration was applied locally and needs to be undone, always use the formal EF rollback sequence:
+     1. Revert DB state: `dotnet ef database update <PreviousMigration> --project OMM.Public`
+     2. Remove migration files & snapshot update: `dotnet ef migrations remove --project OMM.Public`
+4. **Always commit the trio together**:
+   - Every migration must be committed with all 3 parts:
+     1. `<Timestamp>_<Name>.cs`
+     2. `<Timestamp>_<Name>.Designer.cs`
+     3. `ApplicationDbContextModelSnapshot.cs`

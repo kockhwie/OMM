@@ -181,6 +181,9 @@ public sealed class MasterDataResolutionService(
             if (ctry is not null) results.Add(ctry);
         }
 
+        logger.LogDebug("Resolved entities for security='{Security}', sector='{Sector}', country='{Country}'. Found {Count} entities.",
+            security, sector, country, results.Count);
+
         return results;
     }
 

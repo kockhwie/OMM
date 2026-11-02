@@ -15,6 +15,7 @@
 @inject IInquiryCaptureService InquiryCapture
 @inject IInquiryAnalyticsService InquiryAnalytics
 @inject IPhase5InquiryClassifier InquiryClassifier
+@inject IMasterDataResolutionService MasterDataResolver
 @inject IPortfolioContextProvider PortfolioContextProvider
 @attribute [Microsoft.AspNetCore.Authorization.AllowAnonymous]
 
@@ -125,9 +126,43 @@
                         {
                             <p class="mb-1">Event: @classification.EventName</p>
                         }
-                        @if (!string.IsNullOrWhiteSpace(classification.MentionedCountry) || !string.IsNullOrWhiteSpace(classification.MentionedSector) || !string.IsNullOrWhiteSpace(classification.MentionedSecurity))
+                        @if (resolvedEntities.Count > 0)
                         {
-                            <p class="mb-1">Entities: @string.Join(", ", new[] { classification.MentionedCountry, classification.MentionedSector, classification.MentionedSecurity }.Where(value => !string.IsNullOrWhiteSpace(value)))</p>
+                            <div class="mb-2">
+                                <span class="small text-muted d-block mb-1">Identified entities:</span>
+                                @foreach (var entity in resolvedEntities)
+                                {
+                                    <span class="badge @(entity.IsResolved ? "text-bg-success" : "text-bg-secondary") me-1 mb-1">
+                                        @entity.EntityType: @entity.DisplayName
+                                        @(entity.IsResolved ? $"({entity.ResolutionMethod})" : "(Unresolved)")
+                                    </span>
+                                }
+                            </div>
+                        }
+                        @if (impactEvaluation is { MatchedRules.Count: > 0 })
+                        {
+                            <div class="card bg-light border-0 p-3 mt-3 mb-2 rounded-3">
+                                <div class="fw-semibold small text-dark mb-1">Transmission pathways (Deterministic rules):</div>
+                                <ul class="mb-0 small text-muted ps-3">
+                                    @foreach (var rule in impactEvaluation.MatchedRules.Take(4))
+                                    {
+                                        <li>@rule.SourceEntityKey → @rule.TargetEntityKey via @rule.TransmissionMechanism (@rule.Direction impact)</li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+                        @if (impactEvaluation is { IsSensitiveEvent: true })
+                        {
+                            <div class="card border-warning-subtle bg-warning-subtle p-3 mt-3 mb-2 rounded-3">
+                                <span class="badge text-bg-warning align-self-start mb-1">Sensitive public-interest event</span>
+                                <div class="small text-dark">Analysis is confined to official regulatory disclosures and verified corporate facts. Speculative opinions are excluded.</div>
+                            </div>
+                        }
+                        @if (classification.SignalType == "unknown" && classification.Intent == "unknown")
+                        {
+                            <div class="alert alert-secondary mt-3 mb-2 small">
+                                This inquiry does not appear to match a recognised market event. You can continue through the structured planning flow below.
+                            </div>
                         }
                         @if (classification.MissingQuestions.Count > 0)
                         {
@@ -141,7 +176,7 @@
                     {
                         <p class="text-muted mt-2 mb-1">@classification.ErrorMessage</p>
                     }
-                    <p class="mb-0 mt-2">Classification identifies a topic for review. It does not verify the underlying event or determine an investment action.</p>
+                    <p class="mb-0 mt-2 small text-muted">Classification identifies a topic for review. It does not verify the underlying event or determine an investment action.</p>
                 </div>
                 <button class="btn btn-primary mt-4" type="button" @onclick="ContinueToPortfolioAsync" disabled="isBusy || (purposes.Count > 0 && selectedPurposes.Count == 0)">Continue</button>
             </div>
@@ -219,6 +254,8 @@
     private int turnNumber = 1;
     private int totalAiAttempts;
     private InquiryIntentResult? classification;
+    private ImpactEvaluationResult? impactEvaluation;
+    private IReadOnlyList<ResolvedEntity> resolvedEntities = [];
     private int currentStage = 1;
     private bool isCompleted;
     private PortfolioSnapshot? portfolioSnapshot;
@@ -317,11 +354,28 @@
 
             if (classification is { IsAvailable: true } classified)
             {
-                var links = new List<InquiryEntityLinkCapture>();
-                AddLink(links, sessionId.Value, "Stock", classified.MentionedSecurity, classified.Confidence);
-                AddLink(links, sessionId.Value, "Sector", classified.MentionedSector, classified.Confidence);
-                AddLink(links, sessionId.Value, "Country", classified.MentionedCountry, classified.Confidence);
+                resolvedEntities = await MasterDataResolver.ResolveAllAsync(
+                    classified.MentionedSecurity,
+                    classified.MentionedSector,
+                    classified.MentionedCountry);
+
+                var links = resolvedEntities.Select(entity => new InquiryEntityLinkCapture(
+                    sessionId.Value,
+                    null,
+                    entity.EntityType,
+                    entity.EntityKey,
+                    entity.DisplayName,
+                    entity.ResolutionMethod,
+                    entity.Confidence,
+                    entity.IsResolved,
+                    false)).ToList();
+
                 await InquiryAnalytics.RecordEntityLinksAsync(links);
+
+                impactEvaluation = await MasterDataResolver.EvaluateImpactRulesAsync(
+                    classified.SignalType,
+                    classified.EventName,
+                    resolvedEntities);
             }
 
             turnNumber++;
@@ -393,14 +447,6 @@
         finally
         {
             isBusy = false;
-        }
-    }
-
-    private static void AddLink(ICollection<InquiryEntityLinkCapture> links, long sessionId, string entityType, string? key, decimal confidence)
-    {
-        if (!string.IsNullOrWhiteSpace(key))
-        {
-            links.Add(new InquiryEntityLinkCapture(sessionId, null, entityType, key.Trim(), key.Trim(), "AiSuggested", confidence, false, false));
         }
     }
 }

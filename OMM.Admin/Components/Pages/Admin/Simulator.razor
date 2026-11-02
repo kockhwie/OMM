@@ -7,6 +7,7 @@
 @using OMM.Shared.Subscription
 @inject IPhase5InquiryClassifier InquiryClassifier
 @inject IPromptAdministrationService PromptAdministration
+@inject IMasterDataResolutionService MasterDataResolver
 
 <PageTitle>CrystalBall Simulator - OMM Admin</PageTitle>
 
@@ -91,6 +92,32 @@
                             <dt class="col-sm-4">Prompt</dt><dd class="col-sm-8">@(result.UsedEmergencyPrompt ? "Emergency baseline" : $"Version #{result.PromptVersionId}")</dd>
                             <dt class="col-sm-4">Attempts</dt><dd class="col-sm-8">@result.AiCallAttemptCount</dd>
                         </dl>
+                        @if (resolvedEntities.Count > 0)
+                        {
+                            <div class="mt-3 pt-3 border-top">
+                                <h6 class="fw-bold mb-2">Master Data Resolution</h6>
+                                @foreach (var entity in resolvedEntities)
+                                {
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <span class="badge @(entity.IsResolved ? "bg-success-subtle text-success" : "bg-secondary-subtle text-secondary")">@entity.EntityType</span>
+                                        <span class="small fw-semibold">@entity.DisplayName</span>
+                                        <span class="small text-muted">(@entity.ResolutionMethod · @entity.Confidence.ToString("P0"))</span>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        @if (impactEvaluation is { MatchedRules.Count: > 0 })
+                        {
+                            <div class="mt-3 pt-3 border-top">
+                                <h6 class="fw-bold mb-2">Matched Impact Rules (@(impactEvaluation.IsSensitiveEvent ? "Sensitive Event" : "Standard"))</h6>
+                                <ul class="small text-muted mb-0 ps-3">
+                                    @foreach (var rule in impactEvaluation.MatchedRules.Take(5))
+                                    {
+                                        <li>@rule.SourceEntityKey → @rule.TargetEntityKey via @rule.TransmissionMechanism (@rule.Direction impact, @rule.Strength)</li>
+                                    }
+                                </ul>
+                            </div>
+                        }
                         @if (result.MissingQuestions.Count > 0)
                         {
                             <div class="alert alert-info mt-3 mb-0"><span class="fw-semibold">Clarification:</span> @result.MissingQuestions[0]</div>
@@ -118,6 +145,8 @@
     private string? statusMessage;
     private string statusClass = "success";
     private InquiryIntentResult? result;
+    private IReadOnlyList<ResolvedEntity> resolvedEntities = [];
+    private ImpactEvaluationResult? impactEvaluation;
     private IReadOnlyList<PromptVersionDto> promptVersions = [];
 
     private string PersonaDescription => selectedPersona switch
@@ -139,6 +168,8 @@
         selectedMode = persona == "Pro" ? SubscriptionConstants.PromptModes.Pro : SubscriptionConstants.PromptModes.Standard;
         selectedPromptId = 0;
         result = null;
+        resolvedEntities = [];
+        impactEvaluation = null;
         await LoadPromptVersionsAsync();
     }
 
@@ -168,6 +199,18 @@
                 AnonymizedSessionId = $"sim-{Guid.NewGuid():N}"[..20],
                 AiCallAttemptsRemaining = 2
             });
+
+            if (result is { IsAvailable: true })
+            {
+                resolvedEntities = await MasterDataResolver.ResolveAllAsync(
+                    result.MentionedSecurity,
+                    result.MentionedSector,
+                    result.MentionedCountry);
+                impactEvaluation = await MasterDataResolver.EvaluateImpactRulesAsync(
+                    result.SignalType,
+                    result.EventName,
+                    resolvedEntities);
+            }
         }
         catch (Exception exception)
         {
@@ -187,6 +230,8 @@
         selectedPromptId = 0;
         memberText = string.Empty;
         result = null;
+        resolvedEntities = [];
+        impactEvaluation = null;
         statusMessage = null;
         _ = LoadPromptVersionsAsync();
     }

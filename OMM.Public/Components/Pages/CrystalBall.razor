@@ -17,6 +17,7 @@
 @inject IPhase5InquiryClassifier InquiryClassifier
 @inject IMasterDataResolutionService MasterDataResolver
 @inject IPortfolioContextProvider PortfolioContextProvider
+@inject NavigationManager NavigationManager
 @attribute [Microsoft.AspNetCore.Authorization.AllowAnonymous]
 
 <PageTitle>CrystalBall | OMM</PageTitle>
@@ -151,6 +152,23 @@
                                 </ul>
                             </div>
                         }
+                        @if (standardResponse is not null)
+                        {
+                            <div class="card border-primary-subtle bg-primary-subtle p-3 mt-3 mb-2 rounded-3">
+                                <span class="badge text-bg-primary mb-1">@standardResponse.Disclosure</span>
+                                <div class="fw-semibold small text-dark">@standardResponse.Title</div>
+                                <div class="small text-dark mt-1">@standardResponse.Summary</div>
+                                @if (standardResponse.Scenarios.Count > 0)
+                                {
+                                    <ul class="small text-dark mt-2 mb-0 ps-3">
+                                        @foreach (var scenario in standardResponse.Scenarios)
+                                        {
+                                            <li><strong>@scenario.Label:</strong> @scenario.ExpectedTransmission (@scenario.Uncertainty)</li>
+                                        }
+                                    </ul>
+                                }
+                            </div>
+                        }
                         @if (impactEvaluation is { IsSensitiveEvent: true })
                         {
                             <div class="card border-warning-subtle bg-warning-subtle p-3 mt-3 mb-2 rounded-3">
@@ -228,7 +246,7 @@
                 <h2 class="h4 fw-bold">Choose a next step</h2>
                 <p class="text-muted">This inquiry has not generated a recommendation. Continue with a structured pathway or finish here.</p>
                 <div class="d-flex flex-column gap-2 align-items-start">
-                    <a class="btn btn-outline-primary" href="/decision-pathway">Open Decision Pathway</a>
+                    <button class="btn btn-outline-primary" type="button" @onclick="OpenDecisionPathwayAsync">Open Decision Pathway</button>
                     <button class="btn btn-primary" type="button" @onclick="CompleteInquiryAsync" disabled="isBusy || isCompleted">@(isCompleted ? "Inquiry saved" : "Finish inquiry")</button>
                 </div>
             </div>
@@ -255,6 +273,7 @@
     private int totalAiAttempts;
     private InquiryIntentResult? classification;
     private ImpactEvaluationResult? impactEvaluation;
+    private StandardEducationalResponse? standardResponse;
     private IReadOnlyList<ResolvedEntity> resolvedEntities = [];
     private int currentStage = 1;
     private bool isCompleted;
@@ -311,6 +330,9 @@
                 FlowVersion));
 
             classification = null;
+            resolvedEntities = [];
+            impactEvaluation = null;
+            standardResponse = null;
             if (!string.IsNullOrWhiteSpace(userId) && totalAiAttempts < 6 && await SystemSettings.IsAiClassificationEnabledAsync())
             {
                 try
@@ -376,6 +398,10 @@
                     classified.SignalType,
                     classified.EventName,
                     resolvedEntities);
+                standardResponse = Phase5ResponseContracts.RenderStandard(
+                    classified,
+                    impactEvaluation,
+                    new Phase5RiskContext("Not provided", "Not provided", "Not provided", "Not provided", false, DateTimeOffset.UtcNow));
             }
 
             turnNumber++;
@@ -426,6 +452,25 @@
         }
 
         currentStage = 3;
+    }
+
+    private async Task OpenDecisionPathwayAsync()
+    {
+        if (sessionId.HasValue)
+        {
+            try
+            {
+                await InquiryCapture.CompleteSessionAsync(sessionId.Value, userId);
+                await InquiryAnalytics.RecordOutcomeAsync(new InquiryOutcomeCapture(
+                    sessionId.Value, "DecisionPathway", classification?.MissingQuestions.Count ?? 0,
+                    null, "Completed", false, true, true));
+            }
+            catch
+            {
+                // Non-fatal
+            }
+        }
+        NavigationManager.NavigateTo("/decision-pathway");
     }
 
     private async Task CompleteInquiryAsync()

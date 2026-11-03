@@ -101,7 +101,16 @@ public sealed class OnboardingService(
             return profile;
         }
 
-        var user = await db.Users.SingleAsync(item => item.Id == userId, cancellationToken);
+        var user = await db.Users
+            .SingleOrDefaultAsync(item => item.Id == userId, cancellationToken);
+        if (user is null)
+        {
+            logger.LogWarning(
+                "Authenticated Public user {UserId} was not found while creating an onboarding profile.",
+                userId);
+            throw new InvalidOperationException(
+                "Your Public account could not be found. Sign out and sign in again before continuing.");
+        }
         profile = new MinerProfileEntity
         {
             UserId = user.Id,

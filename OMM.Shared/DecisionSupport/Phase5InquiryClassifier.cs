@@ -120,11 +120,27 @@ public sealed class Phase5InquiryClassifier(
                 classification.Confidence is < 0m or > 1m || (classification.MissingQuestions?.Count ?? 0) > 1)
                 return Unavailable("The AI response failed server validation. Continue with guided questions.", prompt.Id, isEmergency, payload.AttemptCount);
 
+            var safety = Phase5InquirySafetyPolicy.Evaluate(
+                classification.SignalType,
+                classification.EventName,
+                classification.MentionedSecurity,
+                classification.MentionedSector,
+                classification.MentionedCountry,
+                classification.Intent,
+                classification.PossibleScopes,
+                classification.Confidence);
+            if (!safety.IsAllowed)
+            {
+                logger.LogInformation("Phase 5 inquiry was routed to guided fallback as irrelevant for correlation {CorrelationId}.",
+                    executionContext.CorrelationId);
+                return Unavailable(safety.Message!, prompt.Id, isEmergency, payload.AttemptCount);
+            }
+
             return new InquiryIntentResult(
                 true,
                 "Your inquiry is ready for guided review.",
                 classification.SignalType!,
-                Clean(classification.EventName, 160),
+                Clean(safety.SanitizedEventName, 160),
                 Clean(classification.MentionedSecurity, 120),
                 Clean(classification.MentionedSector, 120),
                 Clean(classification.MentionedCountry, 100),

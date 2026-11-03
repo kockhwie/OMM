@@ -30,7 +30,7 @@
         <div class="omm-card p-4 p-sm-5 shadow-sm border-top border-3 border-danger">
             <StatusMessage Message="@errorMessage" />
 
-            <EditForm EditContext="editContext" method="post" OnSubmit="LoginUser" FormName="admin-login">
+            <EditForm EditContext="editContext" method="post" OnSubmit="LoginUser" FormName="admin-login" Enhance="false">
                 <DataAnnotationsValidator />
                 <ValidationSummary class="text-danger small mb-3" role="alert" />
 

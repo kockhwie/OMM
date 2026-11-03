@@ -37,6 +37,33 @@ public sealed record InquiryTurnAdminRecord(
     string? MessageText,
     DateTimeOffset? MessageExpiresAt);
 
+public sealed record InquiryEntityLinkAdminRecord(
+    long Id,
+    string EntityType,
+    string EntityKey,
+    string? DisplayName,
+    string ResolutionMethod,
+    decimal? Confidence,
+    bool IsResolved,
+    bool UserConfirmed);
+
+public sealed record InquirySelectionAdminRecord(
+    long Id,
+    string EventType,
+    string? PurposeCode,
+    string? SelectionKey,
+    DateTimeOffset OccurredAt);
+
+public sealed record InquiryOutcomeAdminRecord(
+    string CompletionStatus,
+    string? FinalRoute,
+    int ClarificationCount,
+    string? AbandonmentPoint,
+    bool AlertCreated,
+    bool SavedAnalysis,
+    bool PathwayCompleted,
+    DateTimeOffset UpdatedAt);
+
 public sealed record InquirySessionAdminDetail(
     long Id,
     string? UserId,
@@ -47,7 +74,10 @@ public sealed record InquirySessionAdminDetail(
     DateTimeOffset StartedAt,
     DateTimeOffset? CompletedAt,
     DateTimeOffset ExpiresAt,
-    IReadOnlyList<InquiryTurnAdminRecord> Turns);
+    IReadOnlyList<InquiryTurnAdminRecord> Turns,
+    IReadOnlyList<InquiryEntityLinkAdminRecord> EntityLinks,
+    IReadOnlyList<InquirySelectionAdminRecord> Selections,
+    InquiryOutcomeAdminRecord? Outcome);
 
 public interface IInquiryAdminService
 {
@@ -272,6 +302,13 @@ public sealed class InquiryAdminService(
             sessionsDeleted = await db.InquirySessions
                 .Where(x => x.ExpiresAt <= now)
                 .ExecuteDeleteAsync(cancellationToken);
+            var telemetryDeleted = await db.InquiryTelemetryEvents
+                .Where(x => x.ExpiresAt <= now)
+                .ExecuteDeleteAsync(cancellationToken);
+            if (telemetryDeleted > 0)
+            {
+                logger.LogInformation("Inquiry retention cleanup deleted {Count} expired telemetry events.", telemetryDeleted);
+            }
         }
         else
         {
@@ -385,6 +422,44 @@ public sealed class InquiryAdminService(
             rawMessages.TryGetValue(turn.Id, out var raw) ? messageProtector.Unprotect(raw.MessageText) : null,
             raw?.ExpiresAt)).ToArray();
 
+        var entityLinks = await db.InquiryEntityLinks.AsNoTracking()
+            .Where(x => x.InquirySessionId == sessionId)
+            .OrderByDescending(x => x.Confidence)
+            .Select(x => new InquiryEntityLinkAdminRecord(
+                x.Id,
+                x.EntityType,
+                x.EntityKey,
+                x.DisplayName,
+                x.ResolutionMethod,
+                x.Confidence,
+                x.IsResolved,
+                x.UserConfirmed))
+            .ToListAsync(cancellationToken);
+
+        var selections = await db.InquirySelectionEvents.AsNoTracking()
+            .Where(x => x.InquirySessionId == sessionId)
+            .OrderBy(x => x.OccurredAt)
+            .Select(x => new InquirySelectionAdminRecord(
+                x.Id,
+                x.EventType,
+                x.PurposeCode,
+                x.SelectionKey,
+                x.OccurredAt))
+            .ToListAsync(cancellationToken);
+
+        var outcome = await db.InquiryOutcomes.AsNoTracking()
+            .Where(x => x.InquirySessionId == sessionId)
+            .Select(x => new InquiryOutcomeAdminRecord(
+                x.CompletionStatus,
+                x.FinalRoute,
+                x.ClarificationCount,
+                x.AbandonmentPoint,
+                x.AlertCreated,
+                x.SavedAnalysis,
+                x.PathwayCompleted,
+                x.UpdatedAt))
+            .SingleOrDefaultAsync(cancellationToken);
+
         return new InquirySessionAdminDetail(
             session.Id,
             session.UserId,
@@ -395,6 +470,9 @@ public sealed class InquiryAdminService(
             session.StartedAt,
             session.CompletedAt,
             session.ExpiresAt,
-            adminTurns);
+            adminTurns,
+            entityLinks,
+            selections,
+            outcome);
     }
 }

@@ -118,6 +118,45 @@
                         }
                     }
 
+                    @if (_selectedSession.Selections.Count > 0 || _selectedSession.EntityLinks.Count > 0 || _selectedSession.Outcome is not null)
+                    {
+                        <div class="card bg-light border-0 rounded-3 p-3 mb-3">
+                            <h3 class="h6 fw-bold mb-2">Phase 5 Analytics</h3>
+                            @if (_selectedSession.Selections.Count > 0)
+                            {
+                                <div class="mb-2">
+                                    <span class="small text-muted d-block mb-1">Purposes selected:</span>
+                                    @foreach (var sel in _selectedSession.Selections)
+                                    {
+                                        <span class="badge bg-primary-subtle text-primary me-1">@(sel.PurposeCode ?? sel.SelectionKey)</span>
+                                    }
+                                </div>
+                            }
+                            @if (_selectedSession.EntityLinks.Count > 0)
+                            {
+                                <div class="mb-2">
+                                    <span class="small text-muted d-block mb-1">Linked entities:</span>
+                                    @foreach (var link in _selectedSession.EntityLinks)
+                                    {
+                                        <span class="badge @(link.IsResolved ? "bg-success-subtle text-success" : "bg-secondary-subtle text-secondary") me-1">
+                                            @link.EntityType: @(link.DisplayName ?? link.EntityKey) (@link.ResolutionMethod · @(link.Confidence?.ToString("P0") ?? "—"))
+                                        </span>
+                                    }
+                                </div>
+                            }
+                            @if (_selectedSession.Outcome is not null)
+                            {
+                                <div class="small text-muted pt-2 border-top">
+                                    Status: <strong class="text-dark">@_selectedSession.Outcome.CompletionStatus</strong> ·
+                                    Route: <strong class="text-dark">@(_selectedSession.Outcome.FinalRoute ?? "Default")</strong> ·
+                                    Clarifications: @_selectedSession.Outcome.ClarificationCount ·
+                                    Saved: @(_selectedSession.Outcome.SavedAnalysis ? "Yes" : "No") ·
+                                    Pathway: @(_selectedSession.Outcome.PathwayCompleted ? "Completed" : "Not completed")
+                                </div>
+                            }
+                        </div>
+                    }
+
                     @foreach (var turn in _selectedSession.Turns)
                     {
                         <article class="border rounded-3 p-3 mb-3">

@@ -12,7 +12,8 @@ public sealed record ResolvedEntity(
     int? EntityId,
     string ResolutionMethod,
     decimal Confidence,
-    bool IsResolved);
+    bool IsResolved,
+    int? RelatedEntityId = null);
 
 public sealed record ImpactEvaluationResult(
     int? EventTypeRuleId,
@@ -44,35 +45,29 @@ public sealed class MasterDataResolutionService(
         // 1. Exact match on StockCode
         var exactStock = await db.Stocks.AsNoTracking()
             .Where(s => s.IsActive && s.StockCode == clean)
-            .Select(s => new { s.Id, s.StockCode, Name = s.ShortName_EN })
+            .Select(s => new { s.Id, s.StockCode, Name = s.ShortName_EN, s.SectorId })
             .FirstOrDefaultAsync(cancellationToken);
 
         if (exactStock is not null)
         {
-            return new ResolvedEntity("Stock", exactStock.StockCode, exactStock.Name, exactStock.Id, "ExactCode", 1.0m, true);
+            return new ResolvedEntity("Stock", exactStock.StockCode, exactStock.Name, exactStock.Id, "ExactCode", 1.0m, true,
+                RelatedEntityId: exactStock.SectorId);
         }
 
-        // 2. Exact match on ShortName_EN
-        var exactNameStock = await db.Stocks.AsNoTracking()
-            .Where(s => s.IsActive && EF.Functions.ILike(s.ShortName_EN, clean))
-            .Select(s => new { s.Id, s.StockCode, Name = s.ShortName_EN })
-            .FirstOrDefaultAsync(cancellationToken);
+        // Names are accepted only on an exact match. Substring matches can resolve
+        // a short/common word to an unrelated listed company.
+        var exactNameStocks = await db.Stocks.AsNoTracking()
+            .Where(s => s.IsActive && (EF.Functions.ILike(s.ShortName_EN, clean) ||
+                (s.LegalName_EN != null && EF.Functions.ILike(s.LegalName_EN, clean))))
+            .Select(s => new { s.Id, s.StockCode, Name = s.ShortName_EN, s.SectorId })
+            .Take(2)
+            .ToListAsync(cancellationToken);
 
-        if (exactNameStock is not null)
+        if (exactNameStocks.Count == 1)
         {
-            return new ResolvedEntity("Stock", exactNameStock.StockCode, exactNameStock.Name, exactNameStock.Id, "ExactName", 0.95m, true);
-        }
-
-        // 3. Substring match on ShortName_EN or LegalName_EN
-        var pattern = $"%{clean}%";
-        var fuzzyStock = await db.Stocks.AsNoTracking()
-            .Where(s => s.IsActive && (EF.Functions.ILike(s.ShortName_EN, pattern) || (s.LegalName_EN != null && EF.Functions.ILike(s.LegalName_EN, pattern))))
-            .Select(s => new { s.Id, s.StockCode, Name = s.ShortName_EN })
-            .FirstOrDefaultAsync(cancellationToken);
-
-        if (fuzzyStock is not null)
-        {
-            return new ResolvedEntity("Stock", fuzzyStock.StockCode, fuzzyStock.Name, fuzzyStock.Id, "NameMatch", 0.85m, true);
+            var stock = exactNameStocks[0];
+            return new ResolvedEntity("Stock", stock.StockCode, stock.Name, stock.Id, "ExactName", 0.95m, true,
+                RelatedEntityId: stock.SectorId);
         }
 
         // 4. Retain unresolved entity
@@ -97,30 +92,17 @@ public sealed class MasterDataResolutionService(
             return new ResolvedEntity("Sector", exactSector.SectorCode, exactSector.Name, exactSector.Id, "ExactCode", 1.0m, true);
         }
 
-        // 2. Exact or substring match on SectorName_EN
-        var pattern = $"%{clean}%";
-        var nameSector = await db.Sectors.AsNoTracking()
-            .Where(s => s.IsActive && EF.Functions.ILike(s.SectorName_EN, pattern))
+        // Avoid fuzzy sector matches: a partial name is not an approved link.
+        var namedSectors = await db.Sectors.AsNoTracking()
+            .Where(s => s.IsActive && EF.Functions.ILike(s.SectorName_EN, clean))
             .Select(s => new { s.Id, s.SectorCode, Name = s.SectorName_EN })
-            .FirstOrDefaultAsync(cancellationToken);
+            .Take(2)
+            .ToListAsync(cancellationToken);
 
-        if (nameSector is not null)
+        if (namedSectors.Count == 1)
         {
-            return new ResolvedEntity("Sector", nameSector.SectorCode, nameSector.Name, nameSector.Id, "NameMatch", 0.9m, true);
-        }
-
-        // 3. Fallback for common aliases (e.g. Banking -> Financial Services)
-        if (clean.Contains("bank", StringComparison.OrdinalIgnoreCase) || clean.Contains("finance", StringComparison.OrdinalIgnoreCase))
-        {
-            var finSector = await db.Sectors.AsNoTracking()
-                .Where(s => s.IsActive && EF.Functions.ILike(s.SectorName_EN, "%financial%"))
-                .Select(s => new { s.Id, s.SectorCode, Name = s.SectorName_EN })
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (finSector is not null)
-            {
-                return new ResolvedEntity("Sector", finSector.SectorCode, finSector.Name, finSector.Id, "AliasMatch", 0.85m, true);
-            }
+            var sector = namedSectors[0];
+            return new ResolvedEntity("Sector", sector.SectorCode, sector.Name, sector.Id, "ExactName", 0.95m, true);
         }
 
         return new ResolvedEntity("Sector", clean, clean, null, "Unresolved", 0.5m, false);
@@ -131,25 +113,18 @@ public sealed class MasterDataResolutionService(
         if (string.IsNullOrWhiteSpace(rawText)) return null;
         var clean = rawText.Trim();
 
-        // Common Malaysia alias resolution
-        if (clean.Equals("Malaysia", StringComparison.OrdinalIgnoreCase) ||
-            clean.Equals("MY", StringComparison.OrdinalIgnoreCase) ||
-            clean.Equals("MYS", StringComparison.OrdinalIgnoreCase) ||
-            clean.Equals("Malaysian", StringComparison.OrdinalIgnoreCase))
-        {
-            return new ResolvedEntity("Country", "MY", "Malaysia", null, "ExactAlias", 1.0m, true);
-        }
-
         await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
         var country = await db.Countries.AsNoTracking()
-            .Where(c => c.IsActive && (c.CountryCode == clean || EF.Functions.ILike(c.CountryName_EN, clean)))
+            .Where(c => c.IsActive && (EF.Functions.ILike(c.CountryCode, clean) || EF.Functions.ILike(c.CountryName_EN, clean)))
             .Select(c => new { c.Id, c.CountryCode, Name = c.CountryName_EN })
-            .FirstOrDefaultAsync(cancellationToken);
+            .Take(2)
+            .ToListAsync(cancellationToken);
 
-        if (country is not null)
+        if (country.Count == 1)
         {
-            return new ResolvedEntity("Country", country.CountryCode, country.Name, country.Id, "ExactMatch", 1.0m, true);
+            var resolved = country[0];
+            return new ResolvedEntity("Country", resolved.CountryCode, resolved.Name, resolved.Id, "ExactMatch", 1.0m, true);
         }
 
         return new ResolvedEntity("Country", clean, clean, null, "Unresolved", 0.5m, false);
@@ -181,6 +156,33 @@ public sealed class MasterDataResolutionService(
             if (ctry is not null) results.Add(ctry);
         }
 
+        var resolvedStock = results.FirstOrDefault(entity => entity.EntityType == "Stock" && entity.IsResolved);
+        var resolvedSector = results.FirstOrDefault(entity => entity.EntityType == "Sector" && entity.IsResolved);
+        if (resolvedStock?.RelatedEntityId is int stockSectorId && resolvedSector?.EntityId is int mentionedSectorId &&
+            stockSectorId != mentionedSectorId)
+        {
+            var sectorIndex = results.IndexOf(resolvedSector);
+            results[sectorIndex] = resolvedSector with
+            {
+                IsResolved = false,
+                ResolutionMethod = "UnverifiedStockRelationship",
+                Confidence = 0.5m
+            };
+        }
+        else if (resolvedStock?.RelatedEntityId is int relatedSectorId && resolvedSector is null)
+        {
+            await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+            var relatedSector = await db.Sectors.AsNoTracking()
+                .Where(item => item.Id == relatedSectorId && item.IsActive)
+                .Select(item => new { item.Id, item.SectorCode, Name = item.SectorName_EN })
+                .SingleOrDefaultAsync(cancellationToken);
+            if (relatedSector is not null)
+            {
+                results.Add(new ResolvedEntity("Sector", relatedSector.SectorCode, relatedSector.Name,
+                    relatedSector.Id, "MasterDataRelationship", 1.0m, true));
+            }
+        }
+
         logger.LogDebug("Resolved entities for security='{Security}', sector='{Sector}', country='{Country}'. Found {Count} entities.",
             security, sector, country, results.Count);
 
@@ -195,20 +197,28 @@ public sealed class MasterDataResolutionService(
     {
         await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
-        // 1. Locate matching active event type rule
+        // Match event taxonomy by exact code/name only.
+        // Substring searches can silently select the wrong taxonomy row.
         Phase5EventTypeRule? matchedEventType = null;
         if (!string.IsNullOrWhiteSpace(eventName))
         {
-            matchedEventType = await db.Phase5EventTypeRules.AsNoTracking()
-                .Where(r => r.IsActive && (EF.Functions.ILike(r.DisplayName, $"%{eventName.Trim()}%") || EF.Functions.ILike(r.Code, $"%{eventName.Trim()}%")))
-                .FirstOrDefaultAsync(cancellationToken);
+            var cleanEventName = eventName.Trim();
+            var eventTypeMatches = await db.Phase5EventTypeRules.AsNoTracking()
+                .Where(r => r.IsActive && (EF.Functions.ILike(r.DisplayName, cleanEventName) || EF.Functions.ILike(r.Code, cleanEventName)))
+                .OrderByDescending(r => r.Version)
+                .Take(2)
+                .ToListAsync(cancellationToken);
+            if (eventTypeMatches.Count == 1) matchedEventType = eventTypeMatches[0];
         }
 
         if (matchedEventType is null && !string.IsNullOrWhiteSpace(signalType))
         {
-            matchedEventType = await db.Phase5EventTypeRules.AsNoTracking()
-                .Where(r => r.IsActive && EF.Functions.ILike(r.Code, $"%{signalType.Trim()}%"))
-                .FirstOrDefaultAsync(cancellationToken);
+            var eventTypeMatches = await db.Phase5EventTypeRules.AsNoTracking()
+                .Where(r => r.IsActive && EF.Functions.ILike(r.Code, signalType.Trim()))
+                .OrderByDescending(r => r.Version)
+                .Take(2)
+                .ToListAsync(cancellationToken);
+            if (eventTypeMatches.Count == 1) matchedEventType = eventTypeMatches[0];
         }
 
         if (matchedEventType is null)
@@ -217,8 +227,11 @@ public sealed class MasterDataResolutionService(
         }
 
         // 2. Match active impact rules for this event type
+        var now = DateTimeOffset.UtcNow;
         var activeRules = await db.Phase5ImpactRules.AsNoTracking()
-            .Where(r => r.IsActive && r.EventTypeRuleId == matchedEventType.Id)
+            .Where(r => r.IsActive && r.EventTypeRuleId == matchedEventType.Id &&
+                r.EffectiveFrom <= now && (r.EffectiveTo == null || r.EffectiveTo > now))
+            .OrderByDescending(r => r.Version)
             .ToListAsync(cancellationToken);
 
         if (resolvedEntities.Count == 0)
@@ -231,17 +244,32 @@ public sealed class MasterDataResolutionService(
                 activeRules);
         }
 
-        // 3. Filter rules that connect to the resolved entities or Malaysia
-        var entityKeys = resolvedEntities.Select(e => e.EntityKey).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var filtered = activeRules
-            .Where(r => r.MalaysiaRelevant || entityKeys.Contains(r.SourceEntityKey) || entityKeys.Contains(r.TargetEntityKey))
-            .ToList();
+        // Rules are eligible only when an endpoint matches both an approved
+        // entity type and its canonical master-data key. Malaysia relevance is
+        // metadata; it does not establish an entity relationship.
+        var resolved = resolvedEntities.Where(entity => entity.IsResolved).ToList();
+        var filtered = resolvedEntities.Count == 0
+            ? activeRules
+            : activeRules.Where(rule => resolved.Any(entity =>
+                EndpointMatches(rule.SourceEntityType, rule.SourceEntityKey, entity) ||
+                EndpointMatches(rule.TargetEntityType, rule.TargetEntityKey, entity))).ToList();
 
         return new ImpactEvaluationResult(
             matchedEventType.Id,
             matchedEventType.Code,
             matchedEventType.DisplayName,
             matchedEventType.IsSensitive,
-            filtered.Count > 0 ? filtered : activeRules);
+            filtered);
+    }
+
+    private static bool EndpointMatches(string ruleType, string ruleKey, ResolvedEntity entity)
+    {
+        var normalizedRuleType = ruleType.Trim().ToUpperInvariant() switch
+        {
+            "SECURITY" => "STOCK",
+            _ => ruleType.Trim().ToUpperInvariant()
+        };
+        return string.Equals(normalizedRuleType, entity.EntityType.Trim().ToUpperInvariant(), StringComparison.Ordinal) &&
+               string.Equals(ruleKey.Trim(), entity.EntityKey.Trim(), StringComparison.OrdinalIgnoreCase);
     }
 }

@@ -103,6 +103,10 @@ else if (onboarding is not null)
         }
     </section>
 }
+else if (!string.IsNullOrWhiteSpace(errorMessage))
+{
+    <div class="alert alert-danger" role="alert">@errorMessage</div>
+}
 
 @code {
     private OnboardingView? onboarding;
@@ -137,19 +141,29 @@ else if (onboarding is not null)
 
     protected override async Task OnInitializedAsync()
     {
-        onboarding = await OnboardingService.GetCurrentAsync();
-        countries = await ProfileService.GetCountryOptionsAsync();
-        currencyId = onboarding.CurrencyId
-            ?? onboarding.Currencies.FirstOrDefault(currency => currency.Code.Equals("MYR", StringComparison.OrdinalIgnoreCase))?.Id;
-        countryId = onboarding.CountryId
-            ?? countries.FirstOrDefault(country => country.Code.Equals("MY", StringComparison.OrdinalIgnoreCase))?.Id;
-        displayName = onboarding.DisplayName;
-        loading = false;
-
-        if (onboarding.Status == OnboardingStatus.Completed
-            && onboarding.CurrencyId.HasValue)
+        try
         {
-            Navigation.NavigateTo("/dashboard", replace: true);
+            onboarding = await OnboardingService.GetCurrentAsync();
+            countries = await ProfileService.GetCountryOptionsAsync();
+            currencyId = onboarding.CurrencyId
+                ?? onboarding.Currencies.FirstOrDefault(currency => currency.Code.Equals("MYR", StringComparison.OrdinalIgnoreCase))?.Id;
+            countryId = onboarding.CountryId
+                ?? countries.FirstOrDefault(country => country.Code.Equals("MY", StringComparison.OrdinalIgnoreCase))?.Id;
+            displayName = onboarding.DisplayName;
+
+            if (onboarding.Status == OnboardingStatus.Completed
+                && onboarding.CurrencyId.HasValue)
+            {
+                Navigation.NavigateTo("/dashboard", replace: true);
+            }
+        }
+        catch (InvalidOperationException exception)
+        {
+            errorMessage = exception.Message;
+        }
+        finally
+        {
+            loading = false;
         }
     }
 

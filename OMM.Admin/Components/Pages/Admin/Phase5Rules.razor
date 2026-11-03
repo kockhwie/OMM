@@ -32,8 +32,9 @@
         <h2 class="h5 fw-bold mb-3">Add a versioned rule</h2>
         <div class="row g-3">
             <div class="col-12 col-lg-4"><label class="form-label" for="event-code">Event code</label><input id="event-code" class="form-control" maxlength="80" @bind="eventCode" placeholder="EXPORT_RESTRICTION" /></div>
-            <div class="col-12 col-lg-5"><label class="form-label" for="event-name">Display name</label><input id="event-name" class="form-control" maxlength="160" @bind="eventName" placeholder="Regulatory export restriction" /></div>
-            <div class="col-12 col-lg-3 d-flex align-items-end"><button class="btn btn-outline-primary w-100" type="button" @onclick="CreateEventTypeAsync" disabled="@busy">Add event type</button></div>
+            <div class="col-12 col-lg-4"><label class="form-label" for="event-name">Display name</label><input id="event-name" class="form-control" maxlength="160" @bind="eventName" placeholder="Regulatory export restriction" /></div>
+            <div class="col-12 col-lg-2 d-flex align-items-end"><div class="form-check mb-2"><input id="event-sensitive" class="form-check-input" type="checkbox" @bind="eventSensitive" /><label class="form-check-label" for="event-sensitive">Sensitive event</label></div></div>
+            <div class="col-12 col-lg-2 d-flex align-items-end"><button class="btn btn-outline-primary w-100" type="button" @onclick="CreateEventTypeAsync" disabled="@busy">Add event type</button></div>
             <div class="col-12"><hr /></div>
             <div class="col-12 col-lg-4"><label class="form-label" for="rule-event">Event type</label><select id="rule-event" class="form-select" @bind="impactEventTypeId"><option value="0">Select event type</option>@foreach (var item in eventTypes) { <option value="@item.Id">@item.Code · @item.DisplayName</option> }</select></div>
             <div class="col-6 col-lg-4"><label class="form-label" for="source-type">Source type</label><input id="source-type" class="form-control" maxlength="40" @bind="sourceType" placeholder="Commodity" /></div>
@@ -63,11 +64,11 @@
                         <h2 class="h5 fw-bold mb-1">@eventType.DisplayName</h2>
                         <div class="small text-muted">@eventType.Code · version @eventType.Version · effective @eventType.EffectiveFrom.ToString("yyyy-MM-dd")</div>
                     </div>
-                    <span class="badge @(eventType.IsSensitive ? "bg-warning-subtle text-warning" : "bg-success-subtle text-success")">@(eventType.IsSensitive ? "Sensitive event" : "Standard event")</span>
+                    <div class="d-flex align-items-center gap-2"><span class="badge @(eventType.IsSensitive ? "bg-warning-subtle text-warning" : "bg-success-subtle text-success")">@(eventType.IsSensitive ? "Sensitive event" : "Standard event")</span><button class="btn btn-sm btn-outline-danger" type="button" @onclick="() => DeactivateEventTypeAsync(eventType.Id)" disabled="@busy">Retire event type</button></div>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-sm align-middle mb-0">
-                        <thead><tr><th>Source</th><th>Target</th><th>Transmission</th><th>Direction</th><th>Strength</th><th>Malaysia</th></tr></thead>
+                        <thead><tr><th>Source</th><th>Target</th><th>Transmission</th><th>Direction</th><th>Strength</th><th>Malaysia</th><th></th></tr></thead>
                         <tbody>
                             @foreach (var rule in impactRules.Where(rule => rule.EventTypeRuleId == eventType.Id))
                             {
@@ -78,6 +79,7 @@
                                     <td>@rule.Direction</td>
                                     <td>@rule.Strength</td>
                                     <td>@(rule.MalaysiaRelevant ? "Yes" : "No")</td>
+                                    <td class="text-end"><button class="btn btn-sm btn-outline-danger" type="button" @onclick="() => DeactivateImpactRuleAsync(rule.Id)" disabled="@busy">Retire</button></td>
                                 </tr>
                             }
                         </tbody>
@@ -93,6 +95,7 @@
     private List<Phase5ImpactRule> impactRules = [];
     private string eventCode = string.Empty;
     private string eventName = string.Empty;
+    private bool eventSensitive;
     private int impactEventTypeId;
     private string sourceType = string.Empty;
     private string sourceKey = string.Empty;
@@ -111,21 +114,23 @@
     protected override async Task OnInitializedAsync()
     {
         await using var db = await DbContextFactory.CreateDbContextAsync();
+        var now = DateTimeOffset.UtcNow;
         eventTypes = await db.Phase5EventTypeRules.AsNoTracking()
-            .Where(rule => rule.IsActive)
+            .Where(rule => rule.IsActive && rule.EffectiveFrom <= now && (rule.EffectiveTo == null || rule.EffectiveTo > now))
             .OrderBy(rule => rule.Code)
             .ToListAsync();
         impactRules = await db.Phase5ImpactRules.AsNoTracking()
-            .Where(rule => rule.IsActive)
+            .Where(rule => rule.IsActive && rule.EffectiveFrom <= now && (rule.EffectiveTo == null || rule.EffectiveTo > now))
             .OrderBy(rule => rule.SourceEntityType)
             .ToListAsync();
     }
 
     private async Task CreateEventTypeAsync() => await RunAdminActionAsync(async (actorId, actorName) =>
     {
-        await RuleAdministration.CreateEventTypeAsync(eventCode, eventName, false, actorId, actorName);
+        await RuleAdministration.CreateEventTypeAsync(eventCode, eventName, eventSensitive, actorId, actorName);
         eventCode = string.Empty;
         eventName = string.Empty;
+        eventSensitive = false;
         statusMessage = "Event type version created.";
         await LoadAsync();
     });
@@ -137,11 +142,32 @@
         await LoadAsync();
     });
 
+    private async Task DeactivateImpactRuleAsync(long ruleId) => await RunAdminActionAsync(async (actorId, actorName) =>
+    {
+        await RuleAdministration.DeactivateImpactRuleAsync(ruleId, actorId, actorName);
+        statusMessage = "Impact rule retired. Its history remains available in the database and audit log.";
+        await LoadAsync();
+    });
+
+    private async Task DeactivateEventTypeAsync(int eventTypeRuleId) => await RunAdminActionAsync(async (actorId, actorName) =>
+    {
+        await RuleAdministration.DeactivateEventTypeAsync(eventTypeRuleId, actorId, actorName);
+        statusMessage = "Event type retired with its active impact rules. History remains available in the database and audit log.";
+        await LoadAsync();
+    });
+
     private async Task LoadAsync()
     {
         await using var db = await DbContextFactory.CreateDbContextAsync();
-        eventTypes = await db.Phase5EventTypeRules.AsNoTracking().Where(rule => rule.IsActive).OrderBy(rule => rule.Code).ToListAsync();
-        impactRules = await db.Phase5ImpactRules.AsNoTracking().Where(rule => rule.IsActive).OrderBy(rule => rule.SourceEntityType).ToListAsync();
+        var now = DateTimeOffset.UtcNow;
+        eventTypes = await db.Phase5EventTypeRules.AsNoTracking()
+            .Where(rule => rule.IsActive && rule.EffectiveFrom <= now && (rule.EffectiveTo == null || rule.EffectiveTo > now))
+            .OrderBy(rule => rule.Code)
+            .ToListAsync();
+        impactRules = await db.Phase5ImpactRules.AsNoTracking()
+            .Where(rule => rule.IsActive && rule.EffectiveFrom <= now && (rule.EffectiveTo == null || rule.EffectiveTo > now))
+            .OrderBy(rule => rule.SourceEntityType)
+            .ToListAsync();
     }
 
     private async Task RunAdminActionAsync(Func<string, string, Task> action)

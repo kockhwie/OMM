@@ -197,14 +197,16 @@ public sealed class MasterDataResolutionService(
     {
         await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
-        // Match event taxonomy by exact code/name only.
+        // Match event taxonomy by exact code/name and effective date only.
         // Substring searches can silently select the wrong taxonomy row.
         Phase5EventTypeRule? matchedEventType = null;
+        var now = DateTimeOffset.UtcNow;
         if (!string.IsNullOrWhiteSpace(eventName))
         {
             var cleanEventName = eventName.Trim();
             var eventTypeMatches = await db.Phase5EventTypeRules.AsNoTracking()
-                .Where(r => r.IsActive && (EF.Functions.ILike(r.DisplayName, cleanEventName) || EF.Functions.ILike(r.Code, cleanEventName)))
+                .Where(r => r.IsActive && r.EffectiveFrom <= now && (r.EffectiveTo == null || r.EffectiveTo > now) &&
+                    (EF.Functions.ILike(r.DisplayName, cleanEventName) || EF.Functions.ILike(r.Code, cleanEventName)))
                 .OrderByDescending(r => r.Version)
                 .Take(2)
                 .ToListAsync(cancellationToken);
@@ -214,7 +216,8 @@ public sealed class MasterDataResolutionService(
         if (matchedEventType is null && !string.IsNullOrWhiteSpace(signalType))
         {
             var eventTypeMatches = await db.Phase5EventTypeRules.AsNoTracking()
-                .Where(r => r.IsActive && EF.Functions.ILike(r.Code, signalType.Trim()))
+                .Where(r => r.IsActive && r.EffectiveFrom <= now && (r.EffectiveTo == null || r.EffectiveTo > now) &&
+                    EF.Functions.ILike(r.Code, signalType.Trim()))
                 .OrderByDescending(r => r.Version)
                 .Take(2)
                 .ToListAsync(cancellationToken);
@@ -227,7 +230,6 @@ public sealed class MasterDataResolutionService(
         }
 
         // 2. Match active impact rules for this event type
-        var now = DateTimeOffset.UtcNow;
         var activeRules = await db.Phase5ImpactRules.AsNoTracking()
             .Where(r => r.IsActive && r.EventTypeRuleId == matchedEventType.Id &&
                 r.EffectiveFrom <= now && (r.EffectiveTo == null || r.EffectiveTo > now))
@@ -236,23 +238,23 @@ public sealed class MasterDataResolutionService(
 
         if (resolvedEntities.Count == 0)
         {
+            // Event taxonomy may be known, but without a resolved entity there
+            // is no safe endpoint to connect to a configured impact rule.
             return new ImpactEvaluationResult(
                 matchedEventType.Id,
                 matchedEventType.Code,
                 matchedEventType.DisplayName,
                 matchedEventType.IsSensitive,
-                activeRules);
+                []);
         }
 
         // Rules are eligible only when an endpoint matches both an approved
         // entity type and its canonical master-data key. Malaysia relevance is
         // metadata; it does not establish an entity relationship.
         var resolved = resolvedEntities.Where(entity => entity.IsResolved).ToList();
-        var filtered = resolvedEntities.Count == 0
-            ? activeRules
-            : activeRules.Where(rule => resolved.Any(entity =>
-                EndpointMatches(rule.SourceEntityType, rule.SourceEntityKey, entity) ||
-                EndpointMatches(rule.TargetEntityType, rule.TargetEntityKey, entity))).ToList();
+        var filtered = activeRules.Where(rule => resolved.Any(entity =>
+            EndpointMatches(rule.SourceEntityType, rule.SourceEntityKey, entity) ||
+            EndpointMatches(rule.TargetEntityType, rule.TargetEntityKey, entity))).ToList();
 
         return new ImpactEvaluationResult(
             matchedEventType.Id,

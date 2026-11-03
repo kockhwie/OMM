@@ -10,7 +10,7 @@ public static class Phase5InquirySafetyPolicy
     private static readonly string[] SensitiveTerms =
     [
         "corruption", "election", "leadership", "resignation", "governance",
-        "regulatory", "regulator", "investigation", "misconduct", " bribery"
+        "regulatory", "regulator", "investigation", "misconduct", "bribery"
     ];
 
     public static SafetyDecision Evaluate(
@@ -34,7 +34,10 @@ public static class Phase5InquirySafetyPolicy
         var isUnknown = string.Equals(signalType, "unknown", StringComparison.Ordinal) &&
                         string.Equals(intent, "unknown", StringComparison.Ordinal);
 
-        if (isUnknown && !hasEntity && !hasScope && string.IsNullOrWhiteSpace(eventName) && confidence < 0.5m)
+        // An unknown, low-confidence classification must have an approved
+        // entity or scope before it can proceed. A provider-supplied event
+        // label alone is not evidence that the inquiry is relevant.
+        if (isUnknown && !hasEntity && !hasScope && confidence < 0.5m)
         {
             return new SafetyDecision(
                 IsAllowed: false,

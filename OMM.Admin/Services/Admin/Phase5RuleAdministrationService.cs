@@ -30,15 +30,38 @@ public sealed class Phase5RuleAdministrationService(
         return rule;
     }
 
+    public async Task DeactivateEventTypeAsync(int eventTypeRuleId, string actorId, string actorName, CancellationToken cancellationToken = default)
+    {
+        await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        var eventType = await db.Phase5EventTypeRules.SingleOrDefaultAsync(item => item.Id == eventTypeRuleId && item.IsActive, cancellationToken)
+            ?? throw new InvalidOperationException("The selected event type is no longer active.");
+
+        var now = timeProvider.GetUtcNow();
+        eventType.IsActive = false;
+        eventType.EffectiveTo = now;
+        var relatedRules = await db.Phase5ImpactRules
+            .Where(item => item.EventTypeRuleId == eventTypeRuleId && item.IsActive)
+            .ToListAsync(cancellationToken);
+        foreach (var rule in relatedRules)
+        {
+            rule.IsActive = false;
+            rule.EffectiveTo = now;
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+        await auditLogger.LogAsync(actorId, actorName, "Phase5EventTypeDeactivated",
+            detail: $"EventTypeId={eventType.Id}; Code={eventType.Code}; Version={eventType.Version}; ImpactRulesRetired={relatedRules.Count}");
+    }
+
     public async Task<Phase5ImpactRule> CreateImpactRuleAsync(
         int eventTypeRuleId, string sourceType, string sourceKey, string targetType, string targetKey,
         string transmission, string direction, string strength, string timeHorizon, bool malaysiaRelevant,
         string? assumptions, string actorId, string actorName, CancellationToken cancellationToken = default)
     {
         var cleanSourceType = Required(sourceType, 40, nameof(sourceType));
-        var cleanSourceKey = Required(sourceKey, 160, nameof(sourceKey));
+        var cleanSourceKey = Required(sourceKey, 160, nameof(sourceKey)).ToUpperInvariant();
         var cleanTargetType = Required(targetType, 40, nameof(targetType));
-        var cleanTargetKey = Required(targetKey, 160, nameof(targetKey));
+        var cleanTargetKey = Required(targetKey, 160, nameof(targetKey)).ToUpperInvariant();
         var cleanTransmission = Required(transmission, 100, nameof(transmission));
         if (!Directions.Contains(direction) || !Strengths.Contains(strength) || !Horizons.Contains(timeHorizon))
             throw new ArgumentException("The rule direction, strength, or time horizon is not supported.");
@@ -63,6 +86,20 @@ public sealed class Phase5RuleAdministrationService(
         await db.SaveChangesAsync(cancellationToken);
         await auditLogger.LogAsync(actorId, actorName, "Phase5ImpactRuleCreated", detail: $"EventType={eventType.Code}; Source={cleanSourceType}:{cleanSourceKey}; Target={cleanTargetType}:{cleanTargetKey}; Version={version}");
         return rule;
+    }
+
+    public async Task DeactivateImpactRuleAsync(long ruleId, string actorId, string actorName, CancellationToken cancellationToken = default)
+    {
+        await using var db = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+        var rule = await db.Phase5ImpactRules.SingleOrDefaultAsync(item => item.Id == ruleId && item.IsActive, cancellationToken)
+            ?? throw new InvalidOperationException("The selected impact rule is no longer active.");
+
+        var now = timeProvider.GetUtcNow();
+        rule.IsActive = false;
+        rule.EffectiveTo = now;
+        await db.SaveChangesAsync(cancellationToken);
+        await auditLogger.LogAsync(actorId, actorName, "Phase5ImpactRuleDeactivated",
+            detail: $"RuleId={rule.Id}; EventTypeId={rule.EventTypeRuleId}; Version={rule.Version}; Source={rule.SourceEntityType}:{rule.SourceEntityKey}; Target={rule.TargetEntityType}:{rule.TargetEntityKey}");
     }
 
     private static string Required(string? value, int maxLength, string name)

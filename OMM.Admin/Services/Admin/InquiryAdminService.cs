@@ -64,6 +64,12 @@ public sealed record InquiryOutcomeAdminRecord(
     bool PathwayCompleted,
     DateTimeOffset UpdatedAt);
 
+public sealed record InquiryTelemetryAdminRecord(
+    long Id,
+    string EventType,
+    string? Stage,
+    DateTimeOffset OccurredAt);
+
 public sealed record InquirySessionAdminDetail(
     long Id,
     string? UserId,
@@ -77,7 +83,8 @@ public sealed record InquirySessionAdminDetail(
     IReadOnlyList<InquiryTurnAdminRecord> Turns,
     IReadOnlyList<InquiryEntityLinkAdminRecord> EntityLinks,
     IReadOnlyList<InquirySelectionAdminRecord> Selections,
-    InquiryOutcomeAdminRecord? Outcome);
+    InquiryOutcomeAdminRecord? Outcome,
+    IReadOnlyList<InquiryTelemetryAdminRecord> Telemetry);
 
 public interface IInquiryAdminService
 {
@@ -316,6 +323,13 @@ public sealed class InquiryAdminService(
             rawMessagesDeleted = expiredMessages.Count;
             db.InquiryRawMessages.RemoveRange(expiredMessages);
 
+            var expiredTelemetry = await db.InquiryTelemetryEvents.Where(x => x.ExpiresAt <= now).ToListAsync(cancellationToken);
+            db.InquiryTelemetryEvents.RemoveRange(expiredTelemetry);
+            if (expiredTelemetry.Count > 0)
+            {
+                logger.LogInformation("Inquiry retention cleanup deleted {Count} expired telemetry events.", expiredTelemetry.Count);
+            }
+
             var expiredSessions = await db.InquirySessions.Where(x => x.ExpiresAt <= now).ToListAsync(cancellationToken);
             sessionsDeleted = expiredSessions.Count;
             foreach (var s in expiredSessions)
@@ -376,7 +390,11 @@ public sealed class InquiryAdminService(
                 x.CompletedAt,
                 x.ExpiresAt
             })
-            .SingleAsync(cancellationToken);
+            .SingleOrDefaultAsync(cancellationToken);
+        if (session is null)
+        {
+            return null;
+        }
         var turns = await db.InquiryTurns.AsNoTracking()
             .Where(x => x.InquirySessionId == sessionId)
             .OrderBy(x => x.TurnNumber)
@@ -460,6 +478,12 @@ public sealed class InquiryAdminService(
                 x.UpdatedAt))
             .SingleOrDefaultAsync(cancellationToken);
 
+        var telemetry = await db.InquiryTelemetryEvents.AsNoTracking()
+            .Where(x => x.InquirySessionId == sessionId)
+            .OrderBy(x => x.OccurredAt)
+            .Select(x => new InquiryTelemetryAdminRecord(x.Id, x.EventType, x.Stage, x.OccurredAt))
+            .ToListAsync(cancellationToken);
+
         return new InquirySessionAdminDetail(
             session.Id,
             session.UserId,
@@ -473,6 +497,7 @@ public sealed class InquiryAdminService(
             adminTurns,
             entityLinks,
             selections,
-            outcome);
+            outcome,
+            telemetry);
     }
 }

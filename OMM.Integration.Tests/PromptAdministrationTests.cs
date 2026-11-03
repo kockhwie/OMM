@@ -101,6 +101,23 @@ public class PromptAdministrationTests
             logger);
     }
 
+    private static async Task DeactivateActivePromptsAsync(
+        DbContextOptions<ApplicationDbContext> options,
+        string promptModeCode)
+    {
+        await using var db = new ApplicationDbContext(options);
+        var activeVersions = await db.AiPromptVersions
+            .Where(version => version.PromptModeCode == promptModeCode && version.Status == "Active")
+            .ToListAsync();
+
+        foreach (var version in activeVersions)
+        {
+            version.Status = "Inactive";
+        }
+
+        await db.SaveChangesAsync();
+    }
+
     [Fact]
     public void EmergencyPromptCatalog_LoadsAndValidatesStandardAndProBaselines()
     {
@@ -128,6 +145,7 @@ public class PromptAdministrationTests
     {
         var (options, factory, catalog) = CreateEnvironment();
         var timeProvider = new TestTimeProvider(DateTimeOffset.UtcNow);
+        await DeactivateActivePromptsAsync(options, "STANDARD");
 
         using (var db = new ApplicationDbContext(options))
         {
@@ -159,11 +177,12 @@ public class PromptAdministrationTests
     [Fact]
     public async Task GetActivePromptAsync_FallsBackToEmergencyBaseline_WhenNoActiveVersionInDatabase()
     {
-        var (_, factory, catalog) = CreateEnvironment();
+        var (options, factory, catalog) = CreateEnvironment();
         var timeProvider = new TestTimeProvider(DateTimeOffset.UtcNow);
+        await DeactivateActivePromptsAsync(options, "STANDARD");
         var service = CreateService(factory, catalog, timeProvider);
 
-        // In DB there are no prompt versions seeded in this fresh context
+        // The seeded Standard version is inactive, so no database prompt is active for this mode.
         var prompt = await service.GetActivePromptAsync("STANDARD");
 
         Assert.NotNull(prompt);

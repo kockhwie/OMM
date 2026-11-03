@@ -118,7 +118,7 @@
                         }
                     }
 
-                    @if (_selectedSession.Selections.Count > 0 || _selectedSession.EntityLinks.Count > 0 || _selectedSession.Outcome is not null)
+                    @if (_selectedSession.Selections.Count > 0 || _selectedSession.EntityLinks.Count > 0 || _selectedSession.Outcome is not null || _selectedSession.Telemetry.Count > 0)
                     {
                         <div class="card bg-light border-0 rounded-3 p-3 mb-3">
                             <h3 class="h6 fw-bold mb-2">Phase 5 Analytics</h3>
@@ -152,6 +152,16 @@
                                     Clarifications: @_selectedSession.Outcome.ClarificationCount ·
                                     Saved: @(_selectedSession.Outcome.SavedAnalysis ? "Yes" : "No") ·
                                     Pathway: @(_selectedSession.Outcome.PathwayCompleted ? "Completed" : "Not completed")
+                                </div>
+                            }
+                            @if (_selectedSession.Telemetry.Count > 0)
+                            {
+                                <div class="small pt-2 border-top mt-2">
+                                    <span class="text-muted d-block mb-1">Telemetry events:</span>
+                                    @foreach (var telemetry in _selectedSession.Telemetry)
+                                    {
+                                        <span class="badge bg-secondary-subtle text-secondary me-1 mb-1">@telemetry.EventType@(string.IsNullOrWhiteSpace(telemetry.Stage) ? string.Empty : $" · {telemetry.Stage}") · @telemetry.OccurredAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</span>
+                                    }
                                 </div>
                             }
                         </div>

@@ -2401,6 +2401,15 @@ body.omm-stealth-mode .stealth-target:hover {
     --omm-header-line: rgb(13 14 19 / 0.08);
 }
 
+.omm-site-header .omm-logo {
+    flex: 0 0 auto;
+}
+
+.omm-site-header .omm-logo-title {
+    white-space: nowrap;
+    overflow-wrap: normal;
+}
+
 .omm-mobile-menu-toggle {
     display: inline-flex;
     align-items: center;

@@ -69,8 +69,22 @@
                         container: 'body',
                         boundary: 'viewport'
                     }));
+            },
+            hideAll: function () {
+                document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+                    const tooltip = bootstrap.Tooltip.getInstance(el);
+                    if (tooltip) {
+                        tooltip.hide();
+                    }
+                });
             }
         };
+
+        document.addEventListener('click', function (event) {
+            if (event.target instanceof Element && event.target.closest('.dashboard-sidebar [data-bs-toggle="tooltip"]')) {
+                window.ommTooltips.hideAll();
+            }
+        }, true);
 
         window.scrollActiveDecisionStep = function () {
             const el = document.querySelector('.decision-tree-node.is-current');

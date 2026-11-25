@@ -7,16 +7,16 @@
         <Logo Href="/" />
 
         <!-- desktop links -->
-        <nav class="d-none d-lg-flex align-items-center gap-1">
-            <a href="/tools" class="nav-link px-3 py-2 text-secondary fw-semibold text-nowrap" style="font-size: 0.9rem;">Financial Tools</a>
-            <a href="/decision-pathway" class="nav-link px-3 py-2 text-secondary fw-semibold text-nowrap" style="font-size: 0.9rem;">Decision Pathway</a>
-            <a href="/crystalball" class="nav-link px-3 py-2 text-secondary fw-semibold text-nowrap" style="font-size: 0.9rem;">CrystalBall</a>
-            <a href="/learn" class="nav-link px-3 py-2 text-secondary fw-semibold text-nowrap" style="font-size: 0.9rem;">Learn</a>
-            <a href="#about" class="nav-link px-3 py-2 text-secondary fw-semibold text-nowrap" style="font-size: 0.9rem;">About</a>
+        <nav class="d-none d-xxl-flex align-items-center gap-1">
+            <a href="/tools" class="nav-link px-2 py-2 text-secondary fw-semibold text-nowrap" style="font-size: 0.9rem;">Financial Tools</a>
+            <a href="/decision-pathway" class="nav-link px-2 py-2 text-secondary fw-semibold text-nowrap" style="font-size: 0.9rem;">Decision Pathway</a>
+            <a href="/crystalball" class="nav-link px-2 py-2 text-secondary fw-semibold text-nowrap" style="font-size: 0.9rem;">CrystalBall</a>
+            <a href="/learn" class="nav-link px-2 py-2 text-secondary fw-semibold text-nowrap" style="font-size: 0.9rem;">Learn</a>
+            <a href="#about" class="nav-link px-2 py-2 text-secondary fw-semibold text-nowrap" style="font-size: 0.9rem;">About</a>
         </nav>
 
         <!-- desktop auth buttons -->
-        <div class="d-none d-lg-flex align-items-center gap-2">
+        <div class="d-none d-xxl-flex align-items-center gap-2">
             <AuthorizeView>
                 <Authorized>
                     <a href="/dashboard" class="btn btn-omm-primary">
@@ -44,14 +44,14 @@
             </AuthorizeView>
         </div>
 
-        <button class="omm-mobile-menu-toggle btn btn-sm d-lg-none border-0" @onclick="ToggleMobileMenu" aria-expanded="@isMobileMenuOpen" aria-controls="mobile-navigation" aria-label="Toggle menu">
+        <button class="omm-mobile-menu-toggle btn btn-sm d-xxl-none border-0" @onclick="ToggleMobileMenu" aria-expanded="@isMobileMenuOpen" aria-controls="mobile-navigation" aria-label="Toggle menu">
             <i class="ti @(isMobileMenuOpen ? "ti-x" : "ti-menu-2") fs-3"></i>
         </button>
     </div>
 
     @if (isMobileMenuOpen)
     {
-        <div id="mobile-navigation" class="omm-mobile-menu d-lg-none">
+        <div id="mobile-navigation" class="omm-mobile-menu d-xxl-none">
             <div class="omm-mobile-menu-inner">
                 <NavLink class="omm-navlink" href="/tools" @onclick="CloseMobileMenu">Financial Tools</NavLink>
                 <NavLink class="omm-navlink" href="/decision-pathway" @onclick="CloseMobileMenu">Decision Pathway</NavLink>
